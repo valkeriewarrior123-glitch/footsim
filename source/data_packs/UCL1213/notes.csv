@@ -1,246 +1,126 @@
 fixture_id,kind,note
-UCL1213_GA01,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA01,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GA02,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA02,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GA03,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA03,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GA04,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA04,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GA05,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA05,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GA06,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA06,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GA07,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA08,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA08,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GA09,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA09,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GA10,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA10,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GA11,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA11,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GA12,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GA12,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB01,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB01,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB02,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB02,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB03,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB03,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB04,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB04,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB05,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB05,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB06,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB06,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB07,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB07,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB08,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB08,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB09,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB09,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB10,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB10,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB11,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB11,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GB12,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GB12,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC01,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC02,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC02,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC03,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC03,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC04,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC04,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC05,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC05,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC06,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC06,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC07,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC07,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC08,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC08,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC09,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC09,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC10,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC10,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC11,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC11,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GC12,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GC12,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD01,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD01,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD02,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD02,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD03,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD03,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD04,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD04,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD05,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD05,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD06,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD06,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD07,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD07,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD08,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD08,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD09,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD09,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD10,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD10,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD11,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD11,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GD12,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GD12,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GE01,generated_details,"Real score only: Juventus lineup (the nearest Serie A match's starters), scorers and goal minutes are generated, not real"
-UCL1213_GE01,scorer_unknown,Opponent goals have no scorer; minutes are placed from the half-time score
-UCL1213_GE02,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GE02,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GE03,generated_details,"Real score only: Juventus lineup (the nearest Serie A match's starters), scorers and goal minutes are generated, not real"
-UCL1213_GE03,scorer_unknown,Opponent goals have no scorer; minutes are placed from the half-time score
-UCL1213_GE04,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GE04,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GE05,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GE05,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GE06,generated_details,"Real score only: Juventus lineup (the nearest Serie A match's starters), scorers and goal minutes are generated, not real"
-UCL1213_GE06,scorer_unknown,Opponent goals have no scorer; minutes are placed from the half-time score
-UCL1213_GE07,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GE07,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GE08,generated_details,"Real score only: Juventus lineup (the nearest Serie A match's starters), scorers and goal minutes are generated, not real"
-UCL1213_GE08,scorer_unknown,Opponent goals have no scorer; minutes are placed from the half-time score
-UCL1213_GE09,generated_details,"Real score only: Juventus lineup (the nearest Serie A match's starters), scorers and goal minutes are generated, not real"
-UCL1213_GE09,scorer_unknown,Opponent goals have no scorer; minutes are placed from the half-time score
-UCL1213_GE10,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GE10,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GE11,generated_details,"Real score only: Juventus lineup (the nearest Serie A match's starters), scorers and goal minutes are generated, not real"
-UCL1213_GE11,scorer_unknown,Opponent goals have no scorer; minutes are placed from the half-time score
-UCL1213_GE12,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GE12,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF01,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF01,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF02,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF02,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF03,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF03,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF04,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF04,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF05,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF05,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF06,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF06,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF07,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF07,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF08,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF08,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF09,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF09,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF10,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF10,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF11,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF11,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GF12,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GF12,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GG01,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG01,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GG02,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG03,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG03,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GG04,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG04,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GG05,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG05,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GG06,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG06,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GG07,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG07,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GG08,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG08,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GG09,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG09,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GG10,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG10,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GG11,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG12,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GG12,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH01,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH01,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH02,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH02,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH03,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH03,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH04,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH04,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH05,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH05,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH06,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH06,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH07,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH07,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH08,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH08,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH09,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH09,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH10,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH10,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH11,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH11,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_GH12,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_GH12,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_49_1,generated_details,"Real score only: Juventus lineup (the nearest Serie A match's starters), scorers and goal minutes are generated, not real"
-UCL1213_R16_49_1,scorer_unknown,Opponent goals have no scorer; minutes are placed from the half-time score
-UCL1213_R16_50_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_50_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_51_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_51_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_52_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_52_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_53_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_53_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_54_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_54_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_55_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_55_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_56_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_56_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_51_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_51_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_52_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_52_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_49_2,generated_details,"Real score only: Juventus lineup (the nearest Serie A match's starters), scorers and goal minutes are generated, not real"
-UCL1213_R16_49_2,scorer_unknown,Opponent goals have no scorer; minutes are placed from the half-time score
-UCL1213_R16_50_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_50_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_55_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_55_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_56_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_56_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_53_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_53_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_R16_54_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_R16_54_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_QF_57_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_QF_57_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_QF_58_1,generated_details,"Real score only: Juventus lineup (the nearest Serie A match's starters), scorers and goal minutes are generated, not real"
-UCL1213_QF_58_1,scorer_unknown,Opponent goals have no scorer; minutes are placed from the half-time score
-UCL1213_QF_59_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_QF_60_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_QF_60_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_QF_59_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_QF_59_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_QF_60_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_QF_60_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_QF_57_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_QF_57_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_QF_58_2,generated_details,"Real score only: Juventus lineup (the nearest Serie A match's starters), scorers and goal minutes are generated, not real"
-UCL1213_QF_58_2,scorer_unknown,Opponent goals have no scorer; minutes are placed from the half-time score
-UCL1213_SF_61_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_SF_61_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_SF_62_1,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_SF_62_1,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_SF_62_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_SF_62_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_SF_61_2,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_SF_61_2,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
-UCL1213_F,lineup_incomplete,"Real score only: no lineups, scorers or goal minutes are known for this match"
-UCL1213_F,scorer_unknown,Goal minutes are placed from the half-time score; scorers are unknown
+UCL1213_GA01,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA02,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA03,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA04,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA05,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA06,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA07,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA08,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA09,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA10,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA11,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GA12,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB01,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB02,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB03,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB04,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB05,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB06,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB07,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB08,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB09,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB10,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB11,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GB12,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC01,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC02,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC03,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC04,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC05,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC06,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC07,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC08,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC09,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC10,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC11,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GC12,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD01,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD02,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD03,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD04,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD05,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD06,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD07,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD08,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD09,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD10,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD11,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GD12,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GE01,generated_details,"Real score, scorers and goal minutes (Wikipedia). Juventus' lineup is generated: the starters of the nearest Serie A match"
+UCL1213_GE02,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GE03,generated_details,"Real score, scorers and goal minutes (Wikipedia). Juventus' lineup is generated: the starters of the nearest Serie A match"
+UCL1213_GE04,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GE05,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GE06,generated_details,"Real score, scorers and goal minutes (Wikipedia). Juventus' lineup is generated: the starters of the nearest Serie A match"
+UCL1213_GE07,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GE08,generated_details,"Real score, scorers and goal minutes (Wikipedia). Juventus' lineup is generated: the starters of the nearest Serie A match"
+UCL1213_GE09,generated_details,"Real score, scorers and goal minutes (Wikipedia). Juventus' lineup is generated: the starters of the nearest Serie A match"
+UCL1213_GE10,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GE11,generated_details,"Real score, scorers and goal minutes (Wikipedia). Juventus' lineup is generated: the starters of the nearest Serie A match"
+UCL1213_GE12,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF01,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF02,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF03,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF04,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF05,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF06,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF07,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF08,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF09,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF10,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF11,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GF12,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG01,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG02,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG03,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG04,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG05,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG06,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG07,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG08,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG09,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG10,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG11,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GG12,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH01,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH02,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH03,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH04,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH05,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH06,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH07,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH08,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH09,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH10,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH11,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_GH12,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_49_1,generated_details,"Real score, scorers and goal minutes (Wikipedia). Juventus' lineup is generated: the starters of the nearest Serie A match"
+UCL1213_R16_50_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_51_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_52_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_53_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_54_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_55_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_56_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_51_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_52_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_49_2,generated_details,"Real score, scorers and goal minutes (Wikipedia). Juventus' lineup is generated: the starters of the nearest Serie A match"
+UCL1213_R16_50_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_55_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_56_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_53_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_R16_54_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_QF_57_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_QF_58_1,generated_details,"Real score, scorers and goal minutes (Wikipedia). Juventus' lineup is generated: the starters of the nearest Serie A match"
+UCL1213_QF_59_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_QF_60_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_QF_59_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_QF_60_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_QF_57_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_QF_58_2,generated_details,"Real score, scorers and goal minutes (Wikipedia). Juventus' lineup is generated: the starters of the nearest Serie A match"
+UCL1213_SF_61_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_SF_62_1,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_SF_62_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_SF_61_2,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"
+UCL1213_F,lineup_incomplete,"Real score, scorers and goal minutes (Wikipedia). Lineups, substitutions and cards are not known for this match"

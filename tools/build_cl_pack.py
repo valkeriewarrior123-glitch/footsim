@@ -35,18 +35,21 @@ def parse(path):
     """-> list of dict(stage, grp, date, home, away, hs, as, hth, hta, cty{team: code})"""
     out, cty = [], {}
     stage = grp = None
-    year, last_month = None, None
+    year, last_month, first_year = None, None, None
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         m = re.match(r"^▪ (.+)$", line)
         if m:
             name = m.group(1).strip()
             stage, grp = ("group", name.split()[-1]) if name.startswith("Group") else (STAGES[name], None)
+            if stage == "group" and first_year:      # every group starts again in September of the first year
+                year, last_month = first_year, None
             continue
         m = re.match(r"^\s+\w{3} (\w{3}) (\d+)(?: (\d{4}))?\s*$", line)
         if m:
             mon = MONTHS[m.group(1)]
             if m.group(3):
                 year = int(m.group(3))
+                first_year = first_year or year
             elif last_month and mon < last_month:
                 year += 1
             last_month = mon
@@ -310,7 +313,7 @@ def main():
 
     import json
     ruleset = {
-        "edition_id": EDN, "display_name": "Champions League 2012/13", "focus_team": "c_juventus",
+        "edition_id": EDN, "data_version": 2, "display_name": "Champions League 2012/13", "focus_team": "c_juventus",
         "source": "openfootball/champions-league (CC0) scores; details generated, see notes",
         "format": "groups_then_knockout",
         "group_stage": {"groups": sorted(groups), "teams_per_group": 4, "round_robin_legs": 2, "qualify_per_group": 2, "best_thirds": 0,

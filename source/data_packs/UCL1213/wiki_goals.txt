@@ -1,0 +1,125 @@
+G|2012-9-18|Dinamo Zagreb|0–2|Porto||L. González 41;Defour 90+2|4,683|Daniele Orsato|2009496
+G|2012-9-18|Paris Saint-Germain|4–1|Dynamo Kyiv|Ibrahimović 19(pen.);Thiago Silva 29;Alex 32;Pastore 90+1|Miguel Veloso 87|42,536|Björn Kuipers|2009497
+G|2012-10-3|Dynamo Kyiv|2–0|Dinamo Zagreb|Husyev 3;Pivarić 33(o.g.)||47,804|Martin Atkinson|2009504
+G|2012-10-3|Porto|1–0|Paris Saint-Germain|J. Rodríguez 83||36,509|Howard Webb|2009505
+G|2012-10-24|Porto|3–2|Dynamo Kyiv|Varela 15;Martínez 36,78|Husyev 21;Brown 72|29,317|Pavel Královec|2009520
+G|2012-10-24|Dinamo Zagreb|0–2|Paris Saint-Germain||Ibrahimović 33;Ménez 43|9,326|Fırat Aydınus|2009521
+G|2012-11-6|Dynamo Kyiv|0–0|Porto|||34,386|Alberto Undiano Mallenco|2009544
+G|2012-11-6|Paris Saint-Germain|4–0|Dinamo Zagreb|Alex 16;Matuidi 61;Ménez 65;Hoarau 80||41,060|Paweł Gil|2009545
+G|2012-11-21|Porto|3–0|Dinamo Zagreb|L. González 20;Moutinho 67;Varela 85||27,603|Paolo Tagliavento|2009552
+G|2012-11-21|Dynamo Kyiv|0–2|Paris Saint-Germain||Lavezzi 45,52|36,712|Wolfgang Stark|2009553
+G|2012-12-4|Dinamo Zagreb|1–1|Dynamo Kyiv|Krstanović 90+5(pen.)|Yarmolenko 45+1|3,663|Stanislav Todorov|2009576
+G|2012-12-4|Paris Saint-Germain|2–1|Porto|Thiago Silva 29;Lavezzi 61|Martínez 33|45,512|Craig Thomson|2009577
+G|2012-9-18|Montpellier|1–2|Arsenal|Belhanda 9(pen.)|Podolski 16;Gervinho 18|27,522|Carlos Velasco Carballo|2009498
+G|2012-9-18|Olympiacos|1–2|Schalke 04|Abdoun 58|Höwedes 41;Huntelaar 59|30,922|David Fernández Borbalán|2009499
+G|2012-10-3|Schalke 04|2–2|Montpellier|Draxler 26;Huntelaar 53(pen.)|Aït-Fana 13;Camara 90|50,004|Sergei Karasev|2009506
+G|2012-10-3|Arsenal|3–1|Olympiacos|Gervinho 42;Podolski 56;Ramsey 90+4|Mitroglou 45+1|60,034|Svein Oddvar Moen|2009507
+G|2012-10-24|Arsenal|0–2|Schalke 04||Huntelaar 76;Afellay 86|60,049|Jonas Eriksson|2009522
+G|2012-10-24|Montpellier|1–2|Olympiacos|Charbonnier 49|Torosidis 73;Mitroglou 90+1|22,834|Daniele Orsato|2009523
+G|2012-11-6|Schalke 04|2–2|Arsenal|Huntelaar 45+2;Farfán 67|Walcott 18;Giroud 26|54,142|Nicola Rizzoli|2009546
+G|2012-11-6|Olympiacos|3–1|Montpellier|Paulo Machado 4;Greco 80;Mitroglou 82|Belhanda 66(pen.)|28,217|Marijo Strahonja|2009547
+G|2012-11-21|Arsenal|2–0|Montpellier|Wilshere 49;Podolski 63||59,760|Fırat Aydınus|2009554
+G|2012-11-21|Schalke 04|1–0|Olympiacos|Fuchs 77||52,254|Björn Kuipers|2009555
+G|2012-12-4|Montpellier|1–1|Schalke 04|Herrera 59|Höwedes 56|23,142|Antonio Mateu Lahoz|2009578
+G|2012-12-4|Olympiacos|2–1|Arsenal|Maniatis 64;Mitroglou 73|Rosický 38|28,128|Alberto Undiano Mallenco|2009579
+G|2012-9-18|Málaga|3–0|Zenit Saint Petersburg|Isco 3,76;Saviola 13||23,670|Mark Clattenburg|2009500
+G|2012-9-18|Milan|0–0|Anderlecht|||27,593|William Collum|2009501
+G|2012-10-3|Zenit Saint Petersburg|2–3|Milan|Hulk 45+2;Shirokov 49|Emanuelson 13;El Shaarawy 16;Hubočan 75(o.g.)|21,703|Felix Brych|2009509
+G|2012-10-3|Anderlecht|0–3|Málaga||Eliseu 45+1,64;Joaquín 57(pen.)|15,711|Viktor Kassai|2009508
+G|2012-10-24|Zenit Saint Petersburg|1–0|Anderlecht|Kerzhakov 72(pen.)||18,034|Ivan Bebek|2009524
+G|2012-10-24|Málaga|1–0|Milan|Joaquín 64||27,683|Pedro Proença|2009525
+G|2012-11-6|Anderlecht|1–0|Zenit Saint Petersburg|Mbokani 17||16,437|Antony Gautier|2009548
+G|2012-11-6|Milan|1–1|Málaga|Pato 73|Eliseu 40|30,891|Howard Webb|2009549
+G|2012-11-21|Zenit Saint Petersburg|2–2|Málaga|Danny 49;Fayzulin 87|Buonanotte 8;Seba Fernández 9|18,347|Olegário Benquerença|2009556
+G|2012-11-21|Anderlecht|1–3|Milan|De Sutter 78|El Shaarawy 47;Mexès 71;Pato 90+1|19,803|Damir Skomina|2009557
+G|2012-12-4|Málaga|2–2|Anderlecht|Duda 45,61|Jovanović 50;Mbokani 89|21,769|Deniz Aytekin|2009580
+G|2012-12-4|Milan|0–1|Zenit Saint Petersburg||Danny 35|29,508|Tony Chapron|2009581
+G|2012-9-18|Borussia Dortmund|1–0|Ajax|Lewandowski 87||65,829|Paolo Tagliavento|2009502
+G|2012-9-18|Real Madrid|3–2|Manchester City|Marcelo 76;Benzema 87;Ronaldo 90|Džeko 68;Kolarov 85|70,381|Damir Skomina|2009503
+G|2012-10-3|Manchester City|1–1|Borussia Dortmund|Balotelli 90(pen.)|Reus 61|43,657|Pavel Královec|2009510
+G|2012-10-3|Ajax|1–4|Real Madrid|Moisander 56|Ronaldo 42,79,81;Benzema 48|49,491|Jonas Eriksson|2009511
+G|2012-10-24|Ajax|3–1|Manchester City|De Jong 45;Moisander 57;Eriksen 68|Nasri 22|45,743|Svein Oddvar Moen|2009526
+G|2012-10-24|Borussia Dortmund|2–1|Real Madrid|Lewandowski 36;Schmelzer 64|Ronaldo 38|65,829|Viktor Kassai|2009527
+G|2012-11-6|Manchester City|2–2|Ajax|Y. Touré 22;Agüero 74|De Jong 10,17|40,222|Peter Rasmussen|2009550
+G|2012-11-6|Real Madrid|2–2|Borussia Dortmund|Pepe 34;Özil 89|Reus 28;Arbeloa 45(o.g.)|74,932|Cüneyt Çakır|2009551
+G|2012-11-21|Ajax|1–4|Borussia Dortmund|Hoesen 87|Reus 8;Götze 36;Lewandowski 41,67|47,500|Pedro Proença|2009558
+G|2012-11-21|Manchester City|1–1|Real Madrid|Agüero 73(pen.)|Benzema 10|45,740|Gianluca Rocchi|2009559
+G|2012-12-4|Borussia Dortmund|1–0|Manchester City|Schieber 57||65,829|Milorad Mažić|2009582
+G|2012-12-4|Real Madrid|4–1|Ajax|Ronaldo 13;Callejón 28,88;Kaká 49|Boerrigter 59|57,245|Pavel Královec|2009583
+G|2012-9-19|Shakhtar Donetsk|2–0|Nordsjælland|Mkhitaryan 44,76||45,816|Paweł Gil|2009488
+G|2012-9-19|Chelsea|2–2|Juventus|Oscar 31,33|Vidal 38;Quagliarella 80|40,918|Pedro Proença|2009489
+G|2012-10-2|Juventus|1–1|Shakhtar Donetsk|Bonucci 25|Alex Teixeira 23|25,599|Bas Nijhuis|2009512
+G|2012-10-2|Nordsjælland|0–4|Chelsea||Mata 33,82;David Luiz 79;Ramires 89|25,120|Marijo Strahonja|2009513
+G|2012-10-23|Nordsjælland|1–1|Juventus|Beckmann 50|Vučinić 81|22,404|Deniz Aytekin|2009528
+G|2012-10-23|Shakhtar Donetsk|2–1|Chelsea|Alex Teixeira 3;Fernandinho 52|Oscar 88|51,435|Damir Skomina|2009529
+G|2012-11-7|Juventus|4–0|Nordsjælland|Marchisio 6;Vidal 23;Giovinco 37;Quagliarella 75||27,789|Aleksandar Stavrev|2009536
+G|2012-11-7|Chelsea|3–2|Shakhtar Donetsk|Torres 6;Oscar 40;Moses 90+4|Willian 9,47|41,067|Carlos Velasco Carballo|2009537
+G|2012-11-20|Nordsjælland|2–5|Shakhtar Donetsk|Nordstrand 24;Lorentzen 29|Luiz Adriano 26,53,81;Willian 44,50|17,054|Antony Gautier|2009560
+G|2012-11-20|Juventus|3–0|Chelsea|Quagliarella 38;Vidal 61;Giovinco 90+1||39,670|Cüneyt Çakır|2009561
+G|2012-12-5|Shakhtar Donetsk|0–1|Juventus||Kucher 56(o.g.)|50,104|Jonas Eriksson|2009568
+G|2012-12-5|Chelsea|6–1|Nordsjælland|David Luiz 38(pen.);Torres 45+2,56;Cahill 51;Mata 63;Oscar 71|John 46|40,084|Bas Nijhuis|2009569
+G|2012-9-19|Lille|1–3|BATE Borisov|Chedjou 60|A. Volodko 6;Rodionov 20;Olekhnovich 43|38,122|Marcin Borski|2009490
+G|2012-9-19|Bayern Munich|2–1|Valencia|Schweinsteiger 38;Kroos 76|Nelson Valdez 90+1|68,000|Fırat Aydınus|2009491
+G|2012-10-2|Valencia|2–0|Lille|Jonas 38,75||28,517|Gianluca Rocchi|2009514
+G|2012-10-2|BATE Borisov|3–1|Bayern Munich|Pavlov 23;Rodionov 78;Renan Bressan 90+4|Ribéry 90+1|24,636|Aleksandar Stavrev|2009515
+G|2012-10-23|BATE Borisov|0–3|Valencia||Soldado 45+1(pen.),55,69|29,180|Craig Thomson|2009530
+G|2012-10-23|Lille|0–1|Bayern Munich||Müller 20(pen.)|45,259|Martin Atkinson|2009531
+G|2012-11-7|Valencia|4–2|BATE Borisov|Jonas 26;Soldado 29(pen.);Feghouli 51,86|Renan Bressan 53;Mozolevski 83|22,795|Tom Harald Hagen|2009538
+G|2012-11-7|Bayern Munich|6–1|Lille|Schweinsteiger 5;Pizarro 18,28,33;Robben 23;Kroos 66|Kalou 57|68,000|Ovidiu Haţegan|2009539
+G|2012-11-20|BATE Borisov|0–2|Lille||Sidibé 14;Bruno 31|22,810|Marijo Strahonja|2009562
+G|2012-11-20|Valencia|1–1|Bayern Munich|Feghouli 77|Müller 82|35,407|Howard Webb|2009563
+G|2012-12-5|Lille|0–1|Valencia||Jonas 36(pen.)|40,036|Aleksandar Stavrev|2009570
+G|2012-12-5|Bayern Munich|4–1|BATE Borisov|Gómez 22;Müller 54;Shaqiri 65;Alaba 83|Filipenko 89|68,000|William Collum|2009571
+G|2012-9-19|Barcelona|3–2|Spartak Moscow|Tello 14;Messi 71,80|Dani Alves 29(o.g.);Rômulo 58|73,580|Milorad Mažić|2009492
+G|2012-9-19|Celtic|0–0|Benfica|||57,759|Nicola Rizzoli|2009493
+G|2012-10-2|Spartak Moscow|2–3|Celtic|Emenike 41,48|Hooper 12;Kombarov D. 71(o.g.);Samaras 90|43,351|Tony Chapron|2009517
+G|2012-10-2|Benfica|0–2|Barcelona||Sánchez 6;Fàbregas 55|63,847|Cüneyt Çakır|2009516
+G|2012-10-23|Spartak Moscow|2–1|Benfica|Rafael Carioca 3;Jardel 43(o.g.)|Lima 33|41,237|Mark Clattenburg|2009532
+G|2012-10-23|Barcelona|2–1|Celtic|Iniesta 45;Jordi Alba 90+4|Samaras 18|77,781|Gianluca Rocchi|2009533
+G|2012-11-7|Benfica|2–0|Spartak Moscow|Cardozo 55,69||36,448|Florian Meyer|2009540
+G|2012-11-7|Celtic|2–1|Barcelona|Wanyama 21;Watt 83|Messi 90+1|58,841|Björn Kuipers|2009541
+G|2012-11-20|Spartak Moscow|0–3|Barcelona||Dani Alves 16;Messi 27,39|67,325|Ivan Bebek|2009564
+G|2012-11-20|Benfica|2–1|Celtic|John 7;Garay 71|Samaras 32|47,065|Viktor Kassai|2009565
+G|2012-12-5|Barcelona|0–0|Benfica|||50,659|Svein Oddvar Moen|2009572
+G|2012-12-5|Celtic|2–1|Spartak Moscow|Hooper 21;Commons 81(pen.)|Ari 39|59,168|Felix Brych|2009573
+G|2012-9-19|Manchester United|1–0|Galatasaray|Carrick 7||74,653|Wolfgang Stark|2009494
+G|2012-9-19|Braga|0–2|CFR Cluj||Rafael Bastos 19,34|10,922|Peter Rasmussen|2009495
+G|2012-10-2|CFR Cluj|1–2|Manchester United|Kapetanos 14|Van Persie 29,49|16,259|Alberto Undiano Mallenco|2009518
+G|2012-10-2|Galatasaray|0–2|Braga||Rúben Micael 27;Alan 90+4|46,987|Tom Harald Hagen|2009519
+G|2012-10-23|Galatasaray|1–1|CFR Cluj|Burak 77|Nounkeu 19(o.g.)|39,013|Paolo Tagliavento|2009534
+G|2012-10-23|Manchester United|3–2|Braga|Hernández 25,75;Evans 62|Alan 2,20|73,195|Milorad Mažić|2009535
+G|2012-11-7|CFR Cluj|1–3|Galatasaray|Sougou 53|Burak 18,61,74|16,232|William Collum|2009542
+G|2012-11-7|Braga|1–3|Manchester United|Alan 49(pen.)|Van Persie 80;Rooney 84(pen.);Hernández 90+2|15,388|Felix Brych|2009543
+G|2012-11-20|Galatasaray|1–0|Manchester United|Burak 53||50,278|Carlos Velasco Carballo|2009566
+G|2012-11-20|CFR Cluj|3–1|Braga|Rui Pedro 7,15,33|Alan 17|14,635|Sergei Karasev|2009567
+G|2012-12-5|Manchester United|0–1|CFR Cluj||Luís Alberto 56|71,521|Daniele Orsato|2009574
+G|2012-12-5|Braga|1–2|Galatasaray|Mossoró 32|Burak 58;Aydın Yılmaz 78|8,964|Nicola Rizzoli|2009575
+K|2013-2-20|Galatasaray|1–1|Schalke 04|Yılmaz B. 12|Jones 45|50,734|William Collum|2009584
+K|2013-3-12|Schalke 04|2–3|Galatasaray|Neustädter 17;Michel Bastos 63|Altıntop 37;Yılmaz B. 42;Umut Bulut 90+5|54,142|Jonas Eriksson|2009594
+K|2013-2-12|Celtic|0–3|Juventus||Matri 3;Marchisio 77;Vučinić 83|57,917|Alberto Undiano Mallenco|2009585
+K|2013-3-6|Juventus|2–0|Celtic|Matri 24;Quagliarella 65||39,011|Fırat Aydınus|2009595
+K|2013-2-19|Arsenal|1–3|Bayern Munich|Podolski 55|Kroos 7;Müller 21;Mandžukić 77|59,974|Svein Oddvar Moen|2009588
+K|2013-3-13|Bayern Munich|0–2|Arsenal||Giroud 3;Koscielny 86|68,000|Pavel Královec|2009598
+K|2013-2-13|Shakhtar Donetsk|2–2|Borussia Dortmund|Srna 31;Douglas Costa 68|Lewandowski 41;Hummels 87|49,050|Howard Webb|2009589
+K|2013-3-5|Borussia Dortmund|3–0|Shakhtar Donetsk|Santana 31;Götze 37;Błaszczykowski 59||65,413|Damir Skomina|2009599
+K|2013-2-20|Milan|2–0|Barcelona|Boateng 56;Muntari 81||79,532|Craig Thomson|2009590
+K|2013-3-12|Barcelona|4–0|Milan|Messi 5,39;Villa 55;Alba 90+2||94,944|Viktor Kassai|2009596
+K|2013-2-13|Real Madrid|1–1|Manchester United|Ronaldo 30|Welbeck 20|79,429|Felix Brych|2009591
+K|2013-3-5|Manchester United|1–2|Real Madrid|Ramos 48(o.g.)|Modrić 66;Ronaldo 69|74,959|Cüneyt Çakır|2009597
+K|2013-2-12|Valencia|1–2|Paris Saint-Germain|Rami 90|Lavezzi 10;Pastore 43|36,000|Paolo Tagliavento|2009586
+K|2013-3-6|Paris Saint-Germain|1–1|Valencia|Lavezzi 66|Jonas 55|44,867|Milorad Mažić|2009592
+K|2013-2-19|Porto|1–0|Málaga|Moutinho 56||42,209|Mark Clattenburg|2009587
+K|2013-3-13|Málaga|2–0|Porto|Isco 43;Santa Cruz 77||27,451|Nicola Rizzoli|2009593
+K|2013-4-3|Málaga|0–0|Borussia Dortmund|||28,548|Jonas Eriksson|2009600
+K|2013-4-9|Borussia Dortmund|3–2|Málaga|Lewandowski 40;Reus 90+1;Santana 90+3|Joaquín 25;Eliseu 82|65,829|Craig Thomson|2009606
+K|2013-4-3|Real Madrid|3–0|Galatasaray|Ronaldo 9;Benzema 29;Higuaín 73||76,462|Svein Oddvar Moen|2009601
+K|2013-4-9|Galatasaray|3–2|Real Madrid|Eboué 57;Sneijder 70;Drogba 72|Ronaldo 7,90+2|49,975|Stéphane Lannoy|2009607
+K|2013-4-2|Paris Saint-Germain|2–2|Barcelona|Ibrahimović 79;Matuidi 90+4|Messi 38;Xavi 89(pen.)|45,336|Wolfgang Stark|2009602
+K|2013-4-10|Barcelona|1–1|Paris Saint-Germain|Pedro 71|Pastore 50|96,022|Björn Kuipers|2009604
+K|2013-4-2|Bayern Munich|2–0|Juventus|Alaba 1;Müller 63||68,000|Mark Clattenburg|2009603
+K|2013-4-10|Juventus|0–2|Bayern Munich||Mandžukić 64;Pizarro 90+1|40,823|Carlos Velasco Carballo|2009605
+K|2013-4-23|Bayern Munich|4–0|Barcelona|Müller 25,82;Gómez 49;Robben 73||68,000|Viktor Kassai|2009609
+K|2013-5-1|Barcelona|0–3|Bayern Munich||Robben 48;Piqué 72(o.g.);Müller 76|95,877|Damir Skomina|2009610
+K|2013-4-24|Borussia Dortmund|4–1|Real Madrid|Lewandowski 8,50,55,66(pen.)|Ronaldo 43|65,829|Björn Kuipers|2009608
+K|2013-4-30|Real Madrid|2–0|Borussia Dortmund|Benzema 83;Ramos 88||69,429|Howard Webb|2009611
+F|2013-5-25|Borussia Dortmund|1–2|Bayern Munich|Gündoğan 68(pen.)|Mandžukić 60;Robben 89|86,298|Nicola Rizzoli|2009612

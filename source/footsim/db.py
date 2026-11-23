@@ -35,18 +35,28 @@ def init_db(path: Path = DEFAULT_DB) -> sqlite3.Connection:
 
 
 def apply_club_packs(conn: sqlite3.Connection) -> None:
-    """Add any club data pack (data_packs/<name>/fixtures.csv + ruleset.json) this database doesn't have yet."""
+    """Add any club data pack (data_packs/<name>/fixtures.csv + ruleset.json) this database doesn't have yet.
+
+    A pack whose ruleset.json says a higher `data_version` than the one this database holds is loaded again, so a save
+    gets corrected facts (new scorers, fixed dates) without being replaced. Branch edits live in other tables and stay.
+    """
     import json
+    conn.execute("CREATE TABLE IF NOT EXISTS pack_versions (edition_id TEXT PRIMARY KEY, data_version INTEGER NOT NULL)")
     packs = Path(__file__).resolve().parent.parent / "data_packs"
     for rules in sorted(packs.glob("*/ruleset.json")):
         if not (rules.parent / "fixtures.csv").exists():
             continue
-        edition = json.loads(rules.read_text(encoding="utf-8"))["edition_id"]
-        if conn.execute("SELECT 1 FROM editions WHERE edition_id = ?", (edition,)).fetchone():
+        meta = json.loads(rules.read_text(encoding="utf-8"))
+        edition, want = meta["edition_id"], int(meta.get("data_version", 1))
+        have = conn.execute("SELECT 1 FROM editions WHERE edition_id = ?", (edition,)).fetchone()
+        held = conn.execute("SELECT data_version FROM pack_versions WHERE edition_id = ?", (edition,)).fetchone()
+        if have and (held[0] if held else 1) >= want:
             load_ruleset(conn, rules)        # rule changes (zones, deductions) reach saves that already have the data
             continue
         from footsim.import_club_pack import import_pack
         import_pack(conn, rules.parent)
+        conn.execute("INSERT OR REPLACE INTO pack_versions VALUES (?,?)", (edition, want))
+        conn.commit()
 
 
 def _add_column(conn, table: str, column: str, decl: str) -> None:
