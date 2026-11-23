@@ -23,7 +23,25 @@
       "goal_diff",
       "goals_for",
       "lots"
-    ]
+    ],
+    "point_adjustments": {
+      "c_siena": {
+        "points": -6,
+        "reason": "6 points deducted: 2011\u201312 Italian football scandal"
+      },
+      "c_atalanta": {
+        "points": -2,
+        "reason": "2 points deducted: 2011\u201312 Italian football scandal"
+      },
+      "c_sampdoria": {
+        "points": -1,
+        "reason": "1 point deducted: 2011\u201312 Italian football scandal"
+      },
+      "c_torino": {
+        "points": -1,
+        "reason": "1 point deducted: 2011\u201312 Italian football scandal"
+      }
+    }
   },
   "knockout": {
     "two_legs": false,
@@ -38,5 +56,53 @@
     "note": "Serie A's own disciplinary rules aren't modeled; the real bans are already in the real results"
   },
   "focus_team": "c_juventus",
-  "display_name": "Serie A 2012/13"
+  "display_name": "Serie A 2012/13",
+  "zones": [
+    {
+      "positions": [
+        1,
+        2
+      ],
+      "kind": "cl",
+      "label": "Champions League group stage"
+    },
+    {
+      "positions": [
+        3
+      ],
+      "kind": "cl2",
+      "label": "Champions League play-off round"
+    },
+    {
+      "positions": [
+        4
+      ],
+      "kind": "el2",
+      "label": "Europa League play-off round"
+    },
+    {
+      "positions": [
+        5
+      ],
+      "kind": "el3",
+      "label": "Europa League third qualifying round"
+    },
+    {
+      "teams": [
+        "c_lazio"
+      ],
+      "kind": "el",
+      "label": "Europa League group stage (Coppa Italia winners)"
+    },
+    {
+      "positions": [
+        18,
+        19,
+        20
+      ],
+      "kind": "rel",
+      "label": "Relegation to Serie B"
+    }
+  ],
+  "classification_note": "Ranked by points, then head-to-head points, head-to-head goal difference, goal difference, goals scored, then a play-off."
 }

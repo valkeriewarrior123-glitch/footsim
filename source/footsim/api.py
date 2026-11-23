@@ -2,7 +2,7 @@
 
 server.py exposes these over HTTP; tests call them directly.
 """
-from footsim import engine, player, stats, timeline
+from footsim import engine, player, season_stats, stats, timeline
 from footsim.timeline import Fixture
 
 GOAL_TYPES = ("goal", "pen_goal")
@@ -124,7 +124,7 @@ def edition_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
         groups[g] = {
             "table": [{"team": r.team, "name": tn.get(r.team, r.team), "p": r.played, "w": r.won, "d": r.drawn,
                        "l": r.lost, "gf": r.gf, "ga": r.ga, "gd": r.gd, "pts": r.points, "fp": r.fair_play,
-                       "lots": r.decided_by_lots} for r in rows],
+                       "lots": r.decided_by_lots, "adj": r.adjust} for r in rows],
             "fixtures": [_fixture_json(f, nm) for f in sorted(fx.values(), key=lambda f: f.date)
                          if f.stage == "group" and f.grp == g],
         }
@@ -171,7 +171,9 @@ def edition_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
         done = bool(t) and all(r.played == 2 * (len(t) - 1) for r in t)
         champion, runner_up, third = ((t[0].team, t[1].team, t[2].team) if done else (None, None, None))
     return {"edition_id": edition_id, "branch_id": branch_id, "teams": tn, "groups": groups, "slots": slots,
-            "format": rules.get("format", "groups_then_knockout"), "club_focus": rules.get("focus_team"),
+            "format": rules.get("format", "groups_then_knockout"), "club_focus": rules.get("focus_team"), "zones": rules.get("zones", []),
+            "adjust_notes": {t: a.get("reason", "") for t, a in (rules.get("group_stage", {}).get("point_adjustments") or {}).items()},
+            "classification": rules.get("classification_note", ""),
             "focus_team": me.team_id if me else None, "player_name": me.name if me else None,
             "mode": branch_mode(conn, branch_id),
             "champion": champion, "runner_up": runner_up, "third": third,
@@ -218,6 +220,11 @@ def fixture_detail(conn, edition_id: str, fixture_id: str, branch_id: int | None
     return out
 
 
+def _db_rules(conn, edition_id):
+    from footsim import db as _db
+    return _db.get_ruleset(conn, edition_id)
+
+
 def stats_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
     nm, tn = names(conn), team_names(conn)
     st = stats.edition_stats(conn, edition_id, branch_id)
@@ -239,6 +246,8 @@ def stats_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
                    "l": t.lost, "gf": t.gf, "ga": t.ga, "cs": t.clean_sheets}
                   for t in sorted(st.teams.values(), key=lambda t: finish_order.index(t.finish))],
         "records": st.records,
+        "season": (season_stats.season_records(conn, edition_id, branch_id, nm, tn)
+                   if _db_rules(conn, edition_id).get("format") == "league" else []),
     }
 
 

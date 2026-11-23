@@ -62,6 +62,12 @@ th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: l
 th { font-size: 11px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--line); }
 tr.q td { font-weight: 600; }
 tr.q td:first-child { box-shadow: inset 3px 0 var(--pitch); }
+tr.z-cl td:first-child { box-shadow: inset 4px 0 #2e9e5b; } tr.z-cl2 td:first-child { box-shadow: inset 4px 0 #8fd0a8; }
+tr.z-el td:first-child { box-shadow: inset 4px 0 #3b8fd9; } tr.z-el2 td:first-child { box-shadow: inset 4px 0 #7bb8ea; }
+tr.z-el3 td:first-child { box-shadow: inset 4px 0 #b4d6f2; } tr.z-rel td:first-child { box-shadow: inset 4px 0 #d9534f; }
+.zl { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.zl i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.rec { margin: 0 0 10px; } .rec b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
 .lots { color: var(--pending); font-size: 11px; }
 
 .fx { list-style: none; margin: 10px 0 0; padding: 8px 0 0; border-top: 1px dashed var(--line); }
@@ -424,6 +430,19 @@ async function render() {
   if ($("#leagueTeam")) $("#leagueTeam").onchange = e => { leagueTeam = e.target.value; render(); };
 }
 
+const ZCOL = { cl: "#2e9e5b", cl2: "#8fd0a8", el: "#3b8fd9", el2: "#7bb8ea", el3: "#b4d6f2", rel: "#d9534f" };
+function zoneOf(v, team, pos) {
+  return (v.zones || []).find(z => z.teams?.includes(team)) || (v.zones || []).find(z => !z.teams && z.positions?.includes(pos));
+}
+function zoneLegend(v) {
+  const seen = new Map();
+  (v.zones || []).forEach(z => { if (!seen.has(z.label)) seen.set(z.label, z.kind); });
+  const adj = Object.values(v.adjust_notes || {});
+  return `<div class="zl">${[...seen].map(([l, k]) => `<span><i style="background:${ZCOL[k] || "#999"}"></i>${esc(l)}</span>`).join("")}</div>
+    ${adj.length ? `<div class="zl">${[...new Set(adj)].map(esc).join(" · ")}</div>` : ""}
+    ${v.classification ? `<div class="zl">${esc(v.classification)}</div>` : ""}`;
+}
+
 function renderLeague(v) {
   const d = v.groups.A, focus = leagueTeam === "all" ? "" : (leagueTeam || v.club_focus || "");
   const fx = d.fixtures.filter(f => !focus || f.home === focus || f.away === focus);
@@ -433,9 +452,10 @@ function renderLeague(v) {
   return `<div class="groups">
     <section class="card"><h3>${esc(state_editions.find(e => e.edition_id === ED)?.name || "League")}</h3>
       <table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>
-      ${d.table.map((r, i) => `<tr class="${i < 4 ? "q" : ""}" ${r.team === v.club_focus ? 'style="font-weight:600"' : ""}><td>${i + 1}</td><td>${esc(r.name)}</td>
-        <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join("")}
-      </tbody></table></section>
+      ${d.table.map((r, i) => { const z = zoneOf(v, r.team, i + 1);
+        return `<tr class="${z ? "z-" + z.kind : ""}" ${r.team === v.club_focus ? 'style="font-weight:600"' : ""}><td>${i + 1}</td><td>${esc(r.name)}${i === 0 && v.champion === r.team ? " (C)" : ""}${z?.kind === "rel" ? " (R)" : ""}${r.adj ? ` <span class="lots" title="${esc(v.adjust_notes?.[r.team] || "")}">${r.adj > 0 ? "+" : ""}${r.adj}</span>` : ""}</td>
+        <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><b>${r.pts}</b></td></tr>`; }).join("")}
+      </tbody></table>${zoneLegend(v)}</section>
     <section class="card"><h3>Matches ${pick}</h3>
       <ul class="fx">${fx.map(f => `
         <li data-fx="${f.fixture_id}" class="${f.status !== "historical" ? "edited" : ""}">
@@ -540,10 +560,15 @@ function drawBracketLines() {
 }
 window.addEventListener("resize", () => { if (state.tab === "bracket") drawBracketLines(); });
 
+function renderSeason(list) {
+  if (!list?.length) return "";
+  return `<section class="card"><h3>Season records</h3>${list.map(r => `<div class="rec"><b>${esc(r.label)}</b>${r.lines.map(l => `<div>${esc(l)}</div>`).join("")}</div>`).join("")}</section>`;
+}
 function renderStats(s) {
   const aw = { golden_boot: "Golden Boot", golden_ball: "Golden Ball", golden_glove: "Golden Glove", best_young: "Best Young Player", most_assists: "Most assists" };
   return `<div class="cols">
     <div style="display:grid;gap:14px;align-content:start">
+    ${renderSeason(s.season)}
     <section class="card"><h3>Scorers</h3><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>Goals</th><th>Pens</th><th>Assists</th><th>Mins</th><th title="Average match rating">Rating</th></tr></thead><tbody>
       ${s.scorers.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(tname(p.team))}</td><td><b>${p.goals}</b></td><td>${p.pens}</td><td>${p.assists}</td><td>${p.minutes}</td><td>${p.rating ?? "—"}</td></tr>`).join("")}
     </tbody></table></section>
@@ -668,7 +693,7 @@ function renderReadOnly(f, ripple) {
       ${f.pen_home != null ? `<p>Penalties ${f.pen_home}–${f.pen_away}</p>` : ""}`}
     <div class="sec">Events</div>
     ${f.events.map(e => `<div class="evline"><span class="mn">${e.minute}'</span><span>${EVLABEL[e.event_type]}</span><span>${esc(e.player_name || "")}</span>
-      <span style="color:var(--muted)">${e.team_id}${e.assist_name ? " · assist " + esc(e.assist_name) : ""}</span></div>`).join("") || "<p>None.</p>"}
+      <span style="color:var(--muted)">${esc(tname(e.team_id))}${e.assist_name ? " · assist " + esc(e.assist_name) : ""}</span></div>`).join("") || "<p>None.</p>"}
     ${ratingsBlock(f)}
   </div>`;
   if (ripple) {
@@ -697,7 +722,7 @@ function eventRow(f, e, i) {
   return `<div class="ev ${e.locked ? "locked" : ""}" data-i="${i}">
     <input type="number" min="0" max="130" value="${e.minute}" data-k="minute" title="Minute">
     <select data-k="event_type">${Object.entries(EVLABEL).map(([k, l]) => `<option value="${k}" ${k === e.event_type ? "selected" : ""}>${l}</option>`).join("")}</select>
-    <select data-k="team_id" title="Player's team">${[f.home, f.away].map(t => `<option value="${t}" ${t === e.team_id ? "selected" : ""}>${t}</option>`).join("")}</select>
+    <select data-k="team_id" title="Player's team">${[f.home, f.away].map(t => `<option value="${t}" ${t === e.team_id ? "selected" : ""}>${esc(tname(t))}</option>`).join("")}</select>
     <select data-k="player_id">${playerOptions(f, e.team_id, e.player_id)}</select>
     <button class="lock ${e.locked ? "on" : ""}" data-lock="${i}" title="${e.locked ? "Locked: rolling keeps this" : "Lock this so rolling keeps it"}">${e.locked ? "🔒" : "🔓"}</button>
     <button class="link" data-del="${i}" title="Remove">✕</button>
@@ -722,7 +747,7 @@ function notesBox(notes, source) {
   const overrides = notes.filter(n => ["removed", "taken", "given_away"].includes(n.kind)).length;
   return `<div class="outcome"><b>Goals in this version</b>
     <span style="color:var(--muted);font-size:13px"> · ${overrides ? `${overrides} ${source === "current result" ? "earlier" : "real"} goal${overrides > 1 ? "s" : ""} overridden` : `no ${source === "current result" ? "earlier" : "real"} goals overridden`}</span>
-    <ul class="notes">${notes.map(n => `<li><span class="k k-${n.kind}">${label(n.kind)}</span> ${n.event.minute}' ${esc(n.event.player_name || "unknown")} (${n.event.team_id})${n.event.event_type === "pen_goal" ? " pen" : n.event.event_type === "own_goal" ? " own goal" : ""}${n.event.assist_name ? ` <span style="color:var(--muted)">· assist ${esc(n.event.assist_name)}</span>` : ""}</li>`).join("")}</ul>
+    <ul class="notes">${notes.map(n => `<li><span class="k k-${n.kind}">${label(n.kind)}</span> ${n.event.minute}' ${esc(n.event.player_name || "unknown")} (${esc(tname(n.event.team_id))})${n.event.event_type === "pen_goal" ? " pen" : n.event.event_type === "own_goal" ? " own goal" : ""}${n.event.assist_name ? ` <span style="color:var(--muted)">· assist ${esc(n.event.assist_name)}</span>` : ""}</li>`).join("")}</ul>
     <p style="margin:8px 0 0;font-size:13px;color:var(--muted)">Assists, cards and the lineup are filled in below.${""} Look good? <b>Save &amp; recalculate</b> to confirm, or change the numbers and preview again.</p></div>`;
 }
 function outcomePanel(f, draft) {

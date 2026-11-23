@@ -43,6 +43,7 @@ def apply_club_packs(conn: sqlite3.Connection) -> None:
             continue
         edition = json.loads(rules.read_text(encoding="utf-8"))["edition_id"]
         if conn.execute("SELECT 1 FROM editions WHERE edition_id = ?", (edition,)).fetchone():
+            load_ruleset(conn, rules)        # rule changes (zones, deductions) reach saves that already have the data
             continue
         from footsim.import_club_pack import import_pack
         import_pack(conn, rules.parent)

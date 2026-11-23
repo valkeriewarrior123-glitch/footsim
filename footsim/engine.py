@@ -29,6 +29,7 @@ class Row:
     points: int = 0
     fair_play: int = 0
     decided_by_lots: bool = False
+    adjust: int = 0                  # points added/removed by a governing body (e.g. -6 for a scandal)
 
     @property
     def gd(self) -> int:
@@ -115,6 +116,9 @@ def group_tables(fixtures: dict[str, Fixture], rules: dict) -> dict[str, list[Ro
         fp = _fair_play([f for f in gf if f.played], weights)
         for t in teams:
             overall[t].fair_play = fp.get(t, 0)
+        for t, adj in (gs.get("point_adjustments") or {}).items():
+            if t in overall:
+                overall[t].points += adj["points"]; overall[t].adjust = adj["points"]
         order = _rank(teams, gs["tiebreakers"], overall, gf, pts)
         tables[g] = [overall[t] for t in order]
     return tables

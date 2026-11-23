@@ -43,3 +43,17 @@ class ClubPack(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+    def test_table_zones_deductions_and_records(self):
+        from footsim import api
+        conn = self.conn
+        v = api.edition_view(conn, "SERIEA1213", None)
+        t = v["groups"]["A"]["table"]
+        self.assertEqual([r["pts"] for r in t[13:16]], [42, 40, 39])          # Sampdoria, Atalanta, Torino after deductions
+        self.assertEqual(next(r for r in t if r["team"] == "c_siena")["pts"], 30)
+        self.assertTrue(any(z.get("kind") == "rel" for z in v["zones"]))
+        recs = {r["key"]: r["lines"] for r in api.stats_view(conn, "SERIEA1213", None)["season"]}
+        self.assertIn("Cavani", recs["top_scorers"][0])
+        self.assertIn("1003", recs["total_goals"][0])
+        self.assertIn("Juventus", recs["most_cs"][0])
