@@ -545,10 +545,10 @@ function renderStats(s) {
   return `<div class="cols">
     <div style="display:grid;gap:14px;align-content:start">
     <section class="card"><h3>Scorers</h3><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>Goals</th><th>Pens</th><th>Assists</th><th>Mins</th><th title="Average match rating">Rating</th></tr></thead><tbody>
-      ${s.scorers.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${p.team}</td><td><b>${p.goals}</b></td><td>${p.pens}</td><td>${p.assists}</td><td>${p.minutes}</td><td>${p.rating ?? "—"}</td></tr>`).join("")}
+      ${s.scorers.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(tname(p.team))}</td><td><b>${p.goals}</b></td><td>${p.pens}</td><td>${p.assists}</td><td>${p.minutes}</td><td>${p.rating ?? "—"}</td></tr>`).join("")}
     </tbody></table></section>
     <section class="card"><h3>Best rated (played at least half their team's minutes)</h3><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>Matches</th><th>Avg rating</th></tr></thead><tbody>
-      ${s.top_rated.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${p.team}</td><td>${p.matches}</td><td><b>${p.avg}</b></td></tr>`).join("")}
+      ${s.top_rated.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(tname(p.team))}</td><td>${p.matches}</td><td><b>${p.avg}</b></td></tr>`).join("")}
     </tbody></table></section></div>
     <div style="display:grid;gap:14px">
       <section class="card"><h3>Awards</h3>${s.awards_calculated ? `<p style="margin:0 0 8px;font-size:12px;color:var(--muted)">In a branch, the voted awards go to the best performers by match rating and how far their team went.</p>` : ""}<table><tbody>
@@ -888,7 +888,7 @@ async function renderPlayerTab() {
     <div style="display:grid;gap:14px">
       <section class="card"><div class="pcard">
         <div class="big">${esc(p.name)} <button id="editPlayer" style="font-size:13px;vertical-align:middle">Edit player</button></div>
-        <span class="k" style="color:var(--muted)">Team</span><span>${esc(p.team)} · ${p.position}${p.roles?.length ? " · " + p.roles.join(", ") : ""}</span>
+        <span class="k" style="color:var(--muted)">Team</span><span>${esc(tname(p.team))} · ${p.position}${p.roles?.length ? " · " + p.roles.join(", ") : ""}</span>
         <span style="color:var(--muted)">Ability</span><span>${esc(p.tier_label)} · overall
           <input type="number" id="ovr" min="1" max="99" value="${p.overall}" style="width:64px"> <button id="ovrSave">Save</button>
           <span style="color:var(--muted);font-size:12px"> (worth ${p.impact_elo >= 0 ? "+" : ""}${p.impact_elo} Elo to his team per 90 min)</span></span>
