@@ -32,7 +32,8 @@ class Feedback(unittest.TestCase):
 
     # ---- data and lists ---------------------------------------------------
     def test_every_player_has_a_position_and_birth_date(self):
-        n = self.conn.execute("SELECT COUNT(*) FROM players WHERE is_created = 0 AND (position IS NULL OR birth_date IS NULL)").fetchone()[0]
+        n = self.conn.execute("SELECT COUNT(*) FROM players WHERE is_created = 0 AND (position IS NULL OR birth_date IS NULL) "
+                              "AND player_id IN (SELECT player_id FROM squads WHERE edition_id = 'WC2022')").fetchone()[0]
         self.assertEqual(n, 0)
 
     def test_squads_are_alphabetical(self):

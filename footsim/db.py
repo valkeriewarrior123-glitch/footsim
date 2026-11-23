@@ -29,8 +29,23 @@ def init_db(path: Path = DEFAULT_DB) -> sqlite3.Connection:
     _add_column(conn, "branches", "mode", "TEXT NOT NULL DEFAULT 'focus'")
     apply_squad_lists(conn)
     apply_role_minutes(conn)
+    apply_club_packs(conn)
     conn.commit()
     return conn
+
+
+def apply_club_packs(conn: sqlite3.Connection) -> None:
+    """Add any club data pack (data_packs/<name>/fixtures.csv + ruleset.json) this database doesn't have yet."""
+    import json
+    packs = Path(__file__).resolve().parent.parent / "data_packs"
+    for rules in sorted(packs.glob("*/ruleset.json")):
+        if not (rules.parent / "fixtures.csv").exists():
+            continue
+        edition = json.loads(rules.read_text(encoding="utf-8"))["edition_id"]
+        if conn.execute("SELECT 1 FROM editions WHERE edition_id = ?", (edition,)).fetchone():
+            continue
+        from footsim.import_club_pack import import_pack
+        import_pack(conn, rules.parent)
 
 
 def _add_column(conn, table: str, column: str, decl: str) -> None:

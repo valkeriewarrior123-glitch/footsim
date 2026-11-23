@@ -930,7 +930,8 @@ def world_diff(conn, branch_id: int | None) -> dict:
                                   (("🥇", real.champion), ("🥈", real.runner_up), ("🥉", real.third)))})
         st_now = stats.edition_stats(conn, ed, branch_id)
         st_real = stats.edition_stats(conn, ed, None)
-        for award, label in (("golden_ball", "Golden Ball"), ("golden_boot", "Golden Boot")):
+        has_awards = conn.execute("SELECT 1 FROM awards WHERE edition_id = ?", (ed,)).fetchone()
+        for award, label in ((("golden_ball", "Golden Ball"), ("golden_boot", "Golden Boot")) if has_awards else ()):
             a, b = st_now.awards.get(award, [None])[:1], st_real.awards.get(award, [None])[:1]
             if a != b:
                 rocks.append({"kind": award, "text": f"{label}: {nm.get(a[0], '—') if a else 'undecided until the final'}",

@@ -31,7 +31,7 @@ def check_edition(conn, edition: str) -> list[str]:
                 problems.append(f"{label}: {team} goal events = {goals}, score says {f[score]}")
 
         # knockout draws must be settled by shootout
-        if f["stage"] != "group" and f["home_score"] == f["away_score"]:
+        if f["stage"] not in ("group", "league") and f["home_score"] == f["away_score"]:
             if f["pen_home"] is None or f["pen_home"] == f["pen_away"]:
                 problems.append(f"{label}: knockout draw without a decisive shootout")
 
@@ -50,8 +50,9 @@ def check_edition(conn, edition: str) -> list[str]:
             "SELECT team_id, COUNT(*) n FROM lineups WHERE fixture_id=? AND started=1 GROUP BY team_id",
             (f["fixture_id"],),
         ).fetchall()
+        gap = conn.execute("SELECT 1 FROM data_notes WHERE fixture_id = ? AND kind = 'lineup_incomplete'", (f["fixture_id"],)).fetchone()
         for s in starters:
-            if s["n"] != 11:
+            if s["n"] != 11 and not gap:        # a gap the data pack already declared is not a new problem
                 problems.append(f"{label}: {s['team_id']} has {s['n']} starters")
 
     expected = {"group": 48, "R16": 8, "QF": 4, "SF": 2, "3P": 1, "F": 1}

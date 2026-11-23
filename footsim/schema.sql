@@ -304,3 +304,14 @@ CREATE TABLE IF NOT EXISTS suspension_log (
 CREATE INDEX IF NOT EXISTS ix_fixtures_edition   ON fixtures(edition_id);
 CREATE INDEX IF NOT EXISTS ix_events_fixture     ON match_events(fixture_id);
 CREATE INDEX IF NOT EXISTS ix_overrides_branch   ON fixture_overrides(branch_id, seq);
+
+------------------------------------------------------------
+-- DATA NOTES: things a data pack had to estimate or couldn't supply (shown to the user, never hidden)
+------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS data_notes (
+    edition_id       TEXT NOT NULL REFERENCES editions(edition_id),
+    fixture_id       TEXT,                      -- NULL = the whole edition
+    kind             TEXT NOT NULL,             -- subs_estimated, lineup_incomplete, scorer_unknown, added_to_squad ...
+    note             TEXT NOT NULL
+);

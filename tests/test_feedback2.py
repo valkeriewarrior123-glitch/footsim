@@ -103,7 +103,7 @@ class Feedback2(unittest.TestCase):
         api.pick_podium(self.conn, ED, self.b, "MAR", "BRA", "FRA", seed=1)
         w = api.world_diff(self.conn, self.b)
         self.assertEqual(w["summary"]["changed"], 1)
-        sec = w["sections"][0]
+        sec = next(x for x in w["sections"] if x["edition_id"] == "WC2022")
         self.assertEqual(sec["name"], "FIFA World Cup 2022")
         self.assertTrue(any(r["kind"] == "podium" for r in sec["rocks"]))
         self.assertIn("matches", sec["detail"])
