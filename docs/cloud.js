@@ -36,7 +36,9 @@
   const isSqlite = u8 => u8.length > 16 && String.fromCharCode(...u8.slice(0, 16)) === SQLITE_MAGIC;
 
   // ---------- sign-in (authorization code + PKCE)
-  let tok = store.get(TOK);                      // {access, exp, refresh, name}
+  let tok = store.get(TOK);                      // {access, exp, refresh, name, cid}
+  // A sign-in from a different app registration (an older build) must not be reused: it would save to that app's folder.
+  if (tok && tok.cid !== C.clientId) { tok = null; store.del(TOK); }
   class SignInNeeded extends Error {}
 
   async function tokenRequest(params) {
@@ -51,7 +53,7 @@
   function keep(r) {
     let name = tok && tok.name;
     try { const p = JSON.parse(atob(r.id_token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))); name = p.name || p.preferred_username || name; } catch (e) { /* no id_token on refresh */ }
-    tok = { access: r.access_token, exp: Date.now() + Math.max(60, (r.expires_in || 3600) - 120) * 1000, refresh: r.refresh_token || (tok && tok.refresh), name };
+    tok = { cid: C.clientId, access: r.access_token, exp: Date.now() + Math.max(60, (r.expires_in || 3600) - 120) * 1000, refresh: r.refresh_token || (tok && tok.refresh), name };
     store.set(TOK, tok);
   }
   function forget() { tok = null; store.del(TOK); }
