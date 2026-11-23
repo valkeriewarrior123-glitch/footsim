@@ -90,9 +90,10 @@ class ClubPack(unittest.TestCase):
         with self.assertRaises(api.EditError):
             api.edit_fixture(self.conn, "UCL1213", b, tie["legs"][0]["fixture_id"], {"home_score": 1, "away_score": 1})
 
-    def test_ucl_juventus_details_are_declared_generated(self):
+    def test_ucl_details_are_declared(self):
         kinds = {r[0] for r in self.conn.execute("SELECT DISTINCT kind FROM data_notes WHERE edition_id='UCL1213'")}
-        self.assertTrue({"generated_details", "lineup_incomplete"} <= kinds)
+        self.assertTrue({"subs_unknown", "lineup_incomplete"} <= kinds)
+        self.assertNotIn("generated_details", kinds)                   # Juventus' lineups are the real ones from UEFA now
         self.assertNotIn("scorer_unknown", kinds)                      # every goal has a scorer from Wikipedia
         unnamed = self.conn.execute("SELECT COUNT(*) FROM match_events WHERE fixture_id LIKE 'UCL1213%' AND event_type IN ('goal','pen_goal','own_goal') AND player_id IS NULL").fetchone()[0]
         self.assertEqual(unnamed, 0)
@@ -100,11 +101,11 @@ class ClubPack(unittest.TestCase):
         self.assertEqual(goals, 368)
         top = self.conn.execute("""SELECT p.full_name, COUNT(*) c FROM match_events e JOIN players p USING(player_id)
                                    WHERE e.fixture_id LIKE 'UCL1213%' AND e.event_type IN ('goal','pen_goal') GROUP BY p.player_id ORDER BY c DESC LIMIT 1""").fetchone()
-        self.assertEqual(tuple(top), ("Ronaldo", 12))                  # Cristiano Ronaldo, top scorer of 2012/13
+        self.assertEqual(tuple(top), ("Cristiano Ronaldo", 12))                  # Cristiano Ronaldo, top scorer of 2012/13
         late = self.conn.execute("SELECT MIN(date) FROM fixtures WHERE fixture_id LIKE 'UCL1213_G%'").fetchone()[0]
         self.assertTrue(self.conn.execute("SELECT MAX(date) FROM fixtures WHERE fixture_id LIKE 'UCL1213_G%'").fetchone()[0] < "2013-01-01" and late.startswith("2012"))
         n = self.conn.execute("SELECT COUNT(DISTINCT fixture_id) FROM lineups WHERE started = 1 AND fixture_id LIKE 'UCL1213%'").fetchone()[0]
-        self.assertEqual(n, 10)                                        # Juventus' 6 group matches + two ties (4 legs)
+        self.assertEqual(n, 124)                                       # every match but Braga-Galatasaray has a real starting eleven
 
     def test_older_pack_data_is_replaced_when_the_pack_version_goes_up(self):
         c = self.conn
@@ -114,7 +115,7 @@ class ClubPack(unittest.TestCase):
         db.apply_club_packs(c)
         n = c.execute("SELECT COUNT(*) FROM match_events WHERE fixture_id LIKE 'UCL1213%' AND player_id IS NOT NULL").fetchone()[0]
         self.assertGreater(n, 300)
-        self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='UCL1213'").fetchone()[0], 2)
+        self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='UCL1213'").fetchone()[0], 3)
         self.assertEqual(validate.check_edition(c, "UCL1213"), [])
 
 

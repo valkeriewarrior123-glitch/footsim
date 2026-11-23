@@ -77,6 +77,8 @@ def import_pack(conn, pack: Path) -> dict:
                 group = players[p]["position"] or "MF"
                 cand = [s for s in starters if starters[s]["off"] is None and s not in busy
                         and (players[s]["position"] or "MF") == group and group != "GK"]
+                if p.startswith("wk_") and not players[p]["position"]:
+                    cand = []                       # position unknown (UEFA reports have none): nobody is guessed off
                 if cand:
                     starters[cand[-1]]["off"] = m
                 subs[p] = dict(on=m, off=None); n_sub += 1

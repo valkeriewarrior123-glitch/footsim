@@ -612,7 +612,7 @@ function renderStats(s) {
         ${tables}
       </div></div>`;
   }
-  const note = s.generated ? `<div class="banner" style="border-radius:8px;margin-bottom:12px">Scores, scorers and goal minutes are real (Wikipedia). Lineups, assists, cards and ratings are not known, so appearances, minutes and ratings aren't shown.</div>` : "";
+  const note = s.generated ? `<div class="banner" style="border-radius:8px;margin-bottom:12px">Scores, scorers and goal minutes are real (Wikipedia), and so are the starting elevens (UEFA). Substitution times, cards and assists are not known, so minutes and ratings aren't shown.</div>` : "";
   return `${note}<div class="cols">
     <div style="display:grid;gap:14px;align-content:start">
     ${tables}</div>

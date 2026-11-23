@@ -1,6 +1,6 @@
 {
   "edition_id": "UCL1213",
-  "data_version": 2,
+  "data_version": 3,
   "display_name": "Champions League 2012/13",
   "focus_team": "c_juventus",
   "source": "openfootball/champions-league (CC0) scores; details generated, see notes",

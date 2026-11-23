@@ -330,9 +330,9 @@ details.tour .body { padding: 0 14px 14px; }
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=5517b18d33", "seed": "footsim-seed.db?v=5517b18d33", "worker": "engine-worker.js?v=5517b18d33", "version": "5517b18d33", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
-<script src="cloud.js?v=5517b18d33"></script>
-<script src="engine.js?v=5517b18d33"></script>
+<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=75b7fdc14e", "seed": "footsim-seed.db?v=75b7fdc14e", "worker": "engine-worker.js?v=75b7fdc14e", "version": "75b7fdc14e", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
+<script src="cloud.js?v=75b7fdc14e"></script>
+<script src="engine.js?v=75b7fdc14e"></script>
 <script>
 let ED = (() => { try { return localStorage.getItem("footsim.edition") || "WC2022"; } catch (e) { return "WC2022"; } })();
 let state_editions = [];
@@ -614,7 +614,7 @@ function renderStats(s) {
         ${tables}
       </div></div>`;
   }
-  const note = s.generated ? `<div class="banner" style="border-radius:8px;margin-bottom:12px">Scores, scorers and goal minutes are real (Wikipedia). Lineups, assists, cards and ratings are not known, so appearances, minutes and ratings aren't shown.</div>` : "";
+  const note = s.generated ? `<div class="banner" style="border-radius:8px;margin-bottom:12px">Scores, scorers and goal minutes are real (Wikipedia), and so are the starting elevens (UEFA). Substitution times, cards and assists are not known, so minutes and ratings aren't shown.</div>` : "";
   return `${note}<div class="cols">
     <div style="display:grid;gap:14px;align-content:start">
     ${tables}</div>

@@ -264,7 +264,7 @@ def stats_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
                    "l": t.lost, "gf": t.gf, "ga": t.ga, "cs": t.clean_sheets}
                   for t in sorted(st.teams.values(), key=lambda t: finish_order.index(t.finish))],
         "records": _named_records(conn, edition_id, branch_id, st.records, tn),
-        "generated": bool(conn.execute("SELECT 1 FROM data_notes WHERE edition_id = ? AND kind IN ('generated_details','lineup_incomplete') LIMIT 1",
+        "generated": bool(conn.execute("SELECT 1 FROM data_notes WHERE edition_id = ? AND kind IN ('generated_details','lineup_incomplete','subs_unknown') LIMIT 1",
                                        (edition_id,)).fetchone()),
         "season": (season_stats.season_records(conn, edition_id, branch_id, nm, tn)
                    if _db_rules(conn, edition_id).get("format") == "league" else []),
