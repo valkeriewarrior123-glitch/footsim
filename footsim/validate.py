@@ -31,7 +31,7 @@ def check_edition(conn, edition: str) -> list[str]:
                 problems.append(f"{label}: {team} goal events = {goals}, score says {f[score]}")
 
         # knockout draws must be settled by shootout
-        if f["stage"] not in ("group", "league") and f["home_score"] == f["away_score"]:
+        if f["stage"] not in ("group", "league") and not f["leg"] and f["home_score"] == f["away_score"]:
             if f["pen_home"] is None or f["pen_home"] == f["pen_away"]:
                 problems.append(f"{label}: knockout draw without a decisive shootout")
 

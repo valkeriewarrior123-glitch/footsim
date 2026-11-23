@@ -1,0 +1,181 @@
+{
+  "edition_id": "UCL1213",
+  "display_name": "Champions League 2012/13",
+  "focus_team": "c_juventus",
+  "source": "openfootball/champions-league (CC0) scores; details generated, see notes",
+  "format": "groups_then_knockout",
+  "group_stage": {
+    "groups": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H"
+    ],
+    "teams_per_group": 4,
+    "round_robin_legs": 2,
+    "qualify_per_group": 2,
+    "best_thirds": 0,
+    "points": {
+      "win": 3,
+      "draw": 1,
+      "loss": 0
+    },
+    "tiebreakers": [
+      "points",
+      "h2h_points",
+      "h2h_goal_diff",
+      "h2h_goals_for",
+      "h2h_away_goals",
+      "goal_diff",
+      "goals_for",
+      "lots"
+    ]
+  },
+  "knockout": {
+    "two_legs": true,
+    "away_goals": true,
+    "extra_time": true,
+    "penalties": true,
+    "third_place_match": false,
+    "bracket": [
+      {
+        "match_no": 49,
+        "stage": "R16",
+        "home": "2G",
+        "away": "1E",
+        "legs": 2
+      },
+      {
+        "match_no": 50,
+        "stage": "R16",
+        "home": "2F",
+        "away": "1A",
+        "legs": 2
+      },
+      {
+        "match_no": 51,
+        "stage": "R16",
+        "home": "2E",
+        "away": "1D",
+        "legs": 2
+      },
+      {
+        "match_no": 52,
+        "stage": "R16",
+        "home": "2D",
+        "away": "1H",
+        "legs": 2
+      },
+      {
+        "match_no": 53,
+        "stage": "R16",
+        "home": "2B",
+        "away": "1F",
+        "legs": 2
+      },
+      {
+        "match_no": 54,
+        "stage": "R16",
+        "home": "2A",
+        "away": "1C",
+        "legs": 2
+      },
+      {
+        "match_no": 55,
+        "stage": "R16",
+        "home": "2H",
+        "away": "1B",
+        "legs": 2
+      },
+      {
+        "match_no": 56,
+        "stage": "R16",
+        "home": "2C",
+        "away": "1G",
+        "legs": 2
+      },
+      {
+        "match_no": 57,
+        "stage": "QF",
+        "home": "W50",
+        "away": "W56",
+        "legs": 2
+      },
+      {
+        "match_no": 58,
+        "stage": "QF",
+        "home": "W53",
+        "away": "W49",
+        "legs": 2
+      },
+      {
+        "match_no": 59,
+        "stage": "QF",
+        "home": "W54",
+        "away": "W51",
+        "legs": 2
+      },
+      {
+        "match_no": 60,
+        "stage": "QF",
+        "home": "W52",
+        "away": "W55",
+        "legs": 2
+      },
+      {
+        "match_no": 61,
+        "stage": "SF",
+        "home": "W58",
+        "away": "W57",
+        "legs": 2
+      },
+      {
+        "match_no": 62,
+        "stage": "SF",
+        "home": "W59",
+        "away": "W60",
+        "legs": 2
+      },
+      {
+        "match_no": 64,
+        "stage": "F",
+        "home": "W62",
+        "away": "W61",
+        "legs": 1
+      }
+    ]
+  },
+  "suspensions": {
+    "enabled": false,
+    "note": "UEFA's disciplinary rules aren't modeled"
+  },
+  "zones": [
+    {
+      "positions": [
+        1,
+        2
+      ],
+      "kind": "adv",
+      "label": "Advance to the round of 16"
+    },
+    {
+      "positions": [
+        3
+      ],
+      "kind": "el",
+      "label": "Europa League round of 32"
+    },
+    {
+      "positions": [
+        4
+      ],
+      "kind": "out",
+      "label": "Eliminated"
+    }
+  ],
+  "classification_note": "Ranked by points, then head-to-head points, head-to-head goal difference, head-to-head goals scored, head-to-head away goals, goal difference, goals scored."
+}

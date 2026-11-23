@@ -131,9 +131,12 @@ def edition_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
     slots = []
     for s in res.slots:
         item = {"match_no": s.match_no, "stage": s.stage, "home": s.home, "away": s.away,
-                "status": s.status, "reason": s.reason, "fixture": None}
+                "status": s.status, "reason": s.reason, "fixture": None, "num_legs": s.legs}
         if s.fixture is not None:
             item["fixture"] = _fixture_json(s.fixture, nm)
+            if s.fixture.legs:                 # a two-legged tie: both real legs, and how it was decided
+                item["legs"] = [_fixture_json(l, nm) for l in s.fixture.legs]
+                item["decided_by"] = s.fixture.decided_by
         else:
             stub = next((f for f in fx.values() if f.match_no == s.match_no), None)
             if stub is not None:
@@ -207,7 +210,9 @@ def fixture_detail(conn, edition_id: str, fixture_id: str, branch_id: int | None
     out["lineup"] = [{**l, "name": nm.get(l["player_id"])} for l in lineup]
     out["is_historical"] = f.status == "historical"
     me = player.profile(conn, branch_id)
-    out["editable"] = me is None or me.team_id in (f.home, f.away) or branch_mode(conn, branch_id) == "free"
+    out["editable"] = (me is None or me.team_id in (f.home, f.away) or branch_mode(conn, branch_id) == "free") \
+        and not (f.leg and f.stage != "group")        # home-and-away knockout ties: editing comes in a later step
+    out["leg"] = f.leg
     out["focus_team"] = me.team_id if me else None
     res = engine.resolve(conn, edition_id, branch_id)
     out["suspended"] = {t: [nm.get(p, p) for p in ps] for t, ps in res.suspensions.get(fixture_id, {}).items()}
@@ -219,6 +224,17 @@ def fixture_detail(conn, edition_id: str, fixture_id: str, branch_id: int | None
         out["ratings"] = sorted(({"player_id": p, "name": nm.get(p), "team": next((l["team_id"] for l in f.lineup
                                   if l["player_id"] == p), None), "rating": r} for p, r in rt.items()),
                                 key=lambda x: -x["rating"])
+    return out
+
+
+def _named_records(conn, edition_id, branch_id, records, tn):
+    """The records with team names instead of ids."""
+    out = dict(records)
+    hs = out.get("highest_scoring_match")
+    if hs:
+        f = timeline.active_fixtures(conn, edition_id, branch_id).get(hs[0])
+        if f is not None:
+            out["highest_scoring_match"] = (hs[0], f"{tn.get(f.home, f.home)} {f.home_score}-{f.away_score} {tn.get(f.away, f.away)}")
     return out
 
 
@@ -247,7 +263,9 @@ def stats_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
         "teams": [{"team": t.team_id, "name": tn.get(t.team_id), "finish": t.finish, "w": t.won, "d": t.drawn,
                    "l": t.lost, "gf": t.gf, "ga": t.ga, "cs": t.clean_sheets}
                   for t in sorted(st.teams.values(), key=lambda t: finish_order.index(t.finish))],
-        "records": st.records,
+        "records": _named_records(conn, edition_id, branch_id, st.records, tn),
+        "generated": bool(conn.execute("SELECT 1 FROM data_notes WHERE edition_id = ? AND kind IN ('generated_details','lineup_incomplete') LIMIT 1",
+                                       (edition_id,)).fetchone()),
         "season": (season_stats.season_records(conn, edition_id, branch_id, nm, tn)
                    if _db_rules(conn, edition_id).get("format") == "league" else []),
     }
@@ -360,6 +378,9 @@ def _validate(f: Fixture, payload: dict) -> list:
 
 
 def edit_fixture(conn, edition_id: str, branch_id: int, fixture_id: str, payload: dict) -> dict:
+    _leg = conn.execute("SELECT leg, stage FROM fixtures WHERE fixture_id = ?", (fixture_id,)).fetchone()
+    if _leg and _leg["leg"] and _leg["stage"] != "group":
+        raise EditError("Editing the legs of a home-and-away knockout tie isn't available yet")
     if branch_id is None:
         raise EditError("Real history can't be edited. Create or pick a branch first.")
     locked = conn.execute("SELECT locked FROM editions WHERE edition_id = ?", (edition_id,)).fetchone()
@@ -541,7 +562,7 @@ def history_diff(conn, edition_id: str, branch_id: int | None) -> dict:
     real = timeline.active_fixtures(conn, edition_id, None)
     now = timeline.active_fixtures(conn, edition_id, branch_id)
     res = engine.resolve(conn, edition_id, branch_id)
-    counts = {s.fixture.fixture_id for s in res.slots if s.status == "valid"}
+    counts = engine.played_fixture_ids(res)
     pending = {s.match_no for s in res.slots if s.status == "pending"}
     label = {"user_edit": "edited by you", "rolled": "rolled", "second_order_generated": "rolled",
              "reused_historical": "real result from another meeting", "suspension_fix": "lineup fixed (suspension)",
@@ -666,7 +687,7 @@ def player_view(conn, edition_id: str, branch_id: int | None) -> dict:
     nm, tn = names(conn), team_names(conn)
     st = stats.edition_stats(conn, edition_id, branch_id)
     res = st.resolution
-    valid = {s.fixture.fixture_id for s in res.slots if s.status == "valid"}
+    valid = engine.played_fixture_ids(res)
     fx = timeline.active_fixtures(conn, edition_id, branch_id)
     raw = timeline.active_fixtures(conn, edition_id, branch_id, raw=True)
     sq = squad(conn, edition_id, me.team_id, branch_id)

@@ -125,6 +125,9 @@ details.tour .body { padding: 0 14px 14px; }
 .m .no { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
 .m .t { display: flex; justify-content: space-between; padding: 2px 0; }
 .m .t.w { font-weight: 700; font-size: 14.5px; }
+.tie .legs { margin-top: 6px; padding-top: 4px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
+.tie .leg { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; cursor: pointer; }
+.tie .leg:hover { color: var(--ink); }
 .m:has(.t.w) .t:not(.w) { color: var(--muted); opacity: .7; }
 .m:has(.t.w) .t:not(.w) > span:first-child { text-decoration: line-through; }
 .m .sc { font-family: var(--mono); }
@@ -510,7 +513,18 @@ function renderGroups(v) {
     </section>`).join("") + `</div>`;
 }
 
+function tieCard(s) {
+  const f = s.fixture, legs = s.legs || [];
+  const w = f.winner, how = s.decided_by && s.decided_by !== "aggregate" ? `<span class="tag pend" title="Level on aggregate">${esc(s.decided_by)}</span>` : "";
+  const row = (t, sc) => `<div class="t ${w === t ? "w" : ""}"><span>${esc(tname(t))}</span><span class="sc">${sc}</span></div>`;
+  return `<div class="m tie ${s.stage === "F" ? "final" : ""}" data-no="${s.match_no}"><div class="no"><span>Aggregate</span>${how}</div>
+    ${row(f.home, f.home_score)}${row(f.away, f.away_score)}
+    <div class="legs">${legs.map((l, i) => `<div class="leg" data-fx="${l.fixture_id}" title="Open this leg">
+      <span>${i + 1}${["st", "nd"][i]} leg · ${fmtDate(l.date)}</span><span>${esc(tname(l.home))} <b>${l.home_score}–${l.away_score}</b> ${esc(tname(l.away))}</span></div>`).join("")}</div></div>`;
+}
+
 function matchCard(s) {
+  if (s.legs?.length && s.status === "valid") return tieCard(s);
   const f = s.fixture;
   if (s.status === "valid") {
     const tag = f.origin === "user_edit" ? `<span class="tag edit">edited</span>`
@@ -597,13 +611,14 @@ function renderStats(s) {
         ${tables}
       </div></div>`;
   }
-  return `<div class="cols">
+  const note = s.generated ? `<div class="banner" style="border-radius:8px;margin-bottom:12px">Only the scores are real here. Juventus' lineups, scorers and goal minutes are generated, and other clubs' are unknown, so the player lists below are not real records.</div>` : "";
+  return `${note}<div class="cols">
     <div style="display:grid;gap:14px;align-content:start">
     ${tables}</div>
     <div style="display:grid;gap:14px">
-      <section class="card"><h3>Awards</h3>${s.awards_calculated ? `<p style="margin:0 0 8px;font-size:12px;color:var(--muted)">In a branch, the voted awards go to the best performers by match rating and how far their team went.</p>` : ""}<table><tbody>
+      ${s.generated ? "" : `<section class="card"><h3>Awards</h3>${s.awards_calculated ? `<p style="margin:0 0 8px;font-size:12px;color:var(--muted)">In a branch, the voted awards go to the best performers by match rating and how far their team went.</p>` : ""}<table><tbody>
         ${Object.entries(aw).map(([k, label]) => `<tr><td>${label}${k === "golden_boot" || k === "most_assists" || s.awards_calculated ? ` <span class="lots">calculated</span>` : ` <span class="lots">real winner</span>`}</td><td style="text-align:right">${((s.awards[k] || []).length ? (s.awards[k] || []).map((p, i) => i === 0 ? `<b>${esc(p.name)}</b>` : esc(p.name)).join(", ") : `<span style="color:var(--muted)">after the final</span>`)}</td></tr>`).join("")}
-      </tbody></table></section>
+      </tbody></table></section>`}
       <section class="card"><h3>Finishes</h3><table><tbody>
         ${s.teams.filter(t => t.finish && t.finish !== "Group stage").map(t => `<tr><td>${esc(t.finish)}</td><td style="text-align:right">${esc(t.name)}</td></tr>`).join("")}
       </tbody></table></section>
@@ -708,7 +723,7 @@ async function openFixture(fid) {
 $("#dClose").onclick = () => $("#drawer").classList.remove("open");
 document.addEventListener("keydown", e => { if (e.key === "Escape") { $("#drawer").classList.remove("open"); $("#modal").classList.remove("open"); } });
 
-function stageLine(f) { return `${STAGE[f.stage]}${f.group ? " " + f.group : ""}${f.match_no ? " · Match " + f.match_no : ""} · ${fmtDate(f.date)}`; }
+function stageLine(f) { return `${STAGE[f.stage]}${f.group ? " " + f.group : ""}${f.leg ? " · " + f.leg + (f.leg === 1 ? "st" : "nd") + " leg" : f.match_no ? " · Match " + f.match_no : ""} · ${fmtDate(f.date)}`; }
 
 function renderReadOnly(f, ripple) {
   $("#dBody").innerHTML = `<div class="ro">
@@ -717,7 +732,7 @@ function renderReadOnly(f, ripple) {
       <input value="${f.home_score}" disabled><span>–</span><input value="${f.away_score}" disabled><div class="tn">${esc(tname(f.away))}</div></div>
       ${f.pen_home != null ? `<p>Penalties ${f.pen_home}–${f.pen_away}</p>` : ""}`}
     <div class="sec">Events</div>
-    ${f.events.map(e => `<div class="evline"><span class="mn">${e.minute}'</span><span>${EVLABEL[e.event_type]}</span><span>${esc(e.player_name || "")}</span>
+    ${f.events.map(e => `<div class="evline"><span class="mn">${e.minute}'</span><span>${EVLABEL[e.event_type]}</span><span>${e.player_name ? esc(e.player_name) : (/goal/.test(e.event_type) ? `<i style="color:var(--muted)">scorer unknown</i>` : "")}</span>
       <span style="color:var(--muted)">${esc(tname(e.team_id))}${e.assist_name ? " · assist " + esc(e.assist_name) : ""}</span></div>`).join("") || "<p>None.</p>"}
     ${ratingsBlock(f)}
   </div>`;

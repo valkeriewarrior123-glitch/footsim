@@ -25,6 +25,10 @@ class Fixture:
     override_id: int | None = None
     events: list = field(default_factory=list)   # dicts: minute, team_id, player_id, event_type, assist_player_id
     lineup: list = field(default_factory=list)   # dicts: team_id, player_id, started, minute_on, minute_off
+    leg: int | None = None                        # 1 or 2 in a two-legged tie
+    legs: tuple = ()                              # on an aggregate stand-in: the two real leg fixtures
+    agg_winner: str | None = None                 # on an aggregate stand-in: who went through
+    decided_by: str = ""                          # aggregate | away goals | penalties
 
     @property
     def played(self) -> bool:
@@ -33,6 +37,8 @@ class Fixture:
     def winner(self) -> str | None:
         if not self.played:
             return None
+        if self.legs:
+            return self.agg_winner
         if self.home_score != self.away_score:
             return self.home if self.home_score > self.away_score else self.away
         if self.pen_home is not None and self.pen_home != self.pen_away:
@@ -145,6 +151,7 @@ def active_fixtures(conn, edition_id: str, branch_id: int | None = None, raw: bo
         fx = Fixture(f["fixture_id"], f["stage"], f["grp"], f["match_no"], f["date"],
                      f["home_team_id"], f["away_team_id"], f["home_score"], f["away_score"],
                      f["extra_time"], f["pen_home"], f["pen_away"])
+        fx.leg = f["leg"]
         fx.events = [dict(e) for e in conn.execute(
             "SELECT minute, team_id, player_id, event_type, assist_player_id FROM match_events WHERE fixture_id = ?",
             (fx.fixture_id,))]
@@ -161,6 +168,7 @@ def active_fixtures(conn, edition_id: str, branch_id: int | None = None, raw: bo
                      o["home_team_id"], o["away_team_id"], o["home_score"], o["away_score"],
                      o["extra_time"], o["pen_home"], o["pen_away"],
                      status=o["status"], origin=o["origin"], override_id=o["override_id"])
+        fx.leg = o["leg"] if "leg" in o.keys() else None
         fx.events = [dict(e) for e in conn.execute(
             "SELECT minute, team_id, player_id, event_type, assist_player_id FROM event_overrides WHERE override_id = ?",
             (o["override_id"],))]

@@ -64,7 +64,7 @@ class EditionStats:
 
 def counted_fixtures(conn, edition_id: str, branch_id: int | None):
     res = engine.resolve(conn, edition_id, branch_id)
-    valid_ko = {s.fixture.fixture_id for s in res.slots if s.status == "valid"}
+    valid_ko = engine.played_fixture_ids(res)
     fx = active_fixtures(conn, edition_id, branch_id)
     played = [f for f in fx.values() if f.played and (f.stage == "group" or f.fixture_id in valid_ko)]
     return sorted(played, key=lambda f: f.date), res

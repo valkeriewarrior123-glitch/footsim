@@ -100,7 +100,7 @@ def suspended_for(conn, edition_id: str, branch_id: int | None, fixture: Fixture
     """Players banned for this fixture, from cards in matches played before it."""
     fx = timeline.active_fixtures(conn, edition_id, branch_id)
     res = engine.resolve(conn, edition_id, branch_id)
-    valid = {s.fixture.fixture_id for s in res.slots if s.status == "valid"}
+    valid = engine.played_fixture_ids(res)
     before = {k: f for k, f in fx.items() if f.played and f.date < fixture.date
               and (f.stage == "group" or k in valid)}
     probe = Fixture("__probe__", fixture.stage, fixture.grp, None, fixture.date, fixture.home, fixture.away, 0, 0)

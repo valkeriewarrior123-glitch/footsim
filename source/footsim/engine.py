@@ -89,8 +89,12 @@ def _rank(teams: list[str], keys: list[str], overall: dict[str, Row],
     if key.startswith("h2h_"):
         mini = _table(teams, fixtures, pts)
         stat = key[4:]
-        value = {t: getattr(mini[t], {"points": "points", "goal_diff": "gd", "goals_for": "gf"}[stat])
-                 for t in teams}
+        if stat == "away_goals":            # goals scored away from home in the matches between the tied teams
+            value = {t: sum(f.away_score for f in fixtures if f.played and f.away == t and f.home in teams)
+                     for t in teams}
+        else:
+            value = {t: getattr(mini[t], {"points": "points", "goal_diff": "gd", "goals_for": "gf"}[stat])
+                     for t in teams}
     else:
         attr = {"points": "points", "goal_diff": "gd", "goals_for": "gf", "fair_play": "fair_play"}[key]
         value = {t: getattr(overall[t], attr) for t in teams}
@@ -140,6 +144,13 @@ class Slot:
     status: str                 # valid | pending | tbd
     reason: str = ""
     reuse: dict | None = None   # a real historical meeting of the same pair, if any
+    legs: int = 1               # 2 = a home-and-away tie; `fixture` is then an aggregate stand-in
+
+    def real_fixtures(self) -> list:
+        """The fixtures that were actually played in this slot (both legs of a tie)."""
+        if self.fixture is None:
+            return []
+        return list(self.fixture.legs) if self.fixture.legs else [self.fixture]
 
 
 @dataclass
@@ -156,6 +167,35 @@ class Resolution:
 
     def slot(self, match_no: int) -> Slot:
         return next(s for s in self.slots if s.match_no == match_no)
+
+
+def _aggregate(f1: Fixture, f2: Fixture, away_goals: bool) -> Fixture:
+    """Stand-in fixture for a finished two-legged tie. f1 is the first leg (its home team is the slot's `home`)."""
+    a, b = f1.home, f1.away
+    agg = {a: f1.home_score + f2.away_score, b: f1.away_score + f2.home_score}
+    winner, how = None, ""
+    if agg[a] != agg[b]:
+        winner, how = (a if agg[a] > agg[b] else b), "aggregate"
+    elif away_goals and f2.away_score != f1.away_score:     # goals each side scored away from home
+        winner, how = (a if f2.away_score > f1.away_score else b), "away goals"
+    elif f2.pen_home is not None and f2.pen_home != f2.pen_away:
+        winner, how = (f2.home if f2.pen_home > f2.pen_away else f2.away), "penalties"
+    pen = (None, None)
+    if how == "penalties":
+        pa, pb = (f2.pen_away, f2.pen_home) if f2.home == b else (f2.pen_home, f2.pen_away)
+        pen = (pa, pb)
+    played_real = f1.status == "historical" and f2.status == "historical"
+    out = Fixture(f2.fixture_id, f2.stage, None, f1.match_no, f2.date, a, b, agg[a], agg[b], f2.extra_time,
+                  pen[0], pen[1], status="historical" if played_real else "overridden",
+                  origin="baseline" if played_real else (f2.origin if f2.origin != "baseline" else f1.origin))
+    out.legs, out.agg_winner, out.decided_by, out.leg = (f1, f2), winner, how, None
+    out.events, out.lineup = f2.events, f2.lineup
+    return out
+
+
+def played_fixture_ids(res) -> set:
+    """Ids of every knockout fixture that counts (both legs of a decided tie)."""
+    return {f.fixture_id for s in res.slots if s.status == "valid" for f in s.real_fixtures()}
 
 
 def _slot_team(code: str, tables, fixtures, slots_by_no) -> str | None:
@@ -192,10 +232,13 @@ def resolve(conn, edition_id: str, branch_id: int | None = None) -> Resolution:
     tables = group_tables(fixtures, rules)
 
     # Which active fixture claims each bracket number: overrides first, then baseline.
-    by_no = {}
+    by_no, by_leg = {}, {}
     for f in sorted(fixtures.values(), key=lambda f: f.override_id is None):
         if f.match_no is not None and f.match_no not in by_no:
             by_no[f.match_no] = f
+        if f.match_no is not None and f.leg and (f.match_no, f.leg) not in by_leg:
+            by_leg[(f.match_no, f.leg)] = f
+    away_goals = bool(rules["knockout"].get("away_goals"))
 
     slots_by_no = {}
     for b in sorted(rules["knockout"]["bracket"], key=lambda b: b["match_no"]):
@@ -203,6 +246,20 @@ def resolve(conn, edition_id: str, branch_id: int | None = None) -> Resolution:
         home = _slot_team(b["home"], tables, fixtures, slots_by_no)
         away = _slot_team(b["away"], tables, fixtures, slots_by_no)
         f = by_no.get(n)
+        if b.get("legs", 1) == 2:
+            f1, f2 = by_leg.get((n, 1)), by_leg.get((n, 2))
+            if home is None or away is None:
+                slot = Slot(n, b["stage"], home, away, None, "tbd", "waiting on an earlier result", legs=2)
+            elif (f1 and f2 and f1.home == home and f1.away == away and f2.home == away and f2.away == home
+                  and f1.played and f2.played):
+                agg = _aggregate(f1, f2, away_goals)
+                slot = (Slot(n, b["stage"], home, away, agg, "valid", legs=2) if agg.agg_winner else
+                        Slot(n, b["stage"], home, away, None, "pending", "level after both legs", legs=2))
+            else:
+                slot = Slot(n, b["stage"], home, away, None, "pending",
+                            "participants changed" if (f1 or f2) else "no result yet", legs=2)
+            slots_by_no[n] = slot
+            continue
         if home is None or away is None:
             slot = Slot(n, b["stage"], home, away, None, "tbd", "waiting on an earlier result")
         elif f is not None and f.teams() == frozenset((home, away)) and f.played and f.winner():
@@ -245,7 +302,7 @@ def _apply_suspensions(res: Resolution, fixtures: dict[str, Fixture], rules: dic
     reset_after = sus.get("yellows_reset_after_stage")
     reset_idx = STAGE_ORDER.index(reset_after) if reset_after in STAGE_ORDER else None
 
-    valid_ko = {s.fixture.fixture_id for s in res.slots if s.status == "valid"}
+    valid_ko = played_fixture_ids(res)
     played = [f for f in fixtures.values()
               if f.played and (include_all or f.stage == "group" or f.fixture_id in valid_ko)]
     played.sort(key=lambda f: (f.date, STAGE_ORDER.index(f.stage)))

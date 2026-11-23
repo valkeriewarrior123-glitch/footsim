@@ -41,9 +41,6 @@ class ClubPack(unittest.TestCase):
         self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM lineups").fetchone()[0], before)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
     def test_table_zones_deductions_and_records(self):
         from footsim import api
@@ -57,3 +54,48 @@ if __name__ == "__main__":
         self.assertIn("Cavani", recs["top_scorers"][0])
         self.assertIn("1003", recs["total_goals"][0])
         self.assertIn("Juventus", recs["most_cs"][0])
+
+    # ---------------------------------------------------------------- Champions League 2012/13
+    def test_ucl_pack_valid_and_complete(self):
+        self.assertEqual(validate.check_edition(self.conn, "UCL1213"), [])
+        n = self.conn.execute("SELECT COUNT(*) FROM fixtures WHERE edition_id='UCL1213'").fetchone()[0]
+        self.assertEqual(n, 125)                                       # 96 group + 8*2 + 4*2 + 2*2 + final
+
+    def test_ucl_groups_follow_uefa_tiebreaks(self):
+        t = engine.resolve(self.conn, "UCL1213", None).tables
+        self.assertEqual([r.team for r in t["E"][:3]], ["c_juventus", "c_shakhtardonetsk", "c_chelseafc"])  # Chelsea out on away goals
+        self.assertEqual([r.team for r in t["H"][:3]], ["c_manchesterunited", "c_galatasaray", "c_cfrcluj"])
+        self.assertEqual(t["A"][0].points, 15)
+
+    def test_ucl_ties_aggregate_and_away_goals(self):
+        res = engine.resolve(self.conn, "UCL1213", None)
+        slot = {s.match_no: s for s in res.slots}
+        self.assertTrue(all(s.status == "valid" for s in res.slots))
+        arsenal = next(s for s in res.slots if s.home == "c_arsenalfc")
+        self.assertEqual((arsenal.fixture.home_score, arsenal.fixture.away_score, arsenal.fixture.decided_by),
+                         (3, 3, "away goals"))
+        self.assertEqual(arsenal.fixture.winner(), "c_bayernmunchen")
+        celtic = next(s for s in res.slots if s.home == "c_celticfc")
+        self.assertEqual((celtic.fixture.home_score, celtic.fixture.away_score), (0, 5))
+        self.assertEqual((res.champion, res.runner_up), ("c_bayernmunchen", "c_borussiadortmund"))
+
+    def test_ucl_tie_legs_in_view_and_not_editable(self):
+        from footsim import api, timeline
+        v = api.edition_view(self.conn, "UCL1213", None)
+        tie = next(s for s in v["slots"] if s["home"] == "c_celticfc")
+        self.assertEqual(len(tie["legs"]), 2)
+        b = timeline.create_branch(self.conn, "t")
+        d = api.fixture_detail(self.conn, "UCL1213", tie["legs"][0]["fixture_id"], b)
+        self.assertFalse(d["editable"])
+        with self.assertRaises(api.EditError):
+            api.edit_fixture(self.conn, "UCL1213", b, tie["legs"][0]["fixture_id"], {"home_score": 1, "away_score": 1})
+
+    def test_ucl_juventus_details_are_declared_generated(self):
+        kinds = {r[0] for r in self.conn.execute("SELECT DISTINCT kind FROM data_notes WHERE edition_id='UCL1213'")}
+        self.assertTrue({"generated_details", "lineup_incomplete", "scorer_unknown"} <= kinds)
+        n = self.conn.execute("SELECT COUNT(DISTINCT fixture_id) FROM lineups WHERE fixture_id LIKE 'UCL1213%'").fetchone()[0]
+        self.assertEqual(n, 10)                                        # Juventus' 6 group matches + two ties (4 legs)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -13,7 +13,8 @@ from pathlib import Path
 
 from footsim import db
 
-COMPETITIONS = {"SERIEA": ("SA", "Serie A", "club", "UEFA", "Italy")}
+COMPETITIONS = {"SERIEA": ("SA", "Serie A", "club", "UEFA", "Italy"),
+                "UCL": ("UCL", "UEFA Champions League", "club", "UEFA", "Europe")}
 
 
 def _rows(path):
@@ -40,11 +41,15 @@ def import_pack(conn, pack: Path) -> dict:
     for t in teams:
         conn.execute("INSERT OR IGNORE INTO teams VALUES (?,?,?,?, 'club')", (t["team_id"], t["name"], country, confed))
     for f in fixtures:
+        # a league pack has only the basic columns; a cup pack adds stage, group, leg, match number and venue
         conn.execute("""INSERT OR REPLACE INTO fixtures (fixture_id, edition_id, stage, grp, leg, match_no, date, home_team_id,
                         away_team_id, home_score, away_score, extra_time, pen_home, pen_away, neutral_venue)
-                        VALUES (?,?,?,?,NULL,NULL,?,?,?,?,?,0,NULL,NULL,0)""",
-                     (f["fixture_id"], edition, "group", "A", f["date"], f["home_team_id"], f["away_team_id"],
-                      int(f["home_score"]), int(f["away_score"])))
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                     (f["fixture_id"], edition, f.get("stage") or "group", (f["grp"] if "grp" in f else "A") or None,
+                      int(f["leg"]) if f.get("leg") else None, int(f["match_no"]) if f.get("match_no") else None,
+                      f["date"], f["home_team_id"], f["away_team_id"], int(f["home_score"]), int(f["away_score"]),
+                      int(f.get("extra_time") or 0), int(f["pen_home"]) if f.get("pen_home") else None,
+                      int(f["pen_away"]) if f.get("pen_away") else None, int(f.get("neutral") or 0)))
     ev_by, lu_by = defaultdict(list), defaultdict(list)
     for e in events:
         ev_by[e["fixture_id"]].append(e)
@@ -102,7 +107,7 @@ def import_pack(conn, pack: Path) -> dict:
     if (pack / "ratings.csv").exists():
         for r in _rows(pack / "ratings.csv"):
             conn.execute("INSERT OR REPLACE INTO team_ratings VALUES (?,?,?,?)", (r["team_id"], r["date"], float(r["elo"]),
-                         f"club Elo going into {edition}, computed from earlier seasons of the same league (Kaggle European Soccer Database)"))
+                         f"club strength going into {edition}: estimated from earlier seasons (see the pack's builder)"))
     conn.execute("DELETE FROM data_notes WHERE edition_id = ?", (edition,))
     for n in notes:
         conn.execute("INSERT INTO data_notes VALUES (?,?,?,?)", (edition, n["fixture_id"] or None, n["kind"], n["note"]))
