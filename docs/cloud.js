@@ -61,7 +61,8 @@
     const challenge = b64url(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)));
     store.set(FLOW, { verifier, state });
     const q = new URLSearchParams({ client_id: C.clientId, response_type: "code", redirect_uri: redirectUri, response_mode: "query",
-      scope: C.scope, state, code_challenge: challenge, code_challenge_method: "S256" });
+      scope: C.scope, state, code_challenge: challenge, code_challenge_method: "S256",
+      prompt: "select_account" });          // always ask which account, so a work/school login can't be picked by accident
     location.assign(C.authority + "/oauth2/v2.0/authorize?" + q);
     await new Promise(() => {});                 // the page is leaving
   }
