@@ -163,11 +163,31 @@ def edition_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
         s["loser_feeds"] = losers.get(s["match_no"], [])
 
     me = player.profile(conn, branch_id)
+    rules = _db.get_ruleset(conn, edition_id)
+    champion, runner_up, third = res.champion, res.runner_up, res.third
+    league = rules.get("format") == "league"
+    if league:                         # a league has no final: the champion is the table leader once every match is played
+        t = res.tables.get("A", [])
+        done = bool(t) and all(r.played == 2 * (len(t) - 1) for r in t)
+        champion, runner_up, third = ((t[0].team, t[1].team, t[2].team) if done else (None, None, None))
     return {"edition_id": edition_id, "branch_id": branch_id, "teams": tn, "groups": groups, "slots": slots,
+            "format": rules.get("format", "groups_then_knockout"), "club_focus": rules.get("focus_team"),
             "focus_team": me.team_id if me else None, "player_name": me.name if me else None,
             "mode": branch_mode(conn, branch_id),
-            "champion": res.champion, "runner_up": res.runner_up, "third": res.third,
+            "champion": champion, "runner_up": runner_up, "third": third,
             "violations": [{"fixture_id": f, "player": nm.get(p, p)} for f, p in res.violations]}
+
+
+def editions(conn) -> list:
+    """Every tournament in the database, oldest first, for the edition switcher."""
+    from footsim import db as _db
+    out = []
+    for r in conn.execute("SELECT e.edition_id, e.season, e.start_date, c.name, c.kind FROM editions e "
+                          "JOIN competitions c USING(competition_id) JOIN rulesets USING(edition_id) ORDER BY e.start_date DESC"):
+        rules = _db.get_ruleset(conn, r["edition_id"])
+        out.append({"edition_id": r["edition_id"], "name": rules.get("display_name") or f"{r['name']} {r['season']}",
+                    "kind": r["kind"], "format": rules.get("format", "groups_then_knockout"), "focus_team": rules.get("focus_team")})
+    return out
 
 
 def fixture_detail(conn, edition_id: str, fixture_id: str, branch_id: int | None = None) -> dict:

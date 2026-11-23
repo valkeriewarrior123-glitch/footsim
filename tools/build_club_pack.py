@@ -51,6 +51,28 @@ def teams_by_id(teams, tid):
     return next((v[1] for v in teams.values() if v[0] == tid), tid)
 
 
+def club_elo(c, league, season, teams):
+    """Elo going into `season`, from the same league's earlier seasons in the source (K 20, home advantage 100,
+    goal-difference weight, 25% pull toward 1500 each summer, newly promoted sides start at 1420)."""
+    seasons = [r[0] for r in c.execute("SELECT DISTINCT season FROM Match WHERE league_id=? AND season<? ORDER BY season", (league, season))]
+    elo, last = {}, None
+    for sn in seasons:
+        if last is not None:
+            elo = {t: 1500 + 0.75 * (e - 1500) for t, e in elo.items()}
+        last = sn
+        for r in c.execute("SELECT home_team_api_id h, away_team_api_id a, home_team_goal hg, away_team_goal ag FROM Match "
+                           "WHERE league_id=? AND season=? ORDER BY date, id", (league, sn)):
+            eh, ea = elo.get(r["h"], 1420.0), elo.get(r["a"], 1420.0)
+            we = 1 / (1 + 10 ** (-(eh + 100 - ea) / 400))
+            d = abs(r["hg"] - r["ag"]); g = 1.0 if d <= 1 else 1.5 if d == 2 else (11 + d) / 8
+            w = 1.0 if r["hg"] > r["ag"] else 0.0 if r["hg"] < r["ag"] else 0.5
+            delta = 20 * g * (w - we)
+            elo[r["h"]], elo[r["a"]] = eh + delta, ea - delta
+    if last is not None:
+        elo = {t: 1500 + 0.75 * (e - 1500) for t, e in elo.items()}
+    return {t: elo.get(t, 1420.0) for t in teams}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--kaggle", type=Path, required=True); ap.add_argument("--league", type=int, required=True)
@@ -173,6 +195,10 @@ def main():
             cw = csv.writer(fh); cw.writerow(head); cw.writerows(data)
     used_teams = sorted({(teams[t][0], teams[t][1]) for t in teams if teams[t][0] in {f[3] for f in fixtures} | {f[4] for f in fixtures}})
     w("teams.csv", ["team_id", "name"], used_teams)
+    season_teams = {t for t in teams if teams[t][0] in {f[3] for f in fixtures}}
+    start = f"{a.season[:4]}-08-01"
+    elo = club_elo(c, a.league, a.season, season_teams)
+    w("ratings.csv", ["team_id", "date", "elo"], [(teams[t][0], start, round(e, 1)) for t, e in sorted(elo.items(), key=lambda kv: -kv[1])])
     w("players.csv", ["player_id", "full_name", "birth_date", "position"], [(k, v["name"], v["born"], v["pos"]) for k, v in sorted(players.items())])
     w("fixtures.csv", ["fixture_id", "round", "date", "home_team_id", "away_team_id", "home_score", "away_score"], fixtures)
     w("lineups.csv", ["fixture_id", "team_id", "player_id", "started", "minute_on", "minute_off"], [[l[0], l[1], f"kg_{l[2]}", l[3], l[4], l[5]] for l in lineups])

@@ -99,6 +99,10 @@ def import_pack(conn, pack: Path) -> dict:
     for tid, p in conn.execute("SELECT DISTINCT team_id, player_id FROM lineups WHERE fixture_id LIKE ?", (edition + "_%",)).fetchall():
         if tid not in listed:
             conn.execute("INSERT OR IGNORE INTO squads VALUES (?,?,?,NULL)", (edition, tid, p))
+    if (pack / "ratings.csv").exists():
+        for r in _rows(pack / "ratings.csv"):
+            conn.execute("INSERT OR REPLACE INTO team_ratings VALUES (?,?,?,?)", (r["team_id"], r["date"], float(r["elo"]),
+                         f"club Elo going into {edition}, computed from earlier seasons of the same league (Kaggle European Soccer Database)"))
     conn.execute("DELETE FROM data_notes WHERE edition_id = ?", (edition,))
     for n in notes:
         conn.execute("INSERT INTO data_notes VALUES (?,?,?,?)", (edition, n["fixture_id"] or None, n["kind"], n["note"]))

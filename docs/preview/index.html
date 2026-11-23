@@ -278,7 +278,7 @@ details.tour .body { padding: 0 14px 14px; }
 <body>
 <header>
   <div class="brand">Foot<span>Sim</span></div>
-  <div class="edition">FIFA World Cup 2022</div>
+  <select id="edition" class="edition" aria-label="Tournament"></select>
   <div class="branchbar">
     <label for="branch">Timeline</label>
     <select id="branch"></select>
@@ -305,11 +305,13 @@ details.tour .body { padding: 0 14px 14px; }
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=82e9b52a55", "seed": "footsim-seed.db?v=82e9b52a55", "worker": "engine-worker.js?v=82e9b52a55", "version": "82e9b52a55", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
-<script src="cloud.js?v=82e9b52a55"></script>
-<script src="engine.js?v=82e9b52a55"></script>
+<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=479aedf872", "seed": "footsim-seed.db?v=479aedf872", "worker": "engine-worker.js?v=479aedf872", "version": "479aedf872", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
+<script src="cloud.js?v=479aedf872"></script>
+<script src="engine.js?v=479aedf872"></script>
 <script>
-const ED = "WC2022";
+let ED = (() => { try { return localStorage.getItem("footsim.edition") || "WC2022"; } catch (e) { return "WC2022"; } })();
+let state_editions = [];
+let leagueTeam = "";   // team filter for a league's match list ("" = the edition's focus club)
 const STAGE = { group: "Group", R16: "Round of 16", QF: "Quarter-final", SF: "Semi-final", "3P": "Third place", F: "Final" };
 const EVLABEL = { goal: "Goal", pen_goal: "Penalty goal", own_goal: "Own goal", pen_miss: "Penalty missed",
   yellow: "Yellow", second_yellow: "2nd yellow", red: "Red", shootout_score: "Shootout: scored ✓", shootout_miss: "Shootout: missed ✗" };
@@ -370,9 +372,30 @@ document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
   state.tab = b.dataset.tab; render();
 });
 
+async function loadEditions() {
+  state_editions = await api("GET", "/api/editions").catch(() => []);
+  if (!state_editions.some(e => e.edition_id === ED)) ED = "WC2022";
+  const sel = $("#edition");
+  sel.innerHTML = state_editions.map(e => `<option value="${e.edition_id}">${esc(e.name)}</option>`).join("");
+  sel.value = ED;
+  sel.style.display = state_editions.length > 1 ? "" : "none";
+}
+$("#edition").onchange = e => {
+  ED = e.target.value; leagueTeam = "";
+  try { localStorage.setItem("footsim.edition", ED); } catch (err) {}
+  state.tab = "groups";
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x.dataset.tab === "groups"));
+  refresh();
+};
+const isLeague = () => state.view?.format === "league";
+
 async function refresh() {
+  if (!state_editions.length) await loadEditions();
   await loadBranches();
   state.view = await api("GET", `/api/edition/${ED}${q()}`);
+  document.querySelector('nav [data-tab="bracket"]').style.display = isLeague() ? "none" : "";
+  document.querySelector('nav [data-tab="groups"]').textContent = isLeague() ? "League table" : "Groups";
+  if (isLeague() && state.tab === "bracket") { state.tab = "groups"; document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x.dataset.tab === "groups")); }
   const b = $("#banner");
   if (state.branch) {
     const cur = state.branches.find(x => x.branch_id === state.branch);
@@ -394,12 +417,34 @@ async function refresh() {
 async function render() {
   const m = $("#main"), v = state.view;
   if (!v) return;
-  if (state.tab === "groups") m.innerHTML = renderSummary(v) + renderGroups(v);
+  if (state.tab === "groups") m.innerHTML = renderSummary(v) + (isLeague() ? renderLeague(v) : renderGroups(v));
   else if (state.tab === "bracket") m.innerHTML = renderSummary(v) + bracketToolbar() + renderBracket(v);
   else if (state.tab === "stats") { m.innerHTML = `<div class="empty">Loading…</div>`; m.innerHTML = renderStats(await api("GET", `/api/stats/${ED}${q()}`)); }
   else if (state.tab === "changes") m.innerHTML = await renderChanges();
   else if (state.tab === "player") return renderPlayerTab();
   bindMatches();
+  if ($("#leagueTeam")) $("#leagueTeam").onchange = e => { leagueTeam = e.target.value; render(); };
+}
+
+function renderLeague(v) {
+  const d = v.groups.A, focus = leagueTeam === "all" ? "" : (leagueTeam || v.club_focus || "");
+  const fx = d.fixtures.filter(f => !focus || f.home === focus || f.away === focus);
+  const pick = `<select id="leagueTeam">
+    <option value="all"${!focus ? " selected" : ""}>All matches</option>
+    ${d.table.map(r => `<option value="${r.team}"${r.team === focus ? " selected" : ""}>${esc(r.name)} matches</option>`).join("")}</select>`;
+  return `<div class="groups">
+    <section class="card"><h3>${esc(state_editions.find(e => e.edition_id === ED)?.name || "League")}</h3>
+      <table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>
+      ${d.table.map((r, i) => `<tr class="${i < 4 ? "q" : ""}" ${r.team === v.club_focus ? 'style="font-weight:600"' : ""}><td>${i + 1}</td><td>${esc(r.name)}</td>
+        <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join("")}
+      </tbody></table></section>
+    <section class="card"><h3>Matches ${pick}</h3>
+      <ul class="fx">${fx.map(f => `
+        <li data-fx="${f.fixture_id}" class="${f.status !== "historical" ? "edited" : ""}">
+          <span class="d">${fmtDate(f.date)}</span><span class="h">${esc(tname(f.home))}</span>
+          <span class="s">${f.home_score ?? "–"}–${f.away_score ?? "–"}</span><span>${esc(tname(f.away))}</span>
+          <span>${f.status !== "historical" ? `<span class="dot" title="Changed in this branch"></span>` : ""}</span></li>`).join("")}
+      </ul></section></div>`;
 }
 
 function renderSummary(v) {

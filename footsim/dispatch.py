@@ -15,6 +15,7 @@ ROUTES = [
     ("GET", r"/api/branches", lambda c, q, b: api.list_branches(c)),
     ("POST", r"/api/branches", lambda c, q, b: api.create_branch(c, b.get("name"), b.get("parent_branch_id"))),
     ("DELETE", r"/api/branches/(\d+)", lambda c, q, b, bid: api.delete_branch(c, int(bid))),
+    ("GET", r"/api/editions", lambda c, q, b: api.editions(c)),
     ("GET", r"/api/edition/(\w+)", lambda c, q, b, ed: api.edition_view(c, ed, q)),
     ("GET", r"/api/stats/(\w+)", lambda c, q, b, ed: api.stats_view(c, ed, q)),
     ("GET", r"/api/world_diff", lambda c, q, b: api.world_diff(c, q)),

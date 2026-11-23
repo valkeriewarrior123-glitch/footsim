@@ -235,6 +235,8 @@ def _apply_suspensions(res: Resolution, fixtures: dict[str, Fixture], rules: dic
     uses every played fixture given (the caller has already filtered them).
     """
     sus = rules.get("suspensions", {})
+    if sus.get("enabled") is False:
+        return
     threshold = sus.get("yellows_for_ban", 2)
     reset_after = sus.get("yellows_reset_after_stage")
     reset_idx = STAGE_ORDER.index(reset_after) if reset_after in STAGE_ORDER else None

@@ -1,0 +1,42 @@
+{
+  "edition_id": "SERIEA1213",
+  "format": "league",
+  "teams": 20,
+  "source": "Serie A 2012/13 regulations as played: 3 points a win; head-to-head decides ties between two teams (points, then goal difference in those matches), then overall goal difference, then goals scored",
+  "group_stage": {
+    "groups": [
+      "A"
+    ],
+    "teams_per_group": 20,
+    "round_robin_legs": 2,
+    "qualify_per_group": 0,
+    "best_thirds": 0,
+    "points": {
+      "win": 3,
+      "draw": 1,
+      "loss": 0
+    },
+    "tiebreakers": [
+      "points",
+      "h2h_points",
+      "h2h_goal_diff",
+      "goal_diff",
+      "goals_for",
+      "lots"
+    ]
+  },
+  "knockout": {
+    "two_legs": false,
+    "away_goals": false,
+    "extra_time": false,
+    "penalties": false,
+    "third_place_match": false,
+    "bracket": []
+  },
+  "suspensions": {
+    "enabled": false,
+    "note": "Serie A's own disciplinary rules aren't modeled; the real bans are already in the real results"
+  },
+  "focus_team": "c_juventus",
+  "display_name": "Serie A 2012/13"
+}
