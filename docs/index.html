@@ -48,13 +48,13 @@ header { position: sticky; top: var(--barh); z-index: 5; background: var(--panel
 nav { display: flex; gap: 4px; padding: 12px 20px 0; }
 nav button { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 8px 12px; color: var(--muted); }
 nav button.on { color: var(--ink); border-bottom-color: var(--pitch); font-weight: 600; }
-main { padding: 16px 20px 80px; max-width: 1400px; }
+main { padding: 16px 24px 80px; max-width: 2200px; margin: 0 auto; }
 
 .summary { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 16px; color: var(--muted); }
 .summary b { color: var(--ink); }
 
-.groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+.groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
 .card h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 table { border-collapse: collapse; width: 100%; }
 th, td { text-align: right; padding: 3px 4px; font-variant-numeric: tabular-nums; }
@@ -62,6 +62,24 @@ th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: l
 th { font-size: 11px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--line); }
 tr.q td { font-weight: 600; }
 tr.q td:first-child { box-shadow: inset 3px 0 var(--pitch); }
+tr.z-cl td { background: rgba(46,158,91,.17); } tr.z-cl2 td { background: rgba(46,158,91,.09); }
+tr.z-el td { background: rgba(59,143,217,.17); } tr.z-el2 td { background: rgba(59,143,217,.11); }
+tr.z-el3 td { background: rgba(59,143,217,.06); } tr.z-rel td { background: rgba(217,83,79,.15); }
+.lgrid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.lgrid table td { padding: 5px 6px; } .lgrid table th { padding: 4px 6px; }
+.lgrid .mlist { max-height: calc(100vh - 170px); overflow-y: auto; }
+.lstats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 16px; align-items: start; }
+.recs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 10px; }
+.rec { margin: 0; background: var(--bg); border-left: 3px solid var(--pitch); border-radius: 6px; padding: 8px 12px; }
+.rec .v { font-weight: 600; } .rec .v + .v { font-weight: 400; }
+.rec .v small { font-weight: 400; color: var(--muted); }
+@media (max-width: 1000px) { .lgrid, .lstats { grid-template-columns: 1fr; } .lgrid .mlist { max-height: none; } }
+tr.z-cl td:first-child { box-shadow: inset 4px 0 #2e9e5b; } tr.z-cl2 td:first-child { box-shadow: inset 4px 0 #8fd0a8; }
+tr.z-el td:first-child { box-shadow: inset 4px 0 #3b8fd9; } tr.z-el2 td:first-child { box-shadow: inset 4px 0 #7bb8ea; }
+tr.z-el3 td:first-child { box-shadow: inset 4px 0 #b4d6f2; } tr.z-rel td:first-child { box-shadow: inset 4px 0 #d9534f; }
+.zl { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.zl i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.rec b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 3px; }
 .lots { color: var(--pending); font-size: 11px; }
 
 .fx { list-style: none; margin: 10px 0 0; padding: 8px 0 0; border-top: 1px dashed var(--line); }
@@ -278,7 +296,7 @@ details.tour .body { padding: 0 14px 14px; }
 <body>
 <header>
   <div class="brand">Foot<span>Sim</span></div>
-  <div class="edition">FIFA World Cup 2022</div>
+  <select id="edition" class="edition" aria-label="Tournament"></select>
   <div class="branchbar">
     <label for="branch">Timeline</label>
     <select id="branch"></select>
@@ -305,11 +323,13 @@ details.tour .body { padding: 0 14px 14px; }
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=9cfea53829", "seed": "footsim-seed.db?v=9cfea53829", "worker": "engine-worker.js?v=9cfea53829", "version": "9cfea53829", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common"}};</script>
-<script src="cloud.js?v=9cfea53829"></script>
-<script src="engine.js?v=9cfea53829"></script>
+<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=e20a1c3524", "seed": "footsim-seed.db?v=e20a1c3524", "worker": "engine-worker.js?v=e20a1c3524", "version": "e20a1c3524", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common"}};</script>
+<script src="cloud.js?v=e20a1c3524"></script>
+<script src="engine.js?v=e20a1c3524"></script>
 <script>
-const ED = "WC2022";
+let ED = (() => { try { return localStorage.getItem("footsim.edition") || "WC2022"; } catch (e) { return "WC2022"; } })();
+let state_editions = [];
+let leagueTeam = "";   // team filter for a league's match list ("" = the edition's focus club)
 const STAGE = { group: "Group", R16: "Round of 16", QF: "Quarter-final", SF: "Semi-final", "3P": "Third place", F: "Final" };
 const EVLABEL = { goal: "Goal", pen_goal: "Penalty goal", own_goal: "Own goal", pen_miss: "Penalty missed",
   yellow: "Yellow", second_yellow: "2nd yellow", red: "Red", shootout_score: "Shootout: scored ✓", shootout_miss: "Shootout: missed ✗" };
@@ -370,9 +390,30 @@ document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
   state.tab = b.dataset.tab; render();
 });
 
+async function loadEditions() {
+  state_editions = await api("GET", "/api/editions").catch(() => []);
+  if (!state_editions.some(e => e.edition_id === ED)) ED = "WC2022";
+  const sel = $("#edition");
+  sel.innerHTML = state_editions.map(e => `<option value="${e.edition_id}">${esc(e.name)}</option>`).join("");
+  sel.value = ED;
+  sel.style.display = state_editions.length > 1 ? "" : "none";
+}
+$("#edition").onchange = e => {
+  ED = e.target.value; leagueTeam = "";
+  try { localStorage.setItem("footsim.edition", ED); } catch (err) {}
+  state.tab = "groups";
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x.dataset.tab === "groups"));
+  refresh();
+};
+const isLeague = () => state.view?.format === "league";
+
 async function refresh() {
+  if (!state_editions.length) await loadEditions();
   await loadBranches();
   state.view = await api("GET", `/api/edition/${ED}${q()}`);
+  document.querySelector('nav [data-tab="bracket"]').style.display = isLeague() ? "none" : "";
+  document.querySelector('nav [data-tab="groups"]').textContent = isLeague() ? "League table" : "Groups";
+  if (isLeague() && state.tab === "bracket") { state.tab = "groups"; document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x.dataset.tab === "groups")); }
   const b = $("#banner");
   if (state.branch) {
     const cur = state.branches.find(x => x.branch_id === state.branch);
@@ -394,12 +435,48 @@ async function refresh() {
 async function render() {
   const m = $("#main"), v = state.view;
   if (!v) return;
-  if (state.tab === "groups") m.innerHTML = renderSummary(v) + renderGroups(v);
+  if (state.tab === "groups") m.innerHTML = renderSummary(v) + (isLeague() ? renderLeague(v) : renderGroups(v));
   else if (state.tab === "bracket") m.innerHTML = renderSummary(v) + bracketToolbar() + renderBracket(v);
   else if (state.tab === "stats") { m.innerHTML = `<div class="empty">Loading…</div>`; m.innerHTML = renderStats(await api("GET", `/api/stats/${ED}${q()}`)); }
   else if (state.tab === "changes") m.innerHTML = await renderChanges();
   else if (state.tab === "player") return renderPlayerTab();
   bindMatches();
+  if ($("#leagueTeam")) $("#leagueTeam").onchange = e => { leagueTeam = e.target.value; render(); };
+}
+
+const ZCOL = { cl: "#2e9e5b", cl2: "#8fd0a8", el: "#3b8fd9", el2: "#7bb8ea", el3: "#b4d6f2", rel: "#d9534f" };
+function zoneOf(v, team, pos) {
+  return (v.zones || []).find(z => z.teams?.includes(team)) || (v.zones || []).find(z => !z.teams && z.positions?.includes(pos));
+}
+function zoneLegend(v) {
+  const seen = new Map();
+  (v.zones || []).forEach(z => { if (!seen.has(z.label)) seen.set(z.label, z.kind); });
+  const adj = Object.values(v.adjust_notes || {});
+  return `<div class="zl">${[...seen].map(([l, k]) => `<span><i style="background:${ZCOL[k] || "#999"}"></i>${esc(l)}</span>`).join("")}</div>
+    ${adj.length ? `<div class="zl">${[...new Set(adj)].map(esc).join(" · ")}</div>` : ""}
+    ${v.classification ? `<div class="zl">${esc(v.classification)}</div>` : ""}`;
+}
+
+function renderLeague(v) {
+  const d = v.groups.A, focus = leagueTeam === "all" ? "" : (leagueTeam || v.club_focus || "");
+  const fx = d.fixtures.filter(f => !focus || f.home === focus || f.away === focus);
+  const pick = `<select id="leagueTeam">
+    <option value="all"${!focus ? " selected" : ""}>All matches</option>
+    ${d.table.map(r => `<option value="${r.team}"${r.team === focus ? " selected" : ""}>${esc(r.name)} matches</option>`).join("")}</select>`;
+  return `<div class="lgrid">
+    <section class="card"><h3>${esc(state_editions.find(e => e.edition_id === ED)?.name || "League")}</h3>
+      <table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>
+      ${d.table.map((r, i) => { const z = zoneOf(v, r.team, i + 1);
+        return `<tr class="${z ? "z-" + z.kind : ""}" ${r.team === v.club_focus ? 'style="font-weight:600"' : ""}><td>${i + 1}</td><td>${esc(r.name)}${i === 0 && v.champion === r.team ? " (C)" : ""}${z?.kind === "rel" ? " (R)" : ""}${r.adj ? ` <span class="lots" title="${esc(v.adjust_notes?.[r.team] || "")}">${r.adj > 0 ? "+" : ""}${r.adj}</span>` : ""}</td>
+        <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><b>${r.pts}</b></td></tr>`; }).join("")}
+      </tbody></table>${zoneLegend(v)}</section>
+    <section class="card mlist"><h3>Matches ${pick}</h3>
+      <ul class="fx">${fx.map(f => `
+        <li data-fx="${f.fixture_id}" class="${f.status !== "historical" ? "edited" : ""}">
+          <span class="d">${fmtDate(f.date)}</span><span class="h">${esc(tname(f.home))}</span>
+          <span class="s">${f.home_score ?? "–"}–${f.away_score ?? "–"}</span><span>${esc(tname(f.away))}</span>
+          <span>${f.status !== "historical" ? `<span class="dot" title="Changed in this branch"></span>` : ""}</span></li>`).join("")}
+      </ul></section></div>`;
 }
 
 function renderSummary(v) {
@@ -497,16 +574,30 @@ function drawBracketLines() {
 }
 window.addEventListener("resize", () => { if (state.tab === "bracket") drawBracketLines(); });
 
+function renderSeason(list) {
+  if (!list?.length) return "";
+  return `<section class="card"><h3>Season records</h3><div class="recs">${list.map(r => `<div class="rec"><b>${esc(r.label)}</b>${r.lines.map(l => `<div class="v">${esc(l)}</div>`).join("")}</div>`).join("")}</div></section>`;
+}
 function renderStats(s) {
   const aw = { golden_boot: "Golden Boot", golden_ball: "Golden Ball", golden_glove: "Golden Glove", best_young: "Best Young Player", most_assists: "Most assists" };
-  return `<div class="cols">
-    <div style="display:grid;gap:14px;align-content:start">
-    <section class="card"><h3>Scorers</h3><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>Goals</th><th>Pens</th><th>Assists</th><th>Mins</th><th title="Average match rating">Rating</th></tr></thead><tbody>
-      ${s.scorers.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${p.team}</td><td><b>${p.goals}</b></td><td>${p.pens}</td><td>${p.assists}</td><td>${p.minutes}</td><td>${p.rating ?? "—"}</td></tr>`).join("")}
+  const tables = `    <section class="card"><h3>Scorers</h3><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>Goals</th><th>Pens</th><th>Assists</th><th>Mins</th><th title="Average match rating">Rating</th></tr></thead><tbody>
+      ${s.scorers.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(tname(p.team))}</td><td><b>${p.goals}</b></td><td>${p.pens}</td><td>${p.assists}</td><td>${p.minutes}</td><td>${p.rating ?? "—"}</td></tr>`).join("")}
     </tbody></table></section>
     <section class="card"><h3>Best rated (played at least half their team's minutes)</h3><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>Matches</th><th>Avg rating</th></tr></thead><tbody>
-      ${s.top_rated.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${p.team}</td><td>${p.matches}</td><td><b>${p.avg}</b></td></tr>`).join("")}
-    </tbody></table></section></div>
+      ${s.top_rated.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(tname(p.team))}</td><td>${p.matches}</td><td><b>${p.avg}</b></td></tr>`).join("")}
+    </tbody></table></section>`;
+  if (s.season?.length) {                          // a league season: records on the left, players on the right
+    const won = Object.entries(aw).filter(([k]) => (s.awards[k] || []).length);
+    return `<div class="lstats">
+      ${renderSeason(s.season)}
+      <div style="display:grid;gap:16px;align-content:start">
+        ${won.length ? `<section class="card"><h3>Awards</h3><table><tbody>${won.map(([k, label]) => `<tr><td>${label}</td><td style="text-align:right">${s.awards[k].map((p, i) => i === 0 ? `<b>${esc(p.name)}</b>` : esc(p.name)).join(", ")}</td></tr>`).join("")}</tbody></table></section>` : ""}
+        ${tables}
+      </div></div>`;
+  }
+  return `<div class="cols">
+    <div style="display:grid;gap:14px;align-content:start">
+    ${tables}</div>
     <div style="display:grid;gap:14px">
       <section class="card"><h3>Awards</h3>${s.awards_calculated ? `<p style="margin:0 0 8px;font-size:12px;color:var(--muted)">In a branch, the voted awards go to the best performers by match rating and how far their team went.</p>` : ""}<table><tbody>
         ${Object.entries(aw).map(([k, label]) => `<tr><td>${label}${k === "golden_boot" || k === "most_assists" || s.awards_calculated ? ` <span class="lots">calculated</span>` : ` <span class="lots">real winner</span>`}</td><td style="text-align:right">${((s.awards[k] || []).length ? (s.awards[k] || []).map((p, i) => i === 0 ? `<b>${esc(p.name)}</b>` : esc(p.name)).join(", ") : `<span style="color:var(--muted)">after the final</span>`)}</td></tr>`).join("")}
@@ -625,7 +716,7 @@ function renderReadOnly(f, ripple) {
       ${f.pen_home != null ? `<p>Penalties ${f.pen_home}–${f.pen_away}</p>` : ""}`}
     <div class="sec">Events</div>
     ${f.events.map(e => `<div class="evline"><span class="mn">${e.minute}'</span><span>${EVLABEL[e.event_type]}</span><span>${esc(e.player_name || "")}</span>
-      <span style="color:var(--muted)">${e.team_id}${e.assist_name ? " · assist " + esc(e.assist_name) : ""}</span></div>`).join("") || "<p>None.</p>"}
+      <span style="color:var(--muted)">${esc(tname(e.team_id))}${e.assist_name ? " · assist " + esc(e.assist_name) : ""}</span></div>`).join("") || "<p>None.</p>"}
     ${ratingsBlock(f)}
   </div>`;
   if (ripple) {
@@ -654,7 +745,7 @@ function eventRow(f, e, i) {
   return `<div class="ev ${e.locked ? "locked" : ""}" data-i="${i}">
     <input type="number" min="0" max="130" value="${e.minute}" data-k="minute" title="Minute">
     <select data-k="event_type">${Object.entries(EVLABEL).map(([k, l]) => `<option value="${k}" ${k === e.event_type ? "selected" : ""}>${l}</option>`).join("")}</select>
-    <select data-k="team_id" title="Player's team">${[f.home, f.away].map(t => `<option value="${t}" ${t === e.team_id ? "selected" : ""}>${t}</option>`).join("")}</select>
+    <select data-k="team_id" title="Player's team">${[f.home, f.away].map(t => `<option value="${t}" ${t === e.team_id ? "selected" : ""}>${esc(tname(t))}</option>`).join("")}</select>
     <select data-k="player_id">${playerOptions(f, e.team_id, e.player_id)}</select>
     <button class="lock ${e.locked ? "on" : ""}" data-lock="${i}" title="${e.locked ? "Locked: rolling keeps this" : "Lock this so rolling keeps it"}">${e.locked ? "🔒" : "🔓"}</button>
     <button class="link" data-del="${i}" title="Remove">✕</button>
@@ -679,7 +770,7 @@ function notesBox(notes, source) {
   const overrides = notes.filter(n => ["removed", "taken", "given_away"].includes(n.kind)).length;
   return `<div class="outcome"><b>Goals in this version</b>
     <span style="color:var(--muted);font-size:13px"> · ${overrides ? `${overrides} ${source === "current result" ? "earlier" : "real"} goal${overrides > 1 ? "s" : ""} overridden` : `no ${source === "current result" ? "earlier" : "real"} goals overridden`}</span>
-    <ul class="notes">${notes.map(n => `<li><span class="k k-${n.kind}">${label(n.kind)}</span> ${n.event.minute}' ${esc(n.event.player_name || "unknown")} (${n.event.team_id})${n.event.event_type === "pen_goal" ? " pen" : n.event.event_type === "own_goal" ? " own goal" : ""}${n.event.assist_name ? ` <span style="color:var(--muted)">· assist ${esc(n.event.assist_name)}</span>` : ""}</li>`).join("")}</ul>
+    <ul class="notes">${notes.map(n => `<li><span class="k k-${n.kind}">${label(n.kind)}</span> ${n.event.minute}' ${esc(n.event.player_name || "unknown")} (${esc(tname(n.event.team_id))})${n.event.event_type === "pen_goal" ? " pen" : n.event.event_type === "own_goal" ? " own goal" : ""}${n.event.assist_name ? ` <span style="color:var(--muted)">· assist ${esc(n.event.assist_name)}</span>` : ""}</li>`).join("")}</ul>
     <p style="margin:8px 0 0;font-size:13px;color:var(--muted)">Assists, cards and the lineup are filled in below.${""} Look good? <b>Save &amp; recalculate</b> to confirm, or change the numbers and preview again.</p></div>`;
 }
 function outcomePanel(f, draft) {
@@ -845,7 +936,7 @@ async function renderPlayerTab() {
     <div style="display:grid;gap:14px">
       <section class="card"><div class="pcard">
         <div class="big">${esc(p.name)} <button id="editPlayer" style="font-size:13px;vertical-align:middle">Edit player</button></div>
-        <span class="k" style="color:var(--muted)">Team</span><span>${esc(p.team)} · ${p.position}${p.roles?.length ? " · " + p.roles.join(", ") : ""}</span>
+        <span class="k" style="color:var(--muted)">Team</span><span>${esc(tname(p.team))} · ${p.position}${p.roles?.length ? " · " + p.roles.join(", ") : ""}</span>
         <span style="color:var(--muted)">Ability</span><span>${esc(p.tier_label)} · overall
           <input type="number" id="ovr" min="1" max="99" value="${p.overall}" style="width:64px"> <button id="ovrSave">Save</button>
           <span style="color:var(--muted);font-size:12px"> (worth ${p.impact_elo >= 0 ? "+" : ""}${p.impact_elo} Elo to his team per 90 min)</span></span>

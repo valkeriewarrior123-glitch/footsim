@@ -94,7 +94,8 @@
   }
 
   // ---------- OneDrive (Microsoft Graph, app folder)
-  const ITEM = "/me/drive/special/approot:/" + C.folder + "/" + C.file;
+  const itemPath = f => "/me/drive/special/approot:/" + C.folder + "/" + f;
+  const ITEM = itemPath(C.file);
   async function graph(path, init, retry = true) {
     const r = await fetch(C.graph + path, Object.assign({}, init, { headers: Object.assign({ Authorization: "Bearer " + await accessToken() }, init && init.headers) }));
     if (r.status === 401 && retry) { tok.exp = 0; return graph(path, init, false); }
@@ -102,15 +103,15 @@
   }
   async function readError(r) { const j = await r.json().catch(() => null); return (j && j.error && j.error.message) || ("OneDrive said " + r.status); }
 
-  async function remoteInfo() {                  // -> {etag, modified, url} or null when there's no file yet
-    const r = await graph(ITEM);
+  async function remoteInfo(path = ITEM) {       // -> {etag, modified, url} or null when there's no file yet
+    const r = await graph(path);
     if (r.status === 404) return null;
     if (!r.ok) throw new Error(await readError(r));
     const j = await r.json();
     return { etag: j.eTag, modified: j.lastModifiedDateTime, url: j["@microsoft.graph.downloadUrl"] };
   }
-  async function remoteBytes(info) {
-    const r = info.url ? await fetch(info.url) : await graph(ITEM + ":/content");
+  async function remoteBytes(info, path = ITEM) {
+    const r = info.url ? await fetch(info.url) : await graph(path + ":/content");
     if (!r.ok) throw new Error("Couldn't download your save file (" + r.status + ")");
     return new Uint8Array(await r.arrayBuffer());
   }
@@ -173,10 +174,15 @@
       try {
         const info = await remoteInfo();
         if (info) { S.etag = info.etag; return await remoteBytes(info); }
-        const c = await ask("No save file on OneDrive yet",
-          (problem ? `<div style="color:#b3261e;margin-bottom:8px">${esc(problem)}</div>` : "") + "This looks like your first time here on this account.",
-          [{ label: "Start fresh (World Cup 2022 history)", value: "fresh", primary: true }, { label: "Import my footsim.db from this device", value: "import" }]);
+        const live = C.copyFrom ? await remoteInfo(itemPath(C.copyFrom)) : null;     // preview site: offer the real save as a starting point
+        const choices = [{ label: "Start fresh (World Cup 2022 history)", value: "fresh", primary: !live }, { label: "Import my footsim.db from this device", value: "import" }];
+        if (live) choices.unshift({ label: "Copy my live save (" + C.copyFrom + ")", value: "live", primary: true });
+        const c = await ask(live ? "Preview: no test save yet" : "No save file on OneDrive yet",
+          (problem ? `<div style="color:#b3261e;margin-bottom:8px">${esc(problem)}</div>` : "") +
+          (live ? "This preview keeps its own file, so your live save is never touched." : "This looks like your first time here on this account."),
+          choices);
         problem = ""; S.firstSave = true;
+        if (c === "live") return await remoteBytes(live, itemPath(C.copyFrom));
         if (c === "import") {
           const bytes = await pickFile();
           if (!bytes) { problem = "No file chosen."; continue; }
@@ -287,12 +293,12 @@
     const css = document.createElement("style");
     css.textContent = `.fsBar{position:sticky;top:0;z-index:12;height:44px;display:flex;gap:8px;align-items:center;padding:0 12px;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));background:var(--panel,#fff);border-bottom:1px solid var(--line,#d8d4c8);font-size:13px}
       .fsStatus{color:var(--muted,#5b6660);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .fsStatus.warn{color:#8a5a00;font-weight:600} .fsStatus.bad{color:#b3261e;font-weight:600}
-      .fsBar button{padding:5px 14px;min-height:32px} .fsMenu{padding:5px 12px}
+      .fsTag{background:#b3261e;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;letter-spacing:.05em;text-transform:uppercase} .fsBar button{padding:5px 14px;min-height:32px} .fsMenu{padding:5px 12px}
       .fsPanel{display:none;position:absolute;right:8px;top:100%;z-index:50;margin-top:4px;background:var(--panel,#fff);border:1px solid var(--line,#d8d4c8);border-radius:10px;padding:8px;min-width:240px;max-width:calc(100vw - 16px);box-shadow:0 8px 24px rgba(0,0,0,.15);flex-direction:column;gap:6px}
       .fsPanel.open{display:flex} .fsPanel [data-who]{color:var(--muted,#5b6660);padding:2px 4px 6px;border-bottom:1px solid var(--line,#d8d4c8)} .fsPanel button{text-align:left;min-height:40px}`;
     document.head.appendChild(css);
     bar = document.createElement("div"); bar.className = "fsBar";
-    bar.innerHTML = `<span class="fsStatus"></span><button class="fsSave">Save</button>
+    bar.innerHTML = (C.label ? `<b class="fsTag">${esc(C.label)}</b>` : "") + `<span class="fsStatus"></span><button class="fsSave">Save</button>
       <button class="fsMenu" aria-label="More" title="More">⋯</button>
       <div class="fsPanel"><div data-who></div>
         <button data-act="dl">Download a copy (footsim.db)</button>
@@ -300,6 +306,7 @@
         <button data-act="out">Sign out</button></div>`;
     $status = bar.querySelector(".fsStatus"); $save = bar.querySelector(".fsSave"); $menu = bar.querySelector(".fsMenu"); $panel = bar.querySelector(".fsPanel");
     document.documentElement.classList.add("fsHasBar");
+    if (C.label) document.title = C.label + " · " + document.title;
     document.body.prepend(bar);                       // a slim strip above the header: Save is always in reach
 
     $save.onclick = () => save(true);
