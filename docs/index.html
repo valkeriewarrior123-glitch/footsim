@@ -2,10 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6b45">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FootSim">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>FootSim Editor</title>
 <style>
 :root {
+  --barh: 0px;
   --bg: #f4f2ec; --panel: #ffffff; --ink: #1d2320; --muted: #6b726d; --line: #dedad0;
   --pitch: #1f6b45; --pitch-soft: #e3efe7; --edit: #b4540f; --edit-soft: #fbeadb;
   --pending: #a37a00; --pending-soft: #fff4cf; --bad: #b3261e; --bad-soft: #fde4e2;
@@ -27,7 +35,8 @@ button.danger { color: var(--bad); }
 button.link { border: none; background: none; padding: 2px 4px; color: var(--muted); }
 select, input { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 5px 8px; }
 
-header { position: sticky; top: 0; z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line);
+html.fsHasBar { --barh: 44px; }
+header { position: sticky; top: var(--barh); z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line);
          display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 10px 20px; }
 .brand { font-weight: 700; letter-spacing: .02em; }
 .brand span { color: var(--pitch); }
@@ -180,6 +189,90 @@ details.tour .body { padding: 0 14px 14px; }
 .tl li { display: grid; grid-template-columns: 74px 120px 1fr 24px; gap: 8px; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
 .tl .k { color: var(--muted); }
 .inline { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+
+/* ---- phone layout (up to 640px wide) ---- */
+@media (max-width: 640px) {
+  body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+  input, select, textarea { font-size: 16px; }              /* 16px stops iPhones zooming in on focus */
+  button { min-height: 40px; }
+  button.link { min-height: 32px; min-width: 32px; }
+  select, input { min-width: 0; max-width: 100%; }
+
+  header { position: static; padding: 8px 12px 10px; gap: 6px 10px; }
+  header .branchbar { margin-left: 0; width: 100%; display: grid; grid-template-columns: auto 1fr; gap: 6px 8px; }
+  header .branchbar select { width: 100%; }
+  header .branchbar button { grid-row: 2; }
+  header .branchbar { grid-template-columns: repeat(3, 1fr); }
+  header .branchbar label { display: none; }
+  header .branchbar select { grid-column: 1 / -1; grid-row: 1; }
+  .banner { padding: 8px 12px; }
+
+  nav { position: sticky; top: var(--barh); z-index: 6; background: var(--bg); padding: 4px 8px 0; gap: 0;
+        overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); }
+  nav::-webkit-scrollbar { display: none; }
+  nav button { white-space: nowrap; padding: 10px 11px; flex: 0 0 auto; }
+  main { padding: 12px 12px 90px; }
+
+  .groups { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .card { padding: 10px 11px; }
+  .fx li { grid-template-columns: 50px 1fr 44px 1fr 14px; gap: 4px; padding: 7px 2px; }   /* bigger tap rows */
+  .fx .d { white-space: nowrap; }
+  .summary { gap: 6px 16px; }
+  .toolbar { gap: 8px; }
+
+  /* bracket: swipe sideways, one round at a time */
+  .bracket { grid-template-columns: repeat(4, 76vw); gap: 16px 28px; scroll-snap-type: x proximity; padding-bottom: 8px; }
+  .bracket .round { scroll-snap-align: start; }
+
+  /* forms */
+  .form { grid-template-columns: minmax(0, 1fr); gap: 4px; max-width: none; }
+  .form label { margin-top: 8px; }
+  .form .hint { grid-column: 1; margin-top: 0; }
+  .form input, .form select { width: 100%; }
+  .form input[type=checkbox] { width: auto; }
+  .inline input[type=date] { flex: 1 1 130px; }
+  .roles { display: block; overflow-x: auto; white-space: nowrap; }                    /* wide table scrolls inside its card */
+  .roles select { max-width: 150px; }
+
+  /* match drawer: full screen */
+  .drawer { width: 100%; border-left: none; }
+  .drawer .hd { padding: 10px 12px; padding-top: max(10px, env(safe-area-inset-top)); }
+  .drawer .bd { padding: 10px 12px; }
+  .drawer .ft { padding: 10px 12px; padding-bottom: max(10px, env(safe-area-inset-bottom)); flex-wrap: wrap; }
+  .drawer .ft button { flex: 1 1 auto; }
+  .scoreline { grid-template-columns: 1fr 54px 8px 54px 1fr; gap: 6px; }
+  .scoreline .tn { font-size: 14px; }
+  .row { gap: 8px 10px; }
+  .outcome { padding: 10px; }
+  .outcome .grid { grid-template-columns: 1fr 1fr; }
+  .outcome input[type=number] { width: 100%; }
+  .notes .k { display: block; min-width: 0; }
+
+  /* one event = three short rows: [minute type team lock x] / [player] / [assist] */
+  .ev { grid-template-columns: 54px minmax(0, 1fr) 76px 34px 30px; gap: 6px 6px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed var(--line); }
+  .ev > [data-k=minute] { grid-column: 1; grid-row: 1; }
+  .ev > [data-k=event_type] { grid-column: 2; grid-row: 1; }
+  .ev > [data-k=team_id] { grid-column: 3; grid-row: 1; }
+  .ev > .lock { grid-column: 4; grid-row: 1; font-size: 18px; }
+  .ev > [data-del] { grid-column: 5; grid-row: 1; }
+  .ev > [data-k=player_id] { grid-column: 1 / -1; grid-row: 2; }
+  .ev > span { display: none; }
+  .ev > span[style] { display: block; grid-column: 1 !important; grid-row: 3; text-align: left !important; }
+  .ev > .assist { grid-column: 2 / -1; grid-row: 3; }
+  .ev.locked { padding: 6px; }
+  .ro .evline { flex-wrap: wrap; }
+
+  .modal { padding: 8px; align-items: end; }
+  .modal .box { padding: 14px; max-height: 92vh; }
+  .tl li { grid-template-columns: 64px minmax(0, 1fr) 32px; gap: 2px 8px; }
+  .tl li > :nth-child(1) { grid-column: 1; grid-row: 1; }
+  .tl li > .k { grid-column: 2; grid-row: 1; }
+  .tl li > :nth-child(3) { grid-column: 2; grid-row: 2; overflow-wrap: anywhere; }
+  .tl li > :nth-child(4) { grid-column: 3; grid-row: 1 / span 2; align-self: start; }
+  .card { min-width: 0; overflow-x: auto; }              /* a wide table scrolls inside its card, never the whole page */
+  th, td { padding: 3px 3px; }
+  .podium { gap: 14px; font-size: 15px; }
+}
 </style>
 </head>
 <body>
@@ -212,9 +305,9 @@ details.tour .body { padding: 0 14px 14px; }
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=8b92c2a34e", "seed": "footsim-seed.db?v=8b92c2a34e", "worker": "engine-worker.js?v=8b92c2a34e", "version": "8b92c2a34e", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common"}};</script>
-<script src="cloud.js?v=8b92c2a34e"></script>
-<script src="engine.js?v=8b92c2a34e"></script>
+<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=9cfea53829", "seed": "footsim-seed.db?v=9cfea53829", "worker": "engine-worker.js?v=9cfea53829", "version": "9cfea53829", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common"}};</script>
+<script src="cloud.js?v=9cfea53829"></script>
+<script src="engine.js?v=9cfea53829"></script>
 <script>
 const ED = "WC2022";
 const STAGE = { group: "Group", R16: "Round of 16", QF: "Quarter-final", SF: "Semi-final", "3P": "Third place", F: "Final" };

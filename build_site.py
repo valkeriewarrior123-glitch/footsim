@@ -69,8 +69,9 @@ def main() -> None:
     out = args.out
     out.mkdir(parents=True, exist_ok=True)
     web = ROOT / "footsim" / "web"
-    for name in ("engine.js", "engine-worker.js", "cloud.js"):
+    for name in ("engine.js", "engine-worker.js", "cloud.js", "manifest.webmanifest"):
         shutil.copy(web / name, out / name)
+    shutil.copytree(web / "icons", out / "icons", dirs_exist_ok=True)      # home-screen icons
     make_bundle(out / "footsim-bundle.zip")
     shutil.copy(args.db, out / "footsim-seed.db")
     version = digest(out / "footsim-bundle.zip", out / "footsim-seed.db", out / "engine.js", out / "engine-worker.js", out / "cloud.js")
@@ -94,7 +95,7 @@ def main() -> None:
     (out / ".nojekyll").write_text("", encoding="utf-8")        # GitHub Pages: serve files as they are
     print(f"Built {out}  (version {version})")
     for p in sorted(out.iterdir()):
-        print(f"  {p.name:22} {p.stat().st_size:>10,} bytes")
+        print(f"  {p.name:22} {'' if p.is_dir() else format(p.stat().st_size, ',') + ' bytes':>16}")
 
 
 if __name__ == "__main__":

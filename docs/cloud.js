@@ -285,11 +285,11 @@
   function attach(be) {
     backend = be;
     const css = document.createElement("style");
-    css.textContent = `.fsBar{flex-basis:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;position:relative}
-      .fsStatus{color:var(--muted,#5b6660)} .fsStatus.warn{color:#8a5a00;font-weight:600} .fsStatus.bad{color:#b3261e;font-weight:600}
-      .fsBar button{padding:6px 12px} .fsMenu{margin-left:auto}
-      .fsPanel{display:none;position:absolute;right:0;top:100%;z-index:50;margin-top:6px;background:var(--panel,#fff);border:1px solid var(--line,#d8d4c8);border-radius:10px;padding:8px;min-width:230px;box-shadow:0 8px 24px rgba(0,0,0,.15);flex-direction:column;gap:6px}
-      .fsPanel.open{display:flex} .fsPanel [data-who]{color:var(--muted,#5b6660);padding:2px 4px 6px;border-bottom:1px solid var(--line,#d8d4c8)} .fsPanel button{text-align:left}`;
+    css.textContent = `.fsBar{position:sticky;top:0;z-index:12;height:44px;display:flex;gap:8px;align-items:center;padding:0 12px;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));background:var(--panel,#fff);border-bottom:1px solid var(--line,#d8d4c8);font-size:13px}
+      .fsStatus{color:var(--muted,#5b6660);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .fsStatus.warn{color:#8a5a00;font-weight:600} .fsStatus.bad{color:#b3261e;font-weight:600}
+      .fsBar button{padding:5px 14px;min-height:32px} .fsMenu{padding:5px 12px}
+      .fsPanel{display:none;position:absolute;right:8px;top:100%;z-index:50;margin-top:4px;background:var(--panel,#fff);border:1px solid var(--line,#d8d4c8);border-radius:10px;padding:8px;min-width:240px;max-width:calc(100vw - 16px);box-shadow:0 8px 24px rgba(0,0,0,.15);flex-direction:column;gap:6px}
+      .fsPanel.open{display:flex} .fsPanel [data-who]{color:var(--muted,#5b6660);padding:2px 4px 6px;border-bottom:1px solid var(--line,#d8d4c8)} .fsPanel button{text-align:left;min-height:40px}`;
     document.head.appendChild(css);
     bar = document.createElement("div"); bar.className = "fsBar";
     bar.innerHTML = `<span class="fsStatus"></span><button class="fsSave">Save</button>
@@ -299,7 +299,8 @@
         <button data-act="imp">Import a footsim.db from this device</button>
         <button data-act="out">Sign out</button></div>`;
     $status = bar.querySelector(".fsStatus"); $save = bar.querySelector(".fsSave"); $menu = bar.querySelector(".fsMenu"); $panel = bar.querySelector(".fsPanel");
-    (document.querySelector("header") || document.body).appendChild(bar);
+    document.documentElement.classList.add("fsHasBar");
+    document.body.prepend(bar);                       // a slim strip above the header: Save is always in reach
 
     $save.onclick = () => save(true);
     $menu.onclick = e => { e.stopPropagation(); $panel.classList.toggle("open"); };
