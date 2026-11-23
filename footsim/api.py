@@ -171,7 +171,9 @@ def edition_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
         done = bool(t) and all(r.played == 2 * (len(t) - 1) for r in t)
         champion, runner_up, third = ((t[0].team, t[1].team, t[2].team) if done else (None, None, None))
     return {"edition_id": edition_id, "branch_id": branch_id, "teams": tn, "groups": groups, "slots": slots,
-            "format": rules.get("format", "groups_then_knockout"), "club_focus": rules.get("focus_team"), "zones": rules.get("zones", []),
+            "format": rules.get("format", "groups_then_knockout"), "club_focus": rules.get("focus_team"), "zones": rules.get("zones") or ([] if league else [
+                {"positions": [1, 2], "kind": "adv", "label": "Advance to the knockout round"},
+                {"positions": [3, 4], "kind": "out", "label": "Eliminated"}]),
             "adjust_notes": {t: a.get("reason", "") for t, a in (rules.get("group_stage", {}).get("point_adjustments") or {}).items()},
             "classification": rules.get("classification_note", ""),
             "focus_team": me.team_id if me else None, "player_name": me.name if me else None,

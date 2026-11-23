@@ -62,6 +62,8 @@ th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: l
 th { font-size: 11px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--line); }
 tr.q td { font-weight: 600; }
 tr.q td:first-child { box-shadow: inset 3px 0 var(--pitch); }
+tr.z-adv td { background: rgba(46,158,91,.15); } tr.z-adv td:first-child { box-shadow: inset 4px 0 #2e9e5b; }
+tr.z-out td { background: rgba(217,83,79,.08); } tr.z-out td:first-child { box-shadow: inset 4px 0 #e8a09d; }
 tr.z-cl td { background: rgba(46,158,91,.17); } tr.z-cl2 td { background: rgba(46,158,91,.09); }
 tr.z-el td { background: rgba(59,143,217,.17); } tr.z-el2 td { background: rgba(59,143,217,.11); }
 tr.z-el3 td { background: rgba(59,143,217,.06); } tr.z-rel td { background: rgba(217,83,79,.15); }
@@ -442,7 +444,7 @@ async function render() {
   if ($("#leagueTeam")) $("#leagueTeam").onchange = e => { leagueTeam = e.target.value; render(); };
 }
 
-const ZCOL = { cl: "#2e9e5b", cl2: "#8fd0a8", el: "#3b8fd9", el2: "#7bb8ea", el3: "#b4d6f2", rel: "#d9534f" };
+const ZCOL = { adv: "#2e9e5b", out: "#e8a09d", cl: "#2e9e5b", cl2: "#8fd0a8", el: "#3b8fd9", el2: "#7bb8ea", el3: "#b4d6f2", rel: "#d9534f" };
 function zoneOf(v, team, pos) {
   return (v.zones || []).find(z => z.teams?.includes(team)) || (v.zones || []).find(z => !z.teams && z.positions?.includes(pos));
 }
@@ -490,11 +492,11 @@ function renderSummary(v) {
 }
 
 function renderGroups(v) {
-  return `<div class="groups">` + Object.entries(v.groups).map(([g, d]) => `
+  return `${zoneLegend(v)}<div class="groups" style="margin-top:12px">` + Object.entries(v.groups).map(([g, d]) => `
     <section class="card">
       <h3>Group ${g}</h3>
       <table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>
-      ${d.table.map((r, i) => `<tr class="${i < 2 ? "q" : ""}"><td>${i + 1}</td><td>${esc(r.name)}${r.lots ? ` <span class="lots" title="Tied on everything; order decided by drawing lots">lots</span>` : ""}</td>
+      ${d.table.map((r, i) => `<tr class="${(z => z ? "z-" + z.kind : "")(zoneOf(v, r.team, i + 1))}"><td>${i + 1}</td><td>${esc(r.name)}${r.lots ? ` <span class="lots" title="Tied on everything; order decided by drawing lots">lots</span>` : ""}</td>
         <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join("")}
       </tbody></table>
       <ul class="fx">${d.fixtures.map(f => `
