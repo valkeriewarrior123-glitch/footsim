@@ -126,6 +126,7 @@ details.tour .body { padding: 0 14px 14px; }
 .m .t { display: flex; justify-content: space-between; padding: 2px 0; }
 .m .t.w { font-weight: 700; font-size: 14.5px; }
 .m:has(.t.w) .t:not(.w) { color: var(--muted); opacity: .7; }
+.m:has(.t.w) .t:not(.w) > span:first-child { text-decoration: line-through; }
 .m .sc { font-family: var(--mono); }
 .m.edited { border-color: var(--edit); background: var(--edit-soft); }
 .m.reused { border-color: var(--pitch); }
