@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FootSim Editor</title>
+<style>
+:root {
+  --bg: #f4f2ec; --panel: #ffffff; --ink: #1d2320; --muted: #6b726d; --line: #dedad0;
+  --pitch: #1f6b45; --pitch-soft: #e3efe7; --edit: #b4540f; --edit-soft: #fbeadb;
+  --pending: #a37a00; --pending-soft: #fff4cf; --bad: #b3261e; --bad-soft: #fde4e2;
+  --radius: 8px; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#141816; --panel:#1c2220; --ink:#e7ebe8; --muted:#97a19b; --line:#2d3532;
+          --pitch:#52b788; --pitch-soft:#1d3329; --edit:#f09a4f; --edit-soft:#3a2516;
+          --pending:#e5c04a; --pending-soft:#3a3115; --bad:#f2847b; --bad-soft:#3d1d1b; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+       font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 6px 12px; }
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--pitch); border-color: var(--pitch); color: #fff; }
+button.danger { color: var(--bad); }
+button.link { border: none; background: none; padding: 2px 4px; color: var(--muted); }
+select, input { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 5px 8px; }
+
+header { position: sticky; top: 0; z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line);
+         display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 10px 20px; }
+.brand { font-weight: 700; letter-spacing: .02em; }
+.brand span { color: var(--pitch); }
+.edition { color: var(--muted); }
+.branchbar { display: flex; gap: 8px; align-items: center; margin-left: auto; flex-wrap: wrap; }
+.banner { padding: 8px 20px; font-size: 13px; background: var(--pitch-soft); border-bottom: 1px solid var(--line); }
+.banner.history { background: var(--bg); color: var(--muted); }
+
+nav { display: flex; gap: 4px; padding: 12px 20px 0; }
+nav button { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 8px 12px; color: var(--muted); }
+nav button.on { color: var(--ink); border-bottom-color: var(--pitch); font-weight: 600; }
+main { padding: 16px 20px 80px; max-width: 1400px; }
+
+.summary { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 16px; color: var(--muted); }
+.summary b { color: var(--ink); }
+
+.groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+.card h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: right; padding: 3px 4px; font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+th { font-size: 11px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--line); }
+tr.q td { font-weight: 600; }
+tr.q td:first-child { box-shadow: inset 3px 0 var(--pitch); }
+.lots { color: var(--pending); font-size: 11px; }
+
+.fx { list-style: none; margin: 10px 0 0; padding: 8px 0 0; border-top: 1px dashed var(--line); }
+.fx li { display: grid; grid-template-columns: 44px 1fr 46px 1fr 16px; gap: 6px; align-items: center;
+         padding: 3px 4px; border-radius: 5px; cursor: pointer; }
+.fx li:hover { background: var(--bg); }
+.fx .d { color: var(--muted); font-size: 12px; }
+.fx .h { text-align: right; }
+.fx .s { text-align: center; font-family: var(--mono); font-weight: 600; }
+.fx li.edited { background: var(--edit-soft); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--edit); }
+
+.bracket { position: relative; display: grid; grid-template-columns: repeat(4, minmax(200px, 1fr)); gap: 16px 40px; overflow-x: auto; }
+.bracket .lines { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.bracket .lines path { fill: none; stroke: var(--muted); stroke-width: 1.5; opacity: .55; }
+.bracket .lines path.dash { stroke-dasharray: 4 4; opacity: .35; }
+.bracket .m { position: relative; z-index: 1; }
+.m.final { border-width: 2px; border-color: #c9a227; }
+.third-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 18px 0 6px; }
+.toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0 0 14px; }
+[data-pick] { cursor: pointer; border-radius: 4px; }
+[data-pick]:hover { background: var(--pitch-soft); outline: 1px solid var(--pitch); }
+details.tour { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 12px; }
+details.tour > summary { cursor: pointer; padding: 12px 14px; font-weight: 600; display: flex; gap: 10px; align-items: center; list-style: none; }
+details.tour > summary::-webkit-details-marker { display: none; }
+details.tour > summary::before { content: "▸"; color: var(--muted); }
+details.tour[open] > summary::before { content: "▾"; }
+details.tour .body { padding: 0 14px 14px; }
+.rocks { margin: 0; padding-left: 18px; }
+.rocks li { margin: 4px 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); border-radius: 14px; padding: 3px 10px; font-size: 13px; cursor: pointer; user-select: none; }
+.chip.on { background: var(--pitch); color: #fff; border-color: var(--pitch); }
+.chip.dis { opacity: .35; cursor: not-allowed; }
+.podium { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; font-size: 16px; }
+.round h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+.round { display: flex; flex-direction: column; }
+.round .rm { flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: space-around; }
+.m { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 10px; cursor: pointer; }
+.m:hover { border-color: var(--muted); }
+.m .no { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+.m .t { display: flex; justify-content: space-between; padding: 2px 0; }
+.m .t.w { font-weight: 700; }
+.m .sc { font-family: var(--mono); }
+.m.edited { border-color: var(--edit); background: var(--edit-soft); }
+.m.reused { border-color: var(--pitch); }
+.m.pending { border: 1px dashed var(--pending); background: var(--pending-soft); }
+.m.tbd { opacity: .55; cursor: default; }
+.tag { font-size: 11px; padding: 0 6px; border-radius: 10px; }
+.tag.edit { background: var(--edit); color: #fff; }
+.tag.pend { background: var(--pending); color: #fff; }
+.tag.reuse { background: var(--pitch); color: #fff; }
+.tag.roll { background: #5b5fc7; color: #fff; }
+.m.rolled { border-color: #5b5fc7; }
+.champ { margin-top: 14px; padding: 12px; text-align: center; border-radius: var(--radius); background: var(--pitch-soft); font-weight: 700; }
+
+.cols { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; align-items: start; }
+@media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+
+/* editor drawer */
+.drawer { position: fixed; inset: 0 0 0 auto; width: min(880px, 100%); background: var(--panel); border-left: 1px solid var(--line);
+          box-shadow: -8px 0 30px rgba(0,0,0,.12); transform: translateX(100%); transition: transform .2s; z-index: 20;
+          display: flex; flex-direction: column; }
+.drawer.open { transform: none; }
+.drawer .hd { padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+.drawer .hd h2 { margin: 0; font-size: 16px; flex: 1; }
+.drawer .bd { padding: 14px 18px; overflow-y: auto; flex: 1; }
+.drawer .ft { padding: 12px 18px; border-top: 1px solid var(--line); display: flex; gap: 8px; align-items: center; }
+.scoreline { display: grid; grid-template-columns: 1fr 64px 16px 64px 1fr; gap: 8px; align-items: center; margin-bottom: 12px; }
+.scoreline .tn { font-weight: 700; font-size: 15px; }
+.scoreline .tn.r { text-align: right; }
+.scoreline input { text-align: center; font-size: 20px; font-weight: 700; font-family: var(--mono); padding: 6px; }
+.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.row label { display: flex; gap: 6px; align-items: center; }
+.pens input { width: 56px; text-align: center; }
+.ev { display: grid; grid-template-columns: 62px 170px 78px 1fr 34px 28px; gap: 6px; margin-bottom: 6px; align-items: center; }
+.ev .assist { grid-column: 4 / 5; }
+.ev.locked { background: var(--pitch-soft); border-radius: 6px; }
+.lock { border: none; background: none; padding: 2px; font-size: 15px; opacity: .45; }
+.lock.on { opacity: 1; }
+.outcome { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: var(--bg); }
+.outcome .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 14px; align-items: center; }
+.outcome input[type=number] { width: 64px; }
+.notes { list-style: none; padding: 0; margin: 8px 0 0; }
+.notes li { padding: 3px 0; font-size: 13px; }
+.notes .k { display: inline-block; min-width: 118px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.k-kept { color: var(--pitch); } .k-new { color: #5b5fc7; } .k-removed { color: var(--bad); } .k-taken { color: var(--edit); }
+.k-given_away { color: var(--bad); } .k-locked { color: var(--muted); } .k-assist_taken { color: var(--edit); }
+.ev input[type=number] { width: 100%; }
+.ev select { width: 100%; min-width: 0; }
+.sec { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 8px; display: flex; justify-content: space-between; align-items: center; }
+.msg { padding: 8px 10px; border-radius: 6px; margin-bottom: 10px; font-size: 13px; }
+.msg.err { background: var(--bad-soft); color: var(--bad); }
+.msg.info { background: var(--bg); color: var(--muted); }
+.ro .evline { padding: 3px 0; border-bottom: 1px dashed var(--line); display: flex; gap: 8px; }
+.ro .evline .mn { width: 34px; color: var(--muted); font-family: var(--mono); }
+
+/* what changed */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; place-items: center; z-index: 30; padding: 16px; }
+.modal.open { display: grid; }
+.modal .box { background: var(--panel); border-radius: 10px; max-width: 620px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 18px 20px; }
+.modal h2 { margin: 0 0 10px; font-size: 17px; }
+.chg { margin: 0 0 12px; }
+.chg h4 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.chg ul { margin: 0; padding-left: 18px; }
+.up { color: var(--pitch); } .down { color: var(--bad); }
+.empty { color: var(--muted); padding: 30px; text-align: center; }
+.form { display: grid; grid-template-columns: 160px 1fr; gap: 10px 14px; align-items: center; max-width: 620px; }
+.form label { color: var(--muted); font-size: 13px; }
+.form .hint { grid-column: 2; font-size: 12px; color: var(--muted); margin-top: -6px; }
+.pcard { display: grid; grid-template-columns: auto 1fr; gap: 4px 18px; }
+.pcard .big { font-size: 22px; font-weight: 700; grid-column: 1 / -1; }
+.stats-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.stat { background: var(--bg); border-radius: 6px; padding: 6px 10px; min-width: 70px; text-align: center; }
+.stat b { display: block; font-size: 18px; }
+.stat span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.roles td, .roles th { text-align: left; vertical-align: middle; padding: 6px 6px; border-bottom: 1px solid var(--line); }
+.roles select, .roles input { font-size: 13px; padding: 3px 6px; }
+.roles .minute { width: 58px; }
+.badge { font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--bg); color: var(--muted); white-space: nowrap; }
+.badge.warn { background: var(--pending-soft); color: var(--pending); }
+.badge.bad { background: var(--bad-soft); color: var(--bad); }
+.evs { font-size: 13px; white-space: nowrap; }
+.tl { list-style: none; padding: 0; margin: 0; }
+.tl li { display: grid; grid-template-columns: 74px 120px 1fr 24px; gap: 8px; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+.tl .k { color: var(--muted); }
+.inline { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Foot<span>Sim</span></div>
+  <div class="edition">FIFA World Cup 2022</div>
+  <div class="branchbar">
+    <label for="branch">Timeline</label>
+    <select id="branch"></select>
+    <button id="newBranch">New branch</button>
+    <button id="forkBranch" title="Copy this branch's changes into a new one">Fork</button>
+    <button id="delBranch" class="danger">Delete</button>
+  </div>
+</header>
+<div id="banner" class="banner"></div>
+<nav>
+  <button data-tab="groups" class="on">Groups</button>
+  <button data-tab="bracket">Knockouts</button>
+  <button data-tab="stats">Stats &amp; awards</button>
+  <button data-tab="player">My player</button>
+  <button data-tab="changes">Changes</button>
+</nav>
+<main id="main"></main>
+
+<aside class="drawer" id="drawer">
+  <div class="hd"><h2 id="dTitle">Match</h2><button class="link" id="dClose" aria-label="Close">✕</button></div>
+  <div class="bd" id="dBody"></div>
+  <div class="ft" id="dFoot"></div>
+</aside>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+
+<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=3ce9a9aaa9", "seed": "footsim-seed.db?v=3ce9a9aaa9", "worker": "engine-worker.js?v=3ce9a9aaa9", "version": "3ce9a9aaa9", "cloud": {"clientId": "9beafcd3-f6fa-418d-bece-6bf9844449cb", "folder": "FootSim", "authority": "https://login.microsoftonline.com/853c1bfb-b4e3-4290-81cb-2eda3e6196ee"}};</script>
+<script src="cloud.js?v=3ce9a9aaa9"></script>
+<script src="engine.js?v=3ce9a9aaa9"></script>
+<script>
+const ED = "WC2022";
+const STAGE = { group: "Group", R16: "Round of 16", QF: "Quarter-final", SF: "Semi-final", "3P": "Third place", F: "Final" };
+const EVLABEL = { goal: "Goal", pen_goal: "Penalty goal", own_goal: "Own goal", pen_miss: "Penalty missed",
+  yellow: "Yellow", second_yellow: "2nd yellow", red: "Red", shootout_score: "Shootout: scored ✓", shootout_miss: "Shootout: missed ✗" };
+const state = { branch: null, tab: "groups", view: null, branches: [], editing: null };
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const q = () => state.branch ? `?branch=${state.branch}` : "";
+const fmtDate = d => d && d !== "TBD" ? new Date(d + "T12:00").toLocaleDateString(undefined, { day: "numeric", month: "short" }) : "TBD";
+const tname = c => state.view?.teams?.[c] || c || "?";
+
+// One place talks to the engine. In the static (phone) build `window.footsimBackend` runs the Python engine
+// in the browser; with the local server it is absent and we call the JSON endpoints instead.
+async function api(method, path, body) {
+  if (window.footsimBackend) {
+    const r = await window.footsimBackend.call(method, path, body);
+    if (r.status >= 400) throw new Error(r.data?.error || `Error ${r.status}`);
+    return r.data;
+  }
+  const r = await fetch(path, { method, headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+
+// ---------------------------------------------------------------- branches
+async function loadBranches() {
+  state.branches = await api("GET", "/api/branches");
+  const sel = $("#branch");
+  sel.innerHTML = `<option value="">Real history (read-only)</option>` +
+    state.branches.map(b => `<option value="${b.branch_id}">${esc(b.name)}${b.edits ? ` · ${b.edits} edit${b.edits > 1 ? "s" : ""}` : ""}</option>`).join("");
+  sel.value = state.branch ?? "";
+  $("#forkBranch").disabled = $("#delBranch").disabled = !state.branch;
+}
+$("#branch").onchange = e => { state.branch = e.target.value ? +e.target.value : null; refresh(); };
+$("#newBranch").onclick = async () => {
+  const name = prompt("Name for the new timeline branch:", "My alternate World Cup");
+  if (!name) return;
+  const b = await api("POST", "/api/branches", { name }).catch(e => alert(e.message));
+  if (b) { state.branch = b.branch_id; refresh(); }
+};
+$("#forkBranch").onclick = async () => {
+  const cur = state.branches.find(b => b.branch_id === state.branch);
+  const name = prompt("Name for the fork:", `${cur?.name || "Branch"} (fork)`);
+  if (!name) return;
+  const b = await api("POST", "/api/branches", { name, parent_branch_id: state.branch }).catch(e => alert(e.message));
+  if (b) { state.branch = b.branch_id; refresh(); }
+};
+$("#delBranch").onclick = async () => {
+  const cur = state.branches.find(b => b.branch_id === state.branch);
+  if (!cur || !confirm(`Delete "${cur.name}" and all its changes? This can't be undone.`)) return;
+  await api("DELETE", `/api/branches/${state.branch}`).then(() => { state.branch = null; refresh(); }).catch(e => alert(e.message));
+};
+
+// ---------------------------------------------------------------- tabs
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
+  state.tab = b.dataset.tab; render();
+});
+
+async function refresh() {
+  await loadBranches();
+  state.view = await api("GET", `/api/edition/${ED}${q()}`);
+  const b = $("#banner");
+  if (state.branch) {
+    const cur = state.branches.find(x => x.branch_id === state.branch);
+    b.className = "banner";
+    const free = state.view?.mode === "free";
+    const who = state.view?.player_name ? `${esc(state.view.player_name)} plays for ${esc(tname(state.view.focus_team))}. ` : "";
+    const rule = !state.view?.player_name ? "Create your player in the My player tab, or click any match to change it."
+      : free ? "<b>Free mode</b>: you can edit any match." : `<b>Focus mode</b>: only ${esc(tname(state.view.focus_team))} matches can be edited by hand; the rest follows from them.`;
+    b.innerHTML = `Branch “${esc(cur?.name)}” · ${who}${rule}
+      ${state.view?.player_name ? ` <button id="modeBtn" class="link" style="text-decoration:underline">${free ? "Switch to Focus mode" : "Switch to Free mode"}</button>` : ""}`;
+    if ($("#modeBtn")) $("#modeBtn").onclick = async () => { await api("POST", `/api/mode${q()}`, { mode: free ? "focus" : "free" }); refresh(); };
+  } else {
+    b.className = "banner history";
+    b.textContent = "Viewing real history. Create or pick a branch to start changing results.";
+  }
+  render();
+}
+
+async function render() {
+  const m = $("#main"), v = state.view;
+  if (!v) return;
+  if (state.tab === "groups") m.innerHTML = renderSummary(v) + renderGroups(v);
+  else if (state.tab === "bracket") m.innerHTML = renderSummary(v) + bracketToolbar() + renderBracket(v);
+  else if (state.tab === "stats") { m.innerHTML = `<div class="empty">Loading…</div>`; m.innerHTML = renderStats(await api("GET", `/api/stats/${ED}${q()}`)); }
+  else if (state.tab === "changes") m.innerHTML = await renderChanges();
+  else if (state.tab === "player") return renderPlayerTab();
+  bindMatches();
+}
+
+function renderSummary(v) {
+  const pend = v.slots.filter(s => s.status === "pending").length;
+  return `<div class="summary">
+    <div>🥇 Champion <b>${v.champion ? esc(tname(v.champion)) : "undecided"}</b></div>
+    ${v.runner_up ? `<div>🥈 Runner-up <b>${esc(tname(v.runner_up))}</b></div>` : ""}
+    ${v.third ? `<div>🥉 Third <b>${esc(tname(v.third))}</b></div>` : ""}
+    ${pend ? `<div>Matches needing a result <b style="color:var(--pending)">${pend}</b>
+      ${state.branch ? ` <button id="rollAll" title="Generate every remaining match, weighted by team strength">🎲 Roll remaining matches</button>` : ""}</div>` : ""}
+    ${v.violations.length ? `<div style="color:var(--bad)">Suspended players who played: ${v.violations.map(x => esc(x.player)).join(", ")}</div>` : ""}
+  </div>`;
+}
+
+function renderGroups(v) {
+  return `<div class="groups">` + Object.entries(v.groups).map(([g, d]) => `
+    <section class="card">
+      <h3>Group ${g}</h3>
+      <table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>
+      ${d.table.map((r, i) => `<tr class="${i < 2 ? "q" : ""}"><td>${i + 1}</td><td>${esc(r.name)}${r.lots ? ` <span class="lots" title="Tied on everything; order decided by drawing lots">lots</span>` : ""}</td>
+        <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join("")}
+      </tbody></table>
+      <ul class="fx">${d.fixtures.map(f => `
+        <li data-fx="${f.fixture_id}" class="${f.status !== "historical" ? "edited" : ""}">
+          <span class="d">${fmtDate(f.date)}</span><span class="h">${esc(tname(f.home))}</span>
+          <span class="s">${f.home_score ?? "–"}–${f.away_score ?? "–"}</span><span>${esc(tname(f.away))}</span>
+          <span>${f.status !== "historical" ? `<span class="dot" title="Changed in this branch"></span>` : ""}</span></li>`).join("")}
+      </ul>
+    </section>`).join("") + `</div>`;
+}
+
+function matchCard(s) {
+  const f = s.fixture;
+  if (s.status === "valid") {
+    const tag = f.origin === "user_edit" ? `<span class="tag edit">edited</span>`
+      : f.origin === "suspension_fix" ? `<span class="tag pend" title="Real result; a suspended player was swapped out">lineup fixed</span>`
+      : f.origin === "reused_historical" ? `<span class="tag reuse" title="Real result from another time these teams met">real result</span>`
+      : f.status === "generated" ? `<span class="tag roll" title="Generated from team strength">rolled</span>` : "";
+    const cls = f.origin === "user_edit" ? "edited" : f.origin === "reused_historical" ? "reused" : f.status === "generated" ? "rolled" : "";
+    const pens = f.pen_home != null;
+    const medal = t => s.stage === "F" ? (f.winner === t ? "🥇 " : "🥈 ") : s.stage === "3P" && f.winner === t ? "🥉 " : "";
+    const row = (t, sc, p) => `<div class="t ${f.winner === t ? "w" : ""}" ${state.pick ? `data-pick="${s.match_no}|${t}"` : ""}><span>${medal(t)}${esc(tname(t))}</span><span class="sc">${sc}${pens ? ` (${p})` : ""}</span></div>`;
+    return `<div class="m ${cls} ${s.stage === "F" ? "final" : ""}" data-no="${s.match_no}" data-fx="${f.fixture_id}"><div class="no"><span>M${s.match_no} · ${fmtDate(f.date)}${f.extra_time ? " · aet" : ""}</span>${tag}</div>
+      ${row(f.home, f.home_score, f.pen_home)}${row(f.away, f.away_score, f.pen_away)}</div>`;
+  }
+  if (s.status === "pending") {
+    return `<div class="m pending" data-no="${s.match_no}" data-fx="${s.fixture_id}"><div class="no"><span>M${s.match_no} · ${fmtDate(s.date)}</span><span class="tag pend">needs result</span></div>
+      <div class="t" ${state.pick ? `data-pick="${s.match_no}|${s.home}"` : ""}><span>${esc(tname(s.home))}</span></div><div class="t" ${state.pick ? `data-pick="${s.match_no}|${s.away}"` : ""}><span>${esc(tname(s.away))}</span></div></div>`;
+  }
+  return `<div class="m tbd" data-no="${s.match_no}"><div class="no"><span>M${s.match_no}</span><span>waiting</span></div>
+    <div class="t"><span>${s.home ? esc(tname(s.home)) : "?"}</span></div><div class="t"><span>${s.away ? esc(tname(s.away)) : "?"}</span></div></div>`;
+}
+
+function bracketToolbar() {
+  if (!state.branch) return "";
+  return `<div class="toolbar">
+    <button id="pickMode" class="${state.pick ? "primary" : ""}">✋ ${state.pick ? "Picking winners: click a team (click again to stop)" : "Pick winners"}</button>
+    <button id="podiumBtn">🏆 Choose podium</button>
+    <span style="color:var(--muted);font-size:13px">Pick who wins any knockout match, or choose the top three and let everything else fill in. Real results are kept wherever they still fit.</span></div>`;
+}
+
+function renderBracket(v) {
+  const by = st => v.slots.filter(s => s.stage === st);
+  const col = (title, stages) => `<div class="round"><h3>${title}</h3><div class="rm">${stages.flatMap(by).map(s =>
+    s.stage === "3P" ? `<div><div class="third-label">Third-place match</div>${matchCard(s)}</div>` : matchCard(s)).join("")}</div></div>`;
+  const podium = v.champion
+    ? `<span>🥇 ${esc(tname(v.champion))}</span>${v.runner_up ? `<span>🥈 ${esc(tname(v.runner_up))}</span>` : ""}${v.third ? `<span>🥉 ${esc(tname(v.third))}</span>` : ""}`
+    : "Champion undecided: fill in the matches marked “needs result”";
+  setTimeout(drawBracketLines, 0);
+  return `<div class="bracket" id="bracket"><svg class="lines" id="bracketLines"></svg>${col("Round of 16", ["R16"])}${col("Quarter-finals", ["QF"])}${col("Semi-finals", ["SF"])}${col("Final", ["F", "3P"])}</div>
+    <div class="champ podium">${podium}</div>`;
+}
+
+function drawBracketLines() {
+  const box = $("#bracket"), svg = $("#bracketLines");
+  if (!box || !svg || !state.view) return;
+  const b = box.getBoundingClientRect();
+  svg.setAttribute("width", box.scrollWidth); svg.setAttribute("height", box.scrollHeight);
+  const pt = (el, side) => { const r = el.getBoundingClientRect();
+    return [ (side === "r" ? r.right : r.left) - b.left + box.scrollLeft, r.top + r.height / 2 - b.top ]; };
+  let paths = "";
+  for (const s of state.view.slots) {
+    const to = box.querySelector(`[data-no="${s.match_no}"]`);
+    if (!to) continue;
+    for (const [list, dashed] of [[s.feeds || [], false], [s.loser_feeds || [], true]]) {
+      for (const n of list) {
+        const from = box.querySelector(`[data-no="${n}"]`);
+        if (!from) continue;
+        const [x1, y1] = pt(from, "r"), [x2, y2] = pt(to, "l"), mx = x1 + (x2 - x1) / 2;
+        paths += `<path d="M${x1},${y1} H${mx} V${y2} H${x2}" class="${dashed ? "dash" : ""}"/>`;
+      }
+    }
+  }
+  svg.innerHTML = paths;
+}
+window.addEventListener("resize", () => { if (state.tab === "bracket") drawBracketLines(); });
+
+function renderStats(s) {
+  const aw = { golden_boot: "Golden Boot", golden_ball: "Golden Ball", golden_glove: "Golden Glove", best_young: "Best Young Player", most_assists: "Most assists" };
+  return `<div class="cols">
+    <div style="display:grid;gap:14px;align-content:start">
+    <section class="card"><h3>Scorers</h3><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>Goals</th><th>Pens</th><th>Assists</th><th>Mins</th><th title="Average match rating">Rating</th></tr></thead><tbody>
+      ${s.scorers.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${p.team}</td><td><b>${p.goals}</b></td><td>${p.pens}</td><td>${p.assists}</td><td>${p.minutes}</td><td>${p.rating ?? "—"}</td></tr>`).join("")}
+    </tbody></table></section>
+    <section class="card"><h3>Best rated (played at least half their team's minutes)</h3><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>Matches</th><th>Avg rating</th></tr></thead><tbody>
+      ${s.top_rated.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${p.team}</td><td>${p.matches}</td><td><b>${p.avg}</b></td></tr>`).join("")}
+    </tbody></table></section></div>
+    <div style="display:grid;gap:14px">
+      <section class="card"><h3>Awards</h3>${s.awards_calculated ? `<p style="margin:0 0 8px;font-size:12px;color:var(--muted)">In a branch, the voted awards go to the best performers by match rating and how far their team went.</p>` : ""}<table><tbody>
+        ${Object.entries(aw).map(([k, label]) => `<tr><td>${label}${k === "golden_boot" || k === "most_assists" || s.awards_calculated ? ` <span class="lots">calculated</span>` : ` <span class="lots">real winner</span>`}</td><td style="text-align:right">${((s.awards[k] || []).length ? (s.awards[k] || []).map((p, i) => i === 0 ? `<b>${esc(p.name)}</b>` : esc(p.name)).join(", ") : `<span style="color:var(--muted)">after the final</span>`)}</td></tr>`).join("")}
+      </tbody></table></section>
+      <section class="card"><h3>Finishes</h3><table><tbody>
+        ${s.teams.filter(t => t.finish && t.finish !== "Group stage").map(t => `<tr><td>${esc(t.finish)}</td><td style="text-align:right">${esc(t.name)}</td></tr>`).join("")}
+      </tbody></table></section>
+      <section class="card"><h3>Records</h3><table><tbody>
+        <tr><td>Total goals</td><td style="text-align:right">${s.records.total_goals}</td></tr>
+        <tr><td>Goals per match</td><td style="text-align:right">${s.records.goals_per_match}</td></tr>
+        <tr><td>Highest-scoring match</td><td style="text-align:right">${esc(s.records.highest_scoring_match?.[1])}</td></tr>
+      </tbody></table></section>
+    </div></div>`;
+}
+
+async function renderChanges() {
+  if (!state.branch) return `<div class="empty">Pick a branch to see how it differs from real history.</div>`;
+  const w = await api("GET", `/api/world_diff${q()}`);
+  const sm = w.summary;
+  const head = `<section class="card" style="margin-bottom:14px"><h3>Across the world</h3>
+    <p style="margin:0">${sm.changed ? `<b>${sm.changed}</b> of ${sm.tournaments} tournament${sm.tournaments > 1 ? "s" : ""} ${sm.changed === 1 ? "differs" : "differ"} from real history.` : "Nothing differs from real history yet."}
+    ${sm.champions.length ? `<br>Different podium in: ${sm.champions.map(c => esc(c.name)).join(", ")}.` : ""}</p></section>`;
+  const sections = w.sections.map(x => `<details class="tour" ${state.openTours?.has(x.edition_id) ? "open" : ""} data-tour="${x.edition_id}">
+    <summary>${esc(x.name)} <span style="font-weight:400;color:var(--muted);font-size:13px">${x.changed ? `${x.match_count} match${x.match_count === 1 ? "" : "es"} changed` : "unchanged"}</span></summary>
+    <div class="body">
+      ${x.rocks.length ? `<ul class="rocks">${x.rocks.map(r => `<li>${esc(r.text)} <span style="color:var(--muted)">(really ${esc(r.real)})</span></li>`).join("")}</ul>` : `<p style="color:var(--muted)">No big changes.</p>`}
+      <div class="inline"><button data-open-tour="bracket">Open knockouts</button><button data-open-tour="groups">Open groups</button>
+        <button data-more="${x.edition_id}">${state.moreTours?.has(x.edition_id) ? "Hide" : "Show"} every change</button></div>
+      ${state.moreTours?.has(x.edition_id) ? `<div style="margin-top:12px">${changesDetail(x.detail)}</div>` : ""}
+    </div></details>`).join("");
+  setTimeout(() => {
+    document.querySelectorAll("details.tour").forEach(d => d.ontoggle = () => {
+      state.openTours = state.openTours || new Set();
+      d.open ? state.openTours.add(d.dataset.tour) : state.openTours.delete(d.dataset.tour);
+    });
+    document.querySelectorAll("[data-open-tour]").forEach(b => b.onclick = () => document.querySelector(`nav button[data-tab="${b.dataset.openTour}"]`).click());
+    document.querySelectorAll("[data-more]").forEach(b => b.onclick = () => {
+      state.moreTours = state.moreTours || new Set();
+      state.moreTours.has(b.dataset.more) ? state.moreTours.delete(b.dataset.more) : state.moreTours.add(b.dataset.more);
+      render();
+    });
+  }, 0);
+  return head + sections;
+}
+
+function changesDetail(d) {
+  const T = tname, sec = (title, items) => items.length ? `<div class="chg"><h4>${title}</h4><ul>${items.join("")}</ul></div>` : "";
+  const slotTxt = s => !s ? "—" : s.status === "valid" ? `${T(s.home)} ${s.score} ${T(s.away)}` : s.status === "pending" ? `${T(s.home)} v ${T(s.away)} (needs result)` : "waiting";
+  const pl = d.player;
+  return `<div class="cols">
+  <section class="card"><h3>Compared with real history</h3>
+    ${d.empty && !d.matches.length ? `<p>Nothing differs from real history yet.</p>` : ""}
+    ${d.champion ? `<div class="chg"><h4>Champion</h4><p><b>${d.champion.after ? esc(T(d.champion.after)) : "Undecided"}</b> (really ${esc(T(d.champion.before))})</p></div>` : ""}
+    ${sec("Group order", d.groups.map(g => `<li>Group ${g.group}: ${g.after.map(x => esc(T(x))).join(", ")} <span style="color:var(--muted)">(really ${g.before.map(x => esc(T(x))).join(", ")})</span></li>`))}
+    ${sec("Who advanced instead", d.displacements.map(x => `<li>Group spot <b>${x.slot}</b>: ${esc(x.now)} instead of ${esc(x.was)}</li>`))}
+    ${sec("Knockouts", d.bracket.map(b => `<li>${STAGE[b.stage]} M${b.match_no}: ${esc(slotTxt(b.after))} <span style="color:var(--muted)">(really ${esc(slotTxt(b.before))})</span></li>`))}
+    ${sec("Team finishes", d.finishes.map(t => `<li>${esc(t.team)}: ${esc(t.after || "undecided")} <span style="color:var(--muted)">(really ${esc(t.before || "—")})</span></li>`))}
+    ${d.golden_boot ? `<div class="chg"><h4>Golden Boot</h4><p><b>${esc(d.golden_boot.after[0] || "—")}</b> (really ${esc(d.golden_boot.before[0] || "—")})</p></div>` : ""}
+    ${sec("Player stats", d.players.slice(0, 25).map(p => {
+      const g = p.goals[1] - p.goals[0], a = p.assists[1] - p.assists[0];
+      const fmt = (n, w) => n ? `<span class="${n > 0 ? "up" : "down"}">${n > 0 ? "+" : ""}${n} ${w}</span>` : "";
+      return `<li>${esc(p.name)}: ${[fmt(g, "goals"), fmt(a, "assists")].filter(Boolean).join(", ")} (${p.goals[1]} g, ${p.assists[1]} a)</li>`; }))}
+  </section>
+  <div style="display:grid;gap:14px;align-content:start">
+    ${pl ? `<section class="card"><h3>${esc(pl.name)} v ${esc(pl.replaces)}'s real tournament</h3><table><thead><tr><th></th><th></th><th>Apps</th><th>Starts</th><th>Mins</th><th>Goals</th><th>Assists</th></tr></thead><tbody>
+      <tr><td>${esc(pl.name)}</td><td></td><td>${pl.now.apps}</td><td>${pl.now.starts}</td><td>${pl.now.minutes}</td><td><b>${pl.now.goals}</b></td><td>${pl.now.assists}</td></tr>
+      <tr style="color:var(--muted)"><td>${esc(pl.replaces)} (real)</td><td></td><td>${pl.real.apps}</td><td>${pl.real.starts}</td><td>${pl.real.minutes}</td><td>${pl.real.goals}</td><td>${pl.real.assists}</td></tr></tbody></table></section>` : ""}
+    <section class="card"><h3>Matches changed (${d.matches.length})</h3>
+      ${d.matches.length ? `<ul class="tl">${d.matches.map(m => `<li style="grid-template-columns:56px 1fr"><span>${fmtDate(m.date)}</span><span><a href="#" data-fx="${m.fixture_id}" onclick="return false">${esc(m.now)}</a>
+        <div style="font-size:12px;color:var(--muted)">${esc(m.how)}${m.real ? ` · really ${esc(m.real)}` : " · never happened"}</div></span></li>`).join("")}</ul>`
+        : `<p style="color:var(--muted)">No match results changed yet. Role changes for your player keep the real results.</p>`}
+    </section>
+  </div></div>`;
+}
+
+function bindMatches() {
+  document.querySelectorAll("[data-fx]").forEach(el => el.onclick = () => openFixture(el.dataset.fx));
+  if (state.pick) document.querySelectorAll("[data-pick]").forEach(el => el.onclick = async ev => {
+    ev.stopPropagation();
+    const [no, team] = el.dataset.pick.split("|");
+    el.style.opacity = .5;
+    try { const r = await api("POST", `/api/pick_winner/${ED}${q()}`, { match_no: +no, team }); await refresh(); if (!r.diff.empty) showDiff(r.diff); }
+    catch (e) { alert(e.message); refresh(); }
+  });
+  if ($("#pickMode")) $("#pickMode").onclick = () => { state.pick = !state.pick; render(); };
+  if ($("#podiumBtn")) $("#podiumBtn").onclick = podiumDialog;
+  const ra = $("#rollAll");
+  if (ra) ra.onclick = async () => {
+    ra.disabled = true; ra.textContent = "Rolling…";
+    try { const r = await api("POST", `/api/roll_pending/${ED}${q()}`); await refresh(); showDiff(r.diff); }
+    catch (e) { alert(e.message); ra.disabled = false; }
+  };
+}
+
+// ---------------------------------------------------------------- editor
+async function openFixture(fid) {
+  const f = await api("GET", `/api/fixture/${ED}/${fid}${q()}`);
+  if (state.draft?.fixture_id !== fid) { state.draft = null; state.outcomeOpen = false; state.outcomeVals = null; }
+  state.editing = f;
+  $("#dTitle").textContent = `${tname(f.home)} v ${tname(f.away)}`;
+  $("#drawer").classList.add("open");
+  if (!state.branch) return renderReadOnly(f);
+  if (!f.editable) return renderReadOnly(f, true);
+  renderEditor(f);
+}
+$("#dClose").onclick = () => $("#drawer").classList.remove("open");
+document.addEventListener("keydown", e => { if (e.key === "Escape") { $("#drawer").classList.remove("open"); $("#modal").classList.remove("open"); } });
+
+function stageLine(f) { return `${STAGE[f.stage]}${f.group ? " " + f.group : ""}${f.match_no ? " · Match " + f.match_no : ""} · ${fmtDate(f.date)}`; }
+
+function renderReadOnly(f, ripple) {
+  $("#dBody").innerHTML = `<div class="ro">
+    <div class="msg info">${stageLine(f)}</div>
+    ${f.home_score == null ? `<p>No result yet.</p>` : `<div class="scoreline"><div class="tn r">${esc(tname(f.home))}</div>
+      <input value="${f.home_score}" disabled><span>–</span><input value="${f.away_score}" disabled><div class="tn">${esc(tname(f.away))}</div></div>
+      ${f.pen_home != null ? `<p>Penalties ${f.pen_home}–${f.pen_away}</p>` : ""}`}
+    <div class="sec">Events</div>
+    ${f.events.map(e => `<div class="evline"><span class="mn">${e.minute}'</span><span>${EVLABEL[e.event_type]}</span><span>${esc(e.player_name || "")}</span>
+      <span style="color:var(--muted)">${e.team_id}${e.assist_name ? " · assist " + esc(e.assist_name) : ""}</span></div>`).join("") || "<p>None.</p>"}
+    ${ratingsBlock(f)}
+  </div>`;
+  if (ripple) {
+    const pending = f.status === "pending";
+    $("#dFoot").innerHTML = `<span style="color:var(--muted);font-size:13px">Only ${esc(tname(f.focus_team))} matches can be edited.${pending ? "" : " This one follows from your changes."}</span>
+      <span style="flex:1"></span>${pending ? `<button class="primary" id="rollSave">🎲 Roll &amp; save</button>` : ""}`;
+    if (pending) $("#rollSave").onclick = async () => {
+      try { const r = await api("POST", `/api/roll_save/${ED}/${f.fixture_id}${q()}`); $("#drawer").classList.remove("open"); await refresh(); showDiff(r.diff); }
+      catch (e) { alert(e.message); }
+    };
+    return;
+  }
+  $("#dFoot").innerHTML = `<span style="color:var(--muted)">Real history is read-only.</span><span style="flex:1"></span><button class="primary" id="mkBranch">Create a branch to edit</button>`;
+  $("#mkBranch").onclick = () => { $("#drawer").classList.remove("open"); $("#newBranch").click(); };
+}
+
+function playerOptions(f, team, selected, allowNone) {
+  const sq = f.squads[team] || [];
+  const banned = new Set(f.suspended_ids || []);
+  return (allowNone ? `<option value="">—</option>` : `<option value="">Unknown</option>`) +
+    sq.map(p => `<option value="${p.player_id}" ${p.player_id === selected ? "selected" : ""} ${banned.has(p.player_id) && p.player_id !== selected ? "disabled" : ""}>${esc(p.name)}${p.position ? " · " + p.position : ""}${banned.has(p.player_id) ? " (suspended)" : ""}</option>`).join("");
+}
+
+function eventRow(f, e, i) {
+  const isGoal = ["goal", "pen_goal"].includes(e.event_type);
+  return `<div class="ev ${e.locked ? "locked" : ""}" data-i="${i}">
+    <input type="number" min="0" max="130" value="${e.minute}" data-k="minute" title="Minute">
+    <select data-k="event_type">${Object.entries(EVLABEL).map(([k, l]) => `<option value="${k}" ${k === e.event_type ? "selected" : ""}>${l}</option>`).join("")}</select>
+    <select data-k="team_id" title="Player's team">${[f.home, f.away].map(t => `<option value="${t}" ${t === e.team_id ? "selected" : ""}>${t}</option>`).join("")}</select>
+    <select data-k="player_id">${playerOptions(f, e.team_id, e.player_id)}</select>
+    <button class="lock ${e.locked ? "on" : ""}" data-lock="${i}" title="${e.locked ? "Locked: rolling keeps this" : "Lock this so rolling keeps it"}">${e.locked ? "🔒" : "🔓"}</button>
+    <button class="link" data-del="${i}" title="Remove">✕</button>
+    ${isGoal ? `<span></span><span style="color:var(--muted);font-size:12px;text-align:right;grid-column:2/4">assist</span>
+      <select class="assist" data-k="assist_player_id">${playerOptions(f, e.team_id, e.assist_player_id, true)}</select>` : ""}
+  </div>`;
+}
+
+function ratingsBlock(f) {
+  if (!f.ratings?.length) return "";
+  const col = t => f.ratings.filter(r => r.team === t).map(r => `<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dashed var(--line)">
+    <span>${esc(r.name)}</span><b style="color:${r.rating >= 8 ? "var(--pitch)" : r.rating < 6 ? "var(--bad)" : "inherit"}">${r.rating.toFixed(1)}</b></div>`).join("");
+  return `<div class="sec">Player ratings <span style="text-transform:none;letter-spacing:0">(saved result)</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;font-size:13px"><div><b>${esc(tname(f.home))}</b>${col(f.home)}</div><div><b>${esc(tname(f.away))}</b>${col(f.away)}</div></div>`;
+}
+
+const NOTE_LABEL = { kept: "Real goal kept", new: "New goal", removed: "Goal removed", taken: "Taken by your player",
+  given_away: "Given to a teammate", locked: "Locked", assist_taken: "Assist taken by your player" };
+function notesBox(notes, source) {
+  if (!notes || !notes.length) return "";
+  const label = k => source === "current result" ? NOTE_LABEL[k].replace("Real goal", "Goal") : NOTE_LABEL[k];
+  const overrides = notes.filter(n => ["removed", "taken", "given_away"].includes(n.kind)).length;
+  return `<div class="outcome"><b>Goals in this version</b>
+    <span style="color:var(--muted);font-size:13px"> · ${overrides ? `${overrides} ${source === "current result" ? "earlier" : "real"} goal${overrides > 1 ? "s" : ""} overridden` : `no ${source === "current result" ? "earlier" : "real"} goals overridden`}</span>
+    <ul class="notes">${notes.map(n => `<li><span class="k k-${n.kind}">${label(n.kind)}</span> ${n.event.minute}' ${esc(n.event.player_name || "unknown")} (${n.event.team_id})${n.event.event_type === "pen_goal" ? " pen" : n.event.event_type === "own_goal" ? " own goal" : ""}${n.event.assist_name ? ` <span style="color:var(--muted)">· assist ${esc(n.event.assist_name)}</span>` : ""}</li>`).join("")}</ul>
+    <p style="margin:8px 0 0;font-size:13px;color:var(--muted)">Assists, cards and the lineup are filled in below.${""} Look good? <b>Save &amp; recalculate</b> to confirm, or change the numbers and preview again.</p></div>`;
+}
+function outcomePanel(f, draft) {
+  const v = state.outcomeVals || {};
+  const mine = state.view?.focus_team && [f.home, f.away].includes(state.view.focus_team);
+  const ko = f.stage !== "group";
+  return `<div class="outcome"><b>🎯 Set the outcome</b>
+    <p style="margin:4px 0 10px;font-size:13px;color:var(--muted)">Pick the score${mine ? ` and how many goals ${esc(state.view.player_name)} scores` : ""}. Everything else is rolled. You'll see which goals change before anything is saved.</p>
+    <div class="grid">
+      <label>${esc(tname(f.home))} <input type="number" min="0" id="ocH" value="${v.home_score ?? draft.home_score}"></label>
+      <label>${esc(tname(f.away))} <input type="number" min="0" id="ocA" value="${v.away_score ?? draft.away_score}"></label>
+      ${mine ? `<label>${esc(state.view.player_name)}'s goals <input type="number" min="0" id="ocMine" value="${v.my_goals ?? 1}"></label>
+        <label>…and assists <input type="number" min="0" id="ocMineA" value="${v.my_assists ?? ""}" placeholder="any"></label>` : ""}
+      ${ko ? `<label>Pens if drawn <input type="number" min="0" id="ocPH" value="${v.pen_home ?? ""}" style="width:48px"> – <input type="number" min="0" id="ocPA" value="${v.pen_away ?? ""}" style="width:48px"></label>` : ""}
+      <label style="grid-column:1/-1"><input type="checkbox" id="ocKeep" ${v.keep_real === false ? "" : "checked"}> Keep this match's goals, cards and lineup where possible</label>
+    </div>
+    <div style="margin-top:10px"><button class="primary" id="ocPreview">Preview</button></div></div>`;
+}
+
+function renderEditor(f, error) {
+  const ko = f.stage !== "group";
+  const draft = state.draft = state.draft?.fixture_id === f.fixture_id ? state.draft : {
+    fixture_id: f.fixture_id, home_score: f.home_score ?? 0, away_score: f.away_score ?? 0, extra_time: f.extra_time,
+    pen_home: f.pen_home, pen_away: f.pen_away, events: f.events.map(e => ({ minute: e.minute, team_id: e.team_id,
+      player_id: e.player_id, event_type: e.event_type, assist_player_id: e.assist_player_id })), scoreLocked: false };
+  const susp = Object.entries(f.suspended || {}).map(([t, ps]) => `${t}: ${ps.map(esc).join(", ")}`).join(" · ");
+  const isDraw = draft.home_score === draft.away_score;
+  $("#dBody").innerHTML = `
+    ${error ? `<div class="msg err">${esc(error)}</div>` : ""}
+    <div class="msg info">${stageLine(f)}${f.status === "pending" ? " · <b>needs a result</b>" : f.origin === "user_edit" ? " · edited in this branch" : f.status === "historical" ? " · real result" : ""}</div>
+    ${susp ? `<div class="msg info">Suspended: ${susp}</div>` : ""}
+    ${draft.rollNote ? `<div class="msg info">🎲 ${draft.rollNote}</div>` : ""}
+    ${draft.notes ? notesBox(draft.notes, draft.source) : ""}
+    ${state.outcomeOpen ? outcomePanel(f, draft) : ""}
+    <div class="scoreline"><div class="tn r">${esc(tname(f.home))}</div>
+      <input type="number" min="0" id="hs" value="${draft.home_score}"><span>–</span><input type="number" min="0" id="as" value="${draft.away_score}">
+      <div class="tn">${esc(tname(f.away))}</div></div>
+    <div class="row" style="justify-content:center"><label title="Rolling keeps this score"><input type="checkbox" id="scoreLock" ${draft.scoreLocked ? "checked" : ""}> 🔒 Lock score</label>
+      <span style="color:var(--muted);font-size:12px">Lock the score or any event (🔓), then Roll: only the unlocked parts change.</span></div>
+    ${ko ? `<div class="row"><label><input type="checkbox" id="et" ${draft.extra_time ? "checked" : ""}> Went to extra time</label>
+      ${isDraw ? `<span class="pens">Penalties <input type="number" min="0" id="ph" value="${draft.pen_home ?? ""}"> – <input type="number" min="0" id="pa" value="${draft.pen_away ?? ""}"></span>` : ""}</div>` : ""}
+    <div class="sec"><span>Events</span><span>
+      <button class="link" data-add="goal">+ Goal</button><button class="link" data-add="yellow">+ Card</button><button class="link" data-add="pen_miss">+ Other</button>
+    </span></div>
+    <div id="events">${draft.events.map((e, i) => eventRow(f, e, i)).join("") || `<p style="color:var(--muted)">No events. Each goal in the score needs a goal event.</p>`}</div>
+    ${ratingsBlock(f)}
+    <p style="color:var(--muted);font-size:12px">An own goal is listed under the defender's team. Shootout kicks are optional; the shootout score above decides the winner.</p>`;
+  $("#dFoot").innerHTML = `${f.origin === "user_edit" || f.status === "generated" ? `<button class="danger" id="revert">Revert to history</button>` : ""}
+    <button id="roll" title="Generate a result weighted by team strength; locked parts are kept">🎲 ${draft.rollNote ? "Roll again" : "Roll"}</button>
+    <button id="outcome" title="Pick the score and your player's goals; the rest is filled in">🎯 Set outcome</button>
+    <span style="flex:1"></span><button id="cancel">Cancel</button><button class="primary" id="save">Save &amp; recalculate</button>`;
+  const applyRoll = (r, note, keepLocks) => {
+    const locks = keepLocks ? draft.events.filter(e => e.locked) : [];
+    state.draft = { fixture_id: f.fixture_id, home_score: r.home_score, away_score: r.away_score,
+      extra_time: r.extra_time, pen_home: r.pen_home, pen_away: r.pen_away, lineup: r.lineup,
+      scoreLocked: keepLocks ? draft.scoreLocked : false,
+      events: r.events.map(e => ({ minute: e.minute, team_id: e.team_id, player_id: e.player_id,
+        event_type: e.event_type, assist_player_id: e.assist_player_id,
+        locked: locks.some(l => l.minute === e.minute && l.team_id === e.team_id && l.player_id === e.player_id && l.event_type === e.event_type) })),
+      rollNote: note, notes: r.notes, source: r.source };
+  };
+  $("#roll").onclick = async () => {
+    sync();
+    const locked = draft.events.filter(e => e.locked);
+    try {
+      let r;
+      if (locked.length || draft.scoreLocked) {
+        r = await api("POST", `/api/roll/${ED}/${f.fixture_id}${q()}`, {
+          locked_events: locked.map(({ locked, ...e }) => e),
+          home_score: draft.scoreLocked ? draft.home_score : null, away_score: draft.scoreLocked ? draft.away_score : null });
+        r.notes = null;
+      } else r = await api("GET", `/api/roll/${ED}/${f.fixture_id}${q()}`);
+      applyRoll(r, `Rolled from team strength: Elo ${r.elo[0]} v ${r.elo[1]}, expected goals ${r.expected_goals[0]}–${r.expected_goals[1]}.` +
+        (locked.length || draft.scoreLocked ? ` Kept ${draft.scoreLocked ? "the score" : ""}${draft.scoreLocked && locked.length ? " and " : ""}${locked.length ? locked.length + " locked event" + (locked.length > 1 ? "s" : "") : ""}.` : "") +
+        " Edit anything, roll again, or save.", true);
+      renderEditor(f);
+    } catch (err) { renderEditor(f, err.message); }
+  };
+  $("#outcome").onclick = () => { sync(); state.outcomeOpen = !state.outcomeOpen; renderEditor(f); };
+  if ($("#ocPreview")) $("#ocPreview").onclick = async () => {
+    sync();
+    const body = { home_score: +$("#ocH").value, away_score: +$("#ocA").value, keep_real: $("#ocKeep").checked,
+      locked_events: draft.events.filter(e => e.locked).map(({ locked, ...e }) => e) };
+    if ($("#ocMine")) body.my_goals = +$("#ocMine").value;
+    if ($("#ocMineA") && $("#ocMineA").value !== "") body.my_assists = +$("#ocMineA").value;
+    if ($("#ocPH") && $("#ocPH").value !== "") { body.pen_home = +$("#ocPH").value; body.pen_away = +$("#ocPA").value; }
+    state.outcomeVals = body;
+    try {
+      const r = await api("POST", `/api/roll/${ED}/${f.fixture_id}${q()}`, body);
+      applyRoll(r, null, true);
+      state.draft.preview = true;
+      renderEditor(f);
+    } catch (err) { renderEditor(f, err.message); }
+  };
+
+  const sync = () => {
+    draft.home_score = +$("#hs").value; draft.away_score = +$("#as").value;
+    if ($("#et")) draft.extra_time = $("#et").checked;
+    if ($("#scoreLock")) draft.scoreLocked = $("#scoreLock").checked;
+    if ($("#ph")) { draft.pen_home = $("#ph").value === "" ? null : +$("#ph").value; draft.pen_away = $("#pa").value === "" ? null : +$("#pa").value; }
+    document.querySelectorAll(".ev").forEach(row => {
+      const e = draft.events[+row.dataset.i];
+      row.querySelectorAll("[data-k]").forEach(el => e[el.dataset.k] = el.dataset.k === "minute" ? +el.value : (el.value || null));
+    });
+  };
+  $("#dBody").oninput = e => { if (e.target.id === "hs" || e.target.id === "as") { sync(); renderEditor(f); } };
+  $("#dBody").onchange = e => {
+    sync();
+    if (["event_type", "team_id"].includes(e.target.dataset.k)) {
+      const ev = draft.events[+e.target.closest(".ev").dataset.i];
+      if (e.target.dataset.k === "team_id") { ev.player_id = null; ev.assist_player_id = null; }
+      renderEditor(f);
+    }
+  };
+  $("#dBody").onclick = e => {
+    if (e.target.dataset.add) {
+      sync();
+      draft.events.push({ minute: 45, event_type: e.target.dataset.add, team_id: f.home, player_id: null, assist_player_id: null });
+      renderEditor(f);
+    } else if (e.target.dataset.lock !== undefined) {
+      sync(); const ev = draft.events[+e.target.dataset.lock]; ev.locked = !ev.locked; renderEditor(f);
+    } else if (e.target.dataset.del !== undefined) {
+      sync(); draft.events.splice(+e.target.dataset.del, 1); renderEditor(f);
+    }
+  };
+  $("#cancel").onclick = () => { state.draft = null; state.outcomeOpen = false; $("#drawer").classList.remove("open"); };
+  $("#save").onclick = async () => {
+    sync();
+    const body = { ...draft, events: draft.events.map(({ locked, ...e }) => e) };
+    for (const k of ["rollNote", "notes", "source", "scoreLocked", "preview"]) delete body[k];
+    state.outcomeOpen = false;
+    if (!ko || draft.home_score !== draft.away_score) { body.pen_home = body.pen_away = null; }
+    if (!ko) body.extra_time = false;
+    try {
+      const r = await api("POST", `/api/fixture/${ED}/${f.fixture_id}${q()}`, body);
+      state.draft = null; $("#drawer").classList.remove("open");
+      await refresh(); showDiff(r.diff);
+    } catch (err) { renderEditor(f, err.message); }
+  };
+  if ($("#revert")) $("#revert").onclick = async () => {
+    if (!confirm("Put this match back to what really happened?")) return;
+    try {
+      const r = await api("DELETE", `/api/fixture/${ED}/${f.fixture_id}${q()}`);
+      state.draft = null; $("#drawer").classList.remove("open");
+      await refresh(); showDiff(r.diff);
+    } catch (err) { renderEditor(f, err.message); }
+  };
+}
+
+// ---------------------------------------------------------------- my player
+const ROLE_LABEL = { auto: "Not set", inherit: "", start: "Start", sub: "Sub", unused: "Doesn't play" };
+const EV_ICON = { goal: "⚽", pen_goal: "⚽ (pen)", own_goal: "OG", pen_miss: "✗ pen", yellow: "🟨", second_yellow: "🟨🟥", red: "🟥",
+  shootout_score: "✓ shootout", shootout_miss: "✗ shootout", assist: "🅰" };
+
+async function renderPlayerTab() {
+  const m = $("#main");
+  if (!state.branch) { m.innerHTML = `<div class="empty">Pick or create a branch first. Each branch has its own created player.</div>`; return; }
+  const v = await api("GET", `/api/player/${ED}${q()}`);
+  if (!v.player) return renderCreateForm();
+  const p = v.player, t = v.totals || {};
+  const stat = (n, l) => `<div class="stat"><b>${n ?? 0}</b><span>${l}</span></div>`;
+  m.innerHTML = `<div class="cols">
+    <div style="display:grid;gap:14px">
+      <section class="card"><div class="pcard">
+        <div class="big">${esc(p.name)} <button id="editPlayer" style="font-size:13px;vertical-align:middle">Edit player</button></div>
+        <span class="k" style="color:var(--muted)">Team</span><span>${esc(p.team)} · ${p.position}${p.roles?.length ? " · " + p.roles.join(", ") : ""}</span>
+        <span style="color:var(--muted)">Ability</span><span>${esc(p.tier_label)} · overall
+          <input type="number" id="ovr" min="1" max="99" value="${p.overall}" style="width:64px"> <button id="ovrSave">Save</button>
+          <span style="color:var(--muted);font-size:12px"> (worth ${p.impact_elo >= 0 ? "+" : ""}${p.impact_elo} Elo to his team per 90 min)</span></span>
+        <span style="color:var(--muted)">Replaces</span><span>${esc(p.replaces)} in the real squad</span>
+        ${p.birth_date ? `<span style="color:var(--muted)">Born</span><span>${fmtLong(p.birth_date)}</span>` : ""}
+      </div>
+      <div class="stats-row">${stat(t.apps, "apps")}${stat(t.starts, "starts")}${stat(t.minutes, "minutes")}${stat(t.goals, "goals")}${stat(t.assists, "assists")}${stat((t.yellows || 0), "yellows")}${stat(t.reds, "reds")}${v.rating ? `<div class="stat"><b>${v.rating}</b><span>avg rating</span></div>` : ""}
+        ${v.golden_boot_rank ? `<div class="stat"><b>#${v.golden_boot_rank}</b><span>Golden Boot</span></div>` : ""}</div>
+      </section>
+      <section class="card"><h3>Matches ${v.unset ? `<span class="badge warn">${v.unset} not set</span>` : ""}</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 8px">Choose his role in each match. Whoever takes a lineup spot takes that spot's real goals, assists and cards; the score only changes if you edit or roll the match.
+          “Not set” means he takes ${esc(p.replaces)}'s spot when ${esc(p.replaces)} really played, and sits out otherwise.</p>
+        <table class="roles"><thead><tr><th>Date</th><th>Match</th><th>Result</th><th>Role</th><th>Played</th><th>Did</th><th>Rating</th></tr></thead><tbody>
+        ${v.matches.map(mt => roleRow(mt, p)).join("")}
+        </tbody></table>
+      </section>
+    </div>
+    <div style="display:grid;gap:14px">
+      <section class="card"><h3>Injuries</h3>
+        ${v.injuries.length ? `<ul class="tl">${v.injuries.map(i => `<li><span>${fmtDate(i.start_date)}</span><span class="k">to ${i.end_date ? fmtDate(i.end_date) : "unknown"}</span><span>${esc(i.description)}</span><button class="link" data-delinj="${i.injury_id}" title="Remove">✕</button></li>`).join("")}</ul>` : `<p style="color:var(--muted)">None. He's fit.</p>`}
+        <div class="inline"><input type="date" id="injFrom" value="2022-11-20"><input type="date" id="injTo"><input id="injWhat" placeholder="e.g. Hamstring" style="width:120px"><button id="injAdd">Add injury</button></div>
+        <p style="color:var(--muted);font-size:12px;margin:6px 0 0">While injured he can't be picked, and he's left out of rolled matches.</p>
+      </section>
+      <section class="card"><h3>Calendar</h3>
+        <ul class="tl">${v.calendar.map(c => `<li><span>${fmtDate(c.date)}</span><span class="k">${esc(c.kind.replace(/_/g, " "))}</span><span>${esc(c.notes || "")}</span>
+          ${c.id ? `<button class="link" data-delcal="${c.id}" title="Remove">✕</button>` : "<span></span>"}</li>`).join("")}</ul>
+        <div class="inline"><input type="date" id="calDate" value="2022-11-14"><select id="calKind"><option value="camp">Camp</option><option value="friendly">Friendly</option><option value="call_up">Call-up</option><option value="note">Note</option></select>
+          <input id="calNote" placeholder="What happened" style="flex:1;min-width:120px"><button id="calAdd">Add</button></div>
+      </section>
+    </div></div>`;
+
+  $("#editPlayer").onclick = () => renderCreateForm(v.player);
+  $("#ovrSave").onclick = async () => { try { await api("POST", `/api/player_update${q()}`, { overall: +$("#ovr").value }); renderPlayerTab(); } catch (e) { alert(e.message); } };
+  $("#injAdd").onclick = async () => {
+    try { const r = await api("POST", `/api/injury/${ED}${q()}`, { start_date: $("#injFrom").value, end_date: $("#injTo").value, description: $("#injWhat").value });
+      await refresh(); if (!r.diff.empty) showDiff(r.diff); } catch (e) { alert(e.message); } };
+  $("#calAdd").onclick = async () => { try { await api("POST", `/api/career_event${q()}`, { date: $("#calDate").value, event_type: $("#calKind").value, notes: $("#calNote").value }); renderPlayerTab(); } catch (e) { alert(e.message); } };
+  m.querySelectorAll("[data-delinj]").forEach(b => b.onclick = async () => { await api("DELETE", `/api/injury/${b.dataset.delinj}${q()}`); refresh(); });
+  m.querySelectorAll("[data-delcal]").forEach(b => b.onclick = async () => { await api("DELETE", `/api/career_event/${b.dataset.delcal}${q()}`); renderPlayerTab(); });
+  m.querySelectorAll("tr[data-role]").forEach(tr => {
+    const save = async () => {
+      const role = tr.querySelector(".r-role").value;
+      const body = { role, target_player_id: tr.querySelector(".r-target")?.value || null, minute: tr.querySelector(".r-min")?.value ? +tr.querySelector(".r-min").value : null };
+      if (role === "sub" && !body.minute) body.minute = 60;
+      try { const r = await api("POST", `/api/role/${ED}/${tr.dataset.role}${q()}`, body); await refresh(); if (!r.diff.empty) showDiff(r.diff); }
+      catch (e) { alert(e.message); renderPlayerTab(); }
+    };
+    tr.querySelectorAll("select, input").forEach(el => el.onchange = save);
+  });
+  m.querySelectorAll("[data-open]").forEach(a => a.onclick = () => openFixture(a.dataset.open));
+}
+
+function fmtLong(d) { return new Date(d + "T12:00").toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }); }
+
+function roleRow(mt, p) {
+  const r = mt.role, role = r.role;
+  const opts = [["auto", "Not set"], ["inherit", `Take ${p.replaces}'s spot`], ["start", "Start"], ["sub", "Sub"], ["unused", "Doesn't play"]];
+  const same = mt.starters.filter(s => s.same), other = mt.starters.filter(s => !s.same);
+  const opt = s => `<option value="${s.player_id}" ${s.player_id === r.target_player_id ? "selected" : ""}>for ${esc(s.name)} · ${s.position || "?"}</option>`;
+  const targetSel = (role === "start" || role === "sub") ? `<select class="r-target" title="In place of">
+      <option value="">auto: ${mt.auto_target ? `${esc(mt.auto_target)} · ${mt.auto_target_pos}` : "same position"}</option>
+      ${same.length ? `<optgroup label="Same position (${p.position})">${same.map(opt).join("")}</optgroup>` : ""}
+      ${other.length ? `<optgroup label="Other positions">${other.map(opt).join("")}</optgroup>` : ""}</select>` : "";
+  const minute = role === "sub" ? `<input class="r-min minute" type="number" min="1" max="119" value="${r.minute ?? 60}" title="Minute he comes on">'` : "";
+  const flags = [mt.injured ? `<span class="badge bad">injured</span>` : "", mt.suspended ? `<span class="badge bad">suspended</span>` : "",
+    mt.status === "pending" ? `<span class="badge warn">needs result</span>` : "", mt.origin === "user_edit" ? `<span class="badge">edited</span>` : "",
+    mt.status === "generated" ? `<span class="badge">rolled</span>` : ""].join(" ");
+  const evs = mt.events.map(e => `${EV_ICON[e.type] || e.type} ${e.minute}'`).join(" ");
+  return `<tr data-role="${mt.fixture_id}">
+    <td style="white-space:nowrap">${fmtDate(mt.date)}</td>
+    <td><a href="#" data-open="${mt.fixture_id}" onclick="return false" style="white-space:nowrap">v ${esc(mt.opponent_name)}</a>
+      <div style="font-size:11px;color:var(--muted)">${STAGE[mt.stage]}${mt.group ? " " + mt.group : ""} ${flags}</div></td>
+    <td style="white-space:nowrap">${mt.result ?? "—"}${mt.pens ? `<div style="font-size:11px;color:var(--muted)">${mt.pens} pens</div>` : ""}</td>
+    <td style="white-space:nowrap"><select class="r-role" ${mt.injured ? "disabled" : ""}>${opts.map(([k, l]) => `<option value="${k}" ${k === role ? "selected" : ""}>${esc(l)}</option>`).join("")}</select> ${targetSel} ${minute}
+      ${role === "auto" ? `<span class="badge warn">not set</span>` : ""}</td>
+    <td style="font-size:13px">${esc(mt.played)}</td>
+    <td class="evs">${evs}</td><td>${mt.rating ? `<b>${mt.rating}</b>` : ""}</td></tr>`;
+}
+
+async function renderCreateForm(cur) {
+  const m = $("#main"), edit = !!cur;
+  const { tiers, roles: ROLES } = await api("GET", "/api/tiers");
+  let picked = new Set(cur?.roles || []);
+  const teams = Object.entries(state.view.teams).sort((a, b) => a[1].localeCompare(b[1]));
+  const val = (k, d) => esc(cur?.[k] ?? d);
+  m.innerHTML = `<section class="card" style="max-width:720px"><h3>${edit ? "Edit your player" : "Create your player"}</h3>
+    <p style="color:var(--muted);margin-top:0">${edit ? "Change anything except his national team (make a new branch for that). His match roles stay as you set them."
+      : "He joins a real World Cup 2022 squad in place of a player you pick. Only his national team's matches can then be edited in this branch."}</p>
+    <div class="form">
+      <label for="cpName">Full name</label><input id="cpName" placeholder="e.g. Mateo Rivas" value="${val("full_name", "")}">
+      <label for="cpKnown">Known as</label><input id="cpKnown" placeholder="optional, e.g. Rivas" value="${val("known_as", "")}">
+      <label for="cpBorn">Born</label><input id="cpBorn" type="date" value="${val("birth_date", "2001-06-15")}">
+      <label for="cpTeam">National team</label><select id="cpTeam" ${edit ? "disabled" : ""}>${teams.map(([id, n]) => `<option value="${id}" ${cur?.team_id === id ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>
+      <label for="cpPos">Position</label><select id="cpPos">${[["FW", "Forward"], ["MF", "Midfielder"], ["DF", "Defender"], ["GK", "Goalkeeper"]].map(([k, l]) => `<option value="${k}" ${cur?.position === k ? "selected" : ""}>${l}</option>`).join("")}</select>
+      <label>Roles</label><div class="chips" id="cpRoles"></div>
+      <span class="hint">Pick every role he can play. He's matched with real players who play the same roles.</span>
+      <label for="cpTier">Tier</label><select id="cpTier">${tiers.map(t => `<option value="${t.id}" data-ovr="${t.overall}" ${t.id === (cur?.tier || "star") ? "selected" : ""}>${t.label} (${t.overall})</option>`).join("")}</select>
+      <label for="cpOvr">Overall</label><input id="cpOvr" type="number" min="1" max="99" value="${val("overall", 83)}" style="width:80px">
+      <span class="hint">The tier sets a starting value; fine-tune it here. 75 is a typical World Cup starter.</span>
+      <label for="cpRep">Replaces</label><div><select id="cpRep" style="width:100%"></select>
+        <label style="font-size:13px;color:var(--muted);display:block;margin-top:4px"><input type="checkbox" id="cpUnused"> Only show players who didn't play a minute</label></div>
+      <span class="hint">This player leaves the squad. Your player isn't tied to his matches: you choose a role for every match.</span>
+    </div>
+    <div id="cpErr"></div>
+    <div style="margin-top:14px;display:flex;gap:8px"><button class="primary" id="cpCreate">${edit ? "Save changes" : "Create player"}</button>${edit ? `<button id="cpCancel">Cancel</button>` : ""}</div></section>`;
+  const drawRoles = () => {
+    const pos = $("#cpPos").value;
+    if (!picked.size) picked = new Set({ GK: ["GK"], DF: ["CB"], MF: ["CM"], FW: ["ST"] }[pos]);
+    $("#cpRoles").innerHTML = ROLES.map(r => {
+      const ok = pos === "GK" ? r.id === "GK" : r.id !== "GK";
+      return `<span class="chip ${picked.has(r.id) ? "on" : ""} ${ok ? "" : "dis"}" data-role="${r.id}" title="${r.group}">${r.id}</span>`;
+    }).join("");
+    $("#cpRoles").querySelectorAll(".chip:not(.dis)").forEach(c => c.onclick = () => {
+      picked.has(c.dataset.role) ? picked.delete(c.dataset.role) : picked.add(c.dataset.role); drawRoles();
+    });
+  };
+  let squadCache = [];
+  const drawSquad = () => {
+    const only = $("#cpUnused").checked;
+    const list = squadCache.filter(p => !only || !p.minutes || p.player_id === cur?.replaces_id);
+    $("#cpRep").innerHTML = list.map(p => `<option value="${p.player_id}" ${p.player_id === cur?.replaces_id ? "selected" : ""}>${esc(p.name)} · ${p.position || "?"}${p.roles?.length ? " · " + p.roles.slice(0, 3).join("/") : ""} · ${p.minutes ? p.minutes + " min" : "didn't play"}</option>`).join("");
+  };
+  const loadSquad = async () => {
+    squadCache = await api("GET", `/api/squad/${ED}/${$("#cpTeam").value}`);       // the real squad, alphabetical
+    drawSquad();
+  };
+  $("#cpUnused").onchange = drawSquad;
+  $("#cpPos").onchange = () => {
+    const pos = $("#cpPos").value;
+    picked = new Set([...picked].filter(r => pos === "GK" ? r === "GK" : r !== "GK"));
+    drawRoles();
+  };
+  drawRoles();
+  $("#cpTeam").onchange = loadSquad;
+  $("#cpTier").onchange = () => { $("#cpOvr").value = $("#cpTier").selectedOptions[0].dataset.ovr; };
+  await loadSquad();
+  if (edit) $("#cpCancel").onclick = () => renderPlayerTab();
+  $("#cpCreate").onclick = async () => {
+    const body = { full_name: $("#cpName").value, known_as: $("#cpKnown").value, birth_date: $("#cpBorn").value,
+      position: $("#cpPos").value, roles: [...picked], tier: $("#cpTier").value,
+      overall: +$("#cpOvr").value, replaces_player_id: $("#cpRep").value };
+    try {
+      if (edit) { const r = await api("POST", `/api/player_update${q()}`, body); await refresh(); if (r.diff && !r.diff.empty) showDiff(r.diff); }
+      else { await api("POST", `/api/player/${ED}${q()}`, { ...body, team_id: $("#cpTeam").value }); await refresh(); }
+    } catch (e) { $("#cpErr").innerHTML = `<div class="msg err" style="margin-top:12px">${esc(e.message)}</div>`; }
+  };
+}
+
+function podiumDialog() {
+  const teams = [...new Set(state.view.slots.filter(s => s.stage === "R16").flatMap(s => [s.home, s.away]).filter(Boolean))]
+    .sort((a, b) => tname(a).localeCompare(tname(b)));
+  const sel = (id, label, req) => `<label style="display:flex;gap:10px;align-items:center;margin:8px 0">${label}
+    <select id="${id}"><option value="">${req ? "— pick —" : "— leave to chance —"}</option>${teams.map(t => `<option value="${t}">${esc(tname(t))}</option>`).join("")}</select></label>`;
+  $("#modalBox").innerHTML = `<h2>🏆 Choose the podium</h2>
+    <p style="color:var(--muted);margin-top:0;font-size:13px">Every knockout match these teams play is decided in their favour (third place loses its semi-final, then wins the third-place match). All other matches keep their current result or are rolled.</p>
+    ${sel("pd1", "🥇 Champion", true)}${sel("pd2", "🥈 Runner-up", true)}${sel("pd3", "🥉 Third place", false)}
+    <div id="pdErr"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button id="pdCancel">Cancel</button><button class="primary" id="pdGo">Build the knockouts</button></div>`;
+  $("#modal").classList.add("open");
+  $("#pdCancel").onclick = () => $("#modal").classList.remove("open");
+  $("#pdGo").onclick = async () => {
+    $("#pdGo").disabled = true; $("#pdGo").textContent = "Building…";
+    try {
+      const r = await api("POST", `/api/pick_podium/${ED}${q()}`, { first: $("#pd1").value, second: $("#pd2").value, third: $("#pd3").value });
+      $("#modal").classList.remove("open"); await refresh(); showDiff(r.diff);
+    } catch (e) { $("#pdErr").innerHTML = `<div class="msg err">${esc(e.message)}</div>`; $("#pdGo").disabled = false; $("#pdGo").textContent = "Build the knockouts"; }
+  };
+}
+
+// ---------------------------------------------------------------- what changed
+function showDiff(d) {
+  const T = tname;
+  const sec = (title, items) => items.length ? `<div class="chg"><h4>${title}</h4><ul>${items.join("")}</ul></div>` : "";
+  const slotTxt = s => !s ? "—" : s.status === "valid" ? `${T(s.home)} ${s.score} ${T(s.away)}` : s.status === "pending" ? `${T(s.home)} v ${T(s.away)} (needs result)` : "waiting";
+  $("#modalBox").innerHTML = `<h2>What changed</h2>
+    ${d.empty ? `<p>Nothing else changed: the rest of the tournament stands as it was.</p>` : ""}
+    ${d.champion ? `<div class="chg"><h4>Champion</h4><p><b>${d.champion.after ? esc(T(d.champion.after)) : "Undecided"}</b> (was ${d.champion.before ? esc(T(d.champion.before)) : "undecided"})</p></div>` : ""}
+    ${sec("Group order", d.groups.map(g => `<li>Group ${g.group}: ${g.after.map(esc).join(", ")} <span style="color:var(--muted)">(was ${g.before.map(esc).join(", ")})</span></li>`))}
+    ${sec("Knockouts", d.bracket.map(b => `<li>${STAGE[b.stage]} M${b.match_no}: ${esc(slotTxt(b.after))} <span style="color:var(--muted)">(was ${esc(slotTxt(b.before))})</span></li>`))}
+    ${sec("Team finishes", d.finishes.map(t => `<li>${esc(t.team)}: ${esc(t.after || "undecided")} <span style="color:var(--muted)">(was ${esc(t.before || "undecided")})</span></li>`))}
+    ${sec("Suspensions applied", (d.suspensions || []).map(x => `<li>${esc(x.player)} is suspended for ${esc(x.match)} (${fmtDate(x.date)})${x.replacement ? `: ${esc(x.replacement)} takes his place` : ": left out"}</li>`))}
+    ${d.golden_boot ? `<div class="chg"><h4>Golden Boot</h4><p><b>${esc(d.golden_boot.after[0] || "—")}</b> (was ${esc(d.golden_boot.before[0] || "—")})</p></div>` : ""}
+    ${sec("Player stats", d.players.slice(0, 15).map(p => {
+      const g = p.goals[1] - p.goals[0], a = p.assists[1] - p.assists[0];
+      const fmt = (n, w) => n ? `<span class="${n > 0 ? "up" : "down"}">${n > 0 ? "+" : ""}${n} ${w}</span>` : "";
+      return `<li>${esc(p.name)}: ${[fmt(g, "goals"), fmt(a, "assists")].filter(Boolean).join(", ")} (now ${p.goals[1]} g, ${p.assists[1]} a)</li>`;
+    }))}
+    <div style="text-align:right"><button class="primary" id="closeDiff">OK</button></div>`;
+  $("#modal").classList.add("open");
+  $("#closeDiff").onclick = () => $("#modal").classList.remove("open");
+}
+$("#modal").onclick = e => { if (e.target.id === "modal") $("#modal").classList.remove("open"); };
+
+Promise.resolve(window.footsimBackend ? window.footsimBackend.ready : null)
+  .then(() => refresh())
+  .catch(e => { $("#main").innerHTML = `<div class="msg err">Couldn't start the editor: ${esc(e.message)}</div>`; });
+</script>
+</body>
+</html>

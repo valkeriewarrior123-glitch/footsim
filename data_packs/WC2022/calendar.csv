@@ -1,0 +1,10 @@
+edition_id,date,event_type,team_id,notes
+WC2022,2022-10-21,provisional_list,,Deadline for provisional squad lists (up to 55 players)
+WC2022,2022-11-13,club_break,,Last club matches before the tournament break
+WC2022,2022-11-14,squad_deadline,,Final 26-player squad lists due to FIFA
+WC2022,2022-11-20,tournament_start,,Opening match: Qatar v Ecuador
+WC2022,2022-12-02,stage_end,,Group stage ends
+WC2022,2022-12-03,stage_start,,Round of 16 begins
+WC2022,2022-12-09,stage_start,,Quarter-finals begin (yellow cards wiped after this round)
+WC2022,2022-12-13,stage_start,,Semi-finals begin
+WC2022,2022-12-18,final,,Final at Lusail Stadium

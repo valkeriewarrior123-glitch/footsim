@@ -1,0 +1,58 @@
+{
+  "edition_id": "WC2022",
+  "format": "groups_then_knockout",
+  "teams": 32,
+  "group_stage": {
+    "groups": ["A", "B", "C", "D", "E", "F", "G", "H"],
+    "teams_per_group": 4,
+    "round_robin_legs": 1,
+    "qualify_per_group": 2,
+    "best_thirds": 0,
+    "points": { "win": 3, "draw": 1, "loss": 0 },
+    "tiebreakers": [
+      "points",
+      "goal_diff",
+      "goals_for",
+      "h2h_points",
+      "h2h_goal_diff",
+      "h2h_goals_for",
+      "fair_play",
+      "lots"
+    ],
+    "fair_play_points": { "yellow": -1, "second_yellow": -3, "red": -4, "yellow_then_red": -5 }
+  },
+  "knockout": {
+    "two_legs": false,
+    "away_goals": false,
+    "extra_time": true,
+    "penalties": true,
+    "third_place_match": true,
+    "bracket": [
+      { "match_no": 49, "stage": "R16", "home": "1A", "away": "2B" },
+      { "match_no": 50, "stage": "R16", "home": "1C", "away": "2D" },
+      { "match_no": 51, "stage": "R16", "home": "1D", "away": "2C" },
+      { "match_no": 52, "stage": "R16", "home": "1B", "away": "2A" },
+      { "match_no": 53, "stage": "R16", "home": "1E", "away": "2F" },
+      { "match_no": 54, "stage": "R16", "home": "1G", "away": "2H" },
+      { "match_no": 55, "stage": "R16", "home": "1F", "away": "2E" },
+      { "match_no": 56, "stage": "R16", "home": "1H", "away": "2G" },
+      { "match_no": 57, "stage": "QF", "home": "W53", "away": "W54" },
+      { "match_no": 58, "stage": "QF", "home": "W49", "away": "W50" },
+      { "match_no": 59, "stage": "QF", "home": "W55", "away": "W56" },
+      { "match_no": 60, "stage": "QF", "home": "W51", "away": "W52" },
+      { "match_no": 61, "stage": "SF", "home": "W57", "away": "W58" },
+      { "match_no": 62, "stage": "SF", "home": "W59", "away": "W60" },
+      { "match_no": 63, "stage": "3P", "home": "L61", "away": "L62" },
+      { "match_no": 64, "stage": "F",  "home": "W61", "away": "W62" }
+    ]
+  },
+  "suspensions": {
+    "yellows_for_ban": 2,
+    "ban_matches_per_accumulation": 1,
+    "red_card_ban_matches": 1,
+    "yellows_reset_after_stage": "QF"
+  },
+  "squad": { "size": 26, "subs_allowed": 5, "extra_sub_in_extra_time": true },
+  "dates": { "start": "2022-11-20", "end": "2022-12-18" },
+  "source": "FIFA World Cup Qatar 2022 regulations; verify bracket and tiebreaker order against the official PDF before the gate test"
+}
