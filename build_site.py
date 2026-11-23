@@ -61,6 +61,9 @@ def main() -> None:
     ap.add_argument("--redirect-uri", default="", help="override the page address Microsoft sends you back to")
     ap.add_argument("--graph", default="", help="override the Microsoft Graph address (testing only)")
     ap.add_argument("--folder", default="FootSim", help="subfolder of the OneDrive app folder")
+    ap.add_argument("--file", default="", help="save-file name inside the OneDrive folder (default footsim.db)")
+    ap.add_argument("--preview", action="store_true",
+                    help="build the preview copy: saves to footsim-preview.db, shows a PREVIEW badge, offers to copy the live save")
     args = ap.parse_args()
     if not args.db.exists():
         raise SystemExit(f"{args.db} not found. Run the importer first.")
@@ -81,6 +84,10 @@ def main() -> None:
     if args.client_id:
         cloud = {"clientId": args.client_id, "folder": args.folder,
                  "authority": args.authority or f"https://login.microsoftonline.com/{args.tenant}"}
+        if args.preview:
+            cloud.update({"file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"})
+        if args.file:
+            cloud["file"] = args.file
         if args.redirect_uri:
             cloud["redirectUri"] = args.redirect_uri
         if args.graph:

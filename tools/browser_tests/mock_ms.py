@@ -2,6 +2,12 @@
 import json, base64, sys, urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 S = {"data": None, "etag": None, "n": 0, "puts": 0, "tokens": 0, "refreshes": 0, "expire_refresh": False, "log": []}
+OTHER = {}      # any other file name in the app folder -> {"data", "etag"}  (used by the preview test)
+PFX = "/graph/me/drive/special/approot:/FootSim/"
+def other_name(path):
+    if not path.startswith(PFX): return None
+    n = path[len(PFX):].split("?")[0].split(":")[0]
+    return None if n == "footsim.db" else n
 def b64(d): return base64.urlsafe_b64encode(json.dumps(d).encode()).decode().rstrip("=")
 class H(BaseHTTPRequestHandler):
     def log_message(self, *a): pass
@@ -28,6 +34,13 @@ class H(BaseHTTPRequestHandler):
             return self.out(200, {k: v for k, v in S.items() if k != "data"} | {"size": len(S["data"] or b"")})
         if u.path == "/dl": return self.out(200, S["data"], "application/octet-stream")
         if u.path == "/_data": return self.out(200, S["data"] or b"", "application/octet-stream")
+        if u.path == "/_other": return self.out(200, {k: len(v["data"]) for k, v in OTHER.items()})
+        if u.path.startswith("/dl/"): return self.out(200, OTHER[u.path[4:]]["data"], "application/octet-stream")
+        on = other_name(u.path)
+        if on:
+            if not self.authed(): return self.out(401, {"error": {"message": "no token"}})
+            if on not in OTHER: return self.out(404, {"error": {"code": "itemNotFound", "message": "not found"}})
+            return self.out(200, {"eTag": OTHER[on]["etag"], "lastModifiedDateTime": "2026-11-23T12:00:00Z", "@microsoft.graph.downloadUrl": "http://localhost:8803/dl/" + on})
         if u.path.startswith("/graph/me/drive/special/approot:/FootSim/footsim.db"):
             if not self.authed(): return self.out(401, {"error": {"message": "no token"}})
             if S["data"] is None: return self.out(404, {"error": {"code": "itemNotFound", "message": "not found"}})
@@ -39,6 +52,12 @@ class H(BaseHTTPRequestHandler):
         if not self.authed(): return self.out(401, {"error": {"message": "no token"}})
         if self.path.startswith("/_set"):
             S["data"] = body; S["n"] += 1; S["etag"] = f'"other{S["n"]}"'; return self.out(200, {})
+        on = other_name(self.path.split(":/content")[0] if ":/content" in self.path else "")
+        if on and self.path.endswith(":/content"):
+            old = OTHER.get(on); im = self.headers.get("If-Match")
+            if im and (not old or im != old["etag"]): return self.out(412, {"error": {"code": "preconditionFailed", "message": "etag mismatch"}})
+            S["n"] += 1; OTHER[on] = {"data": body, "etag": f'"o{S["n"]}"'}
+            return self.out(200, {"eTag": OTHER[on]["etag"]})
         if self.path.startswith("/graph/me/drive/special/approot:/FootSim/footsim.db:/content"):
             im = self.headers.get("If-Match")
             if im and im != S["etag"]: return self.out(412, {"error": {"code": "preconditionFailed", "message": "etag mismatch"}})
