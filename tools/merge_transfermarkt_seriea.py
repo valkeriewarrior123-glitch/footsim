@@ -11,7 +11,8 @@ Output: events.csv, lineups.csv, notes.csv, players.csv, squad.csv in data_packs
         - goals: Kaggle's scorers and minutes stay; assists come from Transfermarkt, which also names the scorer of the
           goals Kaggle left unnamed; the two sources must agree on who scored;
         - a match Transfermarkt has no line-up for (Cagliari - Roma, 23 Sep 2012) is left exactly as Kaggle had it.
-Run `python tools/merge_transfermarkt_seriea.py [--strict]`.
+Run `python tools/merge_transfermarkt_seriea.py [SERIEA1213|SERIEA1314] [--strict]` (default SERIEA1213; the jsonl is named
+tm_<edition lowercase>.jsonl).
 """
 import csv
 import json
@@ -29,13 +30,15 @@ def toks(s):
     return [t for t in re.split(r"[^a-z0-9]+", plain(s).replace("'", "").replace("\u2019", "").replace("oe", "o")) if len(t) > 1]
 
 
-PACK = Path(__file__).resolve().parent.parent / "data_packs" / "SERIEA1213"
+EDITION = next((a for a in sys.argv[1:] if a.startswith("SERIEA")), "SERIEA1213")
+PACK = Path(__file__).resolve().parent.parent / "data_packs" / EDITION
 STRICT = "--strict" in sys.argv
 TEAM = {"AC Milan": "c_milan", "AC Siena": "c_siena", "ACF Fiorentina": "c_fiorentina", "AS Roma": "c_roma", "Atalanta BC": "c_atalanta",
         "Bologna FC 1909": "c_bologna", "Cagliari Calcio": "c_cagliari", "Calcio Catania": "c_catania", "Chievo Verona": "c_chievoverona",
         "Delfino Pescara 1936": "c_pescara", "Genoa CFC": "c_genoa", "Inter Milan": "c_inter", "Juventus FC": "c_juventus",
         "Parma FC": "c_parma", "SS Lazio": "c_lazio", "SSC Napoli": "c_napoli", "Torino FC": "c_torino", "UC Sampdoria": "c_sampdoria",
-        "US Palermo": "c_palermo", "Udinese Calcio": "c_udinese"}
+        "US Palermo": "c_palermo", "Udinese Calcio": "c_udinese",
+        "Hellas Verona": "c_hellasverona", "AS Livorno": "c_livorno", "US Sassuolo": "c_sassuolo"}
 GOALS = ("goal", "pen_goal", "own_goal")
 CARDS = ("yellow", "second_yellow", "red")
 
@@ -51,9 +54,9 @@ def main():
     events, lineups, notes = read(base / "events.csv"), read(base / "lineups.csv"), read(base / "notes.csv")
     players, squad_rows = read(base / "players.csv"), read(base / "squad.csv")
     team_ids = {t["team_id"] for t in teams}
-    assert set(TEAM.values()) == team_ids, team_ids ^ set(TEAM.values())
+    assert team_ids <= set(TEAM.values()), team_ids - set(TEAM.values())
     pl = {p["player_id"]: dict(p) for p in players}
-    tm = [json.loads(l) for l in (PACK / "tm_seriea1213.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    tm = [json.loads(l) for l in (PACK / f"tm_{EDITION.lower()}.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
     fx_by = {(f["home_team_id"], f["away_team_id"]): f for f in fixtures}
     base_xi = defaultdict(list)                                   # (fixture, team) -> Kaggle starters
     pool = defaultdict(set)                                       # team -> every player the pack knows for it
@@ -234,6 +237,12 @@ def main():
                 exact = [x for x in cand if sluginfo(x)[0] == want]
                 short = [x for x in cand if len(sluginfo(x)[0]) == min(len(sluginfo(y)[0]) for y in cand)]
                 cand = exact if len(exact) == 1 else (short if len(short) == 1 else cand)
+            if not cand:                                        # a bench list without its Manager row can sit under the wrong side
+                other = "G" if c["side"] == "H" else "H"
+                cand = [s for s in side_slugs[other] if want and (set(want) <= set(sluginfo(s)[0]) or set(want) <= set(toks(pl[slug_pid[s]]["full_name"])))]
+                if len({slug_pid[x] for x in cand}) == 1:
+                    cand = cand[:1]
+                    weak.append(f"{fid}: card for {nm!r} found on the other side's list; the {c['side']} side's team is used")
             if len(cand) != 1:
                 problems.append(f"{fid}: card for {nm!r} ({c['side']}) matches {cand}")
                 continue
@@ -246,11 +255,12 @@ def main():
         new_events += ev
         # goals: Kaggle's scorers and minutes; Transfermarkt's assists and the scorers Kaggle lacks
         mine = sorted([e for e in events if e["fixture_id"] == fid and e["event_type"] in GOALS], key=lambda x: int(x["minute"]))
+        pending = []
         tmg = sorted(r["goals"], key=lambda g: g["m"] or 0)
         gpool = [(g, slug_pid.get(g["p"]), slug_pid.get(g["a"]) if g["a"] else None) for g in tmg]
         for e in mine:
             if e["player_id"]:
-                hit = next((x for x in gpool if x[1] == e["player_id"]), None)
+                hit = next((x for x in gpool if x[1] == e["player_id"] and abs((x[0]["m"] or 0) - int(e["minute"])) <= 3), None)
                 if hit is None:                                 # Kaggle credited a goal that was an own goal, or a namesake
                     sur = toks(pl[e["player_id"]]["full_name"])[-1]
                     own = [x for x in gpool if "Own-goal" in x[0]["t"] and abs((x[0]["m"] or 0) - int(e["minute"])) <= 1]
@@ -263,8 +273,15 @@ def main():
                         if len(same) == 1:
                             weak.append(f"{fid}: Kaggle's unnamed {e['player_id']} is {same[0][1]} ({pl[same[0][1]]['full_name']})")
                             pl[e["player_id"]]["full_name"] = pl[same[0][1]]["full_name"]
+                            old = slug_pid.get(same[0][0]["p"])
                             slug_pid[same[0][0]["p"]] = e["player_id"]
+                            if old in on:                       # his line-up row moves with him
+                                on[e["player_id"]] = on.pop(old)
+                            if old in off:
+                                off[e["player_id"]] = off.pop(old)
                     hit = own[0] if own else (same[0] if same else None)
+                    if hit is None:                             # the same scorer, but the minute is far off: as before
+                        hit = next((x for x in gpool if x[1] == e["player_id"]), None)
                     if hit and own:
                         e["event_type"], e["player_id"] = "own_goal", hit[1]
                         e["team_id"] = sides["G" if hit[0]["side"] == "H" else "H"] if False else next(t for t in (h, a) if t != e["team_id"])
@@ -277,7 +294,7 @@ def main():
                 if hit:
                     e["player_id"] = hit[1]; n_named += 1
             if hit is None:
-                problems.append(f"{fid}: Kaggle goal {e['player_id']} {e['minute']}' has no Transfermarkt twin")
+                pending.append(e)
                 e["assist_player_id"] = ""
                 continue
             gpool.remove(hit)
@@ -285,6 +302,22 @@ def main():
                 weak.append(f"{fid}: goal minute differs, Kaggle {e['minute']} / Transfermarkt {hit[0]['m']} ({pl[e['player_id']]['full_name']}); Kaggle's kept")
             e["assist_player_id"] = "" if e["event_type"] == "own_goal" else (hit[2] or "")
             n_assist += bool(e["assist_player_id"])
+        # Kaggle credited another player (a namesake, or an own goal that was not one): the goals left over on both sides are
+        # the same goals when the counts agree and the minutes are within 2; Transfermarkt's facts about the person win
+        for e in list(pending):
+            hit = min(gpool, key=lambda x: abs((x[0]["m"] or 0) - int(e["minute"])), default=None)
+            if len(pending) != len(gpool) or hit is None or abs((hit[0]["m"] or 0) - int(e["minute"])) > 2:
+                problems.append(f"{fid}: Kaggle goal {e['player_id']} {e['minute']}' has no Transfermarkt twin")
+                continue
+            was = (pl[e["player_id"]]["full_name"] if e["player_id"] else "no scorer", e["event_type"])
+            own_goal = "Own-goal" in hit[0]["t"]
+            e["player_id"] = hit[1]
+            e["event_type"] = "own_goal" if own_goal else ("goal" if e["event_type"] == "own_goal" else e["event_type"])
+            e["team_id"] = (a if hit[0]["side"] == "H" else h) if own_goal else (h if hit[0]["side"] == "H" else a)
+            e["assist_player_id"] = "" if own_goal else (hit[2] or "")
+            n_assist += bool(e["assist_player_id"])
+            gpool.remove(hit); pending.remove(e)
+            weak.append(f"{fid}: Kaggle's goal at {e['minute']}' ({was[0]}, {was[1]}) is Transfermarkt's {hit[1]}" + (" (own goal)" if own_goal else ""))
         for g, p, a_ in gpool:
             problems.append(f"{fid}: Transfermarkt goal {g['p']} {g['m']}' not in Kaggle")
         for p in on:

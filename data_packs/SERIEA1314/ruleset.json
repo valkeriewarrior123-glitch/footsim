@@ -1,0 +1,102 @@
+{
+  "edition_id": "SERIEA1314",
+  "data_version": 1,
+  "format": "league",
+  "promoted": [
+    "c_hellasverona",
+    "c_livorno",
+    "c_sassuolo"
+  ],
+  "relegated_previous": [
+    "Palermo",
+    "Siena",
+    "Pescara"
+  ],
+  "teams": 20,
+  "source": "Serie A 2013/14 regulations as played: 3 points a win; head-to-head decides ties between two teams (points, then goal difference in those matches), then overall goal difference, then goals scored",
+  "group_stage": {
+    "groups": [
+      "A"
+    ],
+    "teams_per_group": 20,
+    "round_robin_legs": 2,
+    "qualify_per_group": 0,
+    "best_thirds": 0,
+    "points": {
+      "win": 3,
+      "draw": 1,
+      "loss": 0
+    },
+    "tiebreakers": [
+      "points",
+      "h2h_points",
+      "h2h_goal_diff",
+      "goal_diff",
+      "goals_for",
+      "lots"
+    ],
+    "point_adjustments": {}
+  },
+  "knockout": {
+    "two_legs": false,
+    "away_goals": false,
+    "extra_time": false,
+    "penalties": false,
+    "third_place_match": false,
+    "bracket": []
+  },
+  "suspensions": {
+    "enabled": false,
+    "note": "Serie A's own disciplinary rules aren't modeled; the real bans are already in the real results"
+  },
+  "focus_team": "c_juventus",
+  "display_name": "Serie A 2013/14",
+  "zones": [
+    {
+      "positions": [
+        1,
+        2
+      ],
+      "kind": "cl",
+      "label": "Champions League group stage"
+    },
+    {
+      "positions": [
+        3
+      ],
+      "kind": "cl2",
+      "label": "Champions League play-off round"
+    },
+    {
+      "positions": [
+        4
+      ],
+      "kind": "el",
+      "label": "Europa League group stage (Coppa Italia winners Napoli qualified through the league)"
+    },
+    {
+      "positions": [
+        5
+      ],
+      "kind": "el2",
+      "label": "Europa League play-off round"
+    },
+    {
+      "positions": [
+        7
+      ],
+      "kind": "el3",
+      "label": "Europa League third qualifying round (6th-placed Parma was denied a UEFA licence)"
+    },
+    {
+      "positions": [
+        18,
+        19,
+        20
+      ],
+      "kind": "rel",
+      "label": "Relegation to Serie B"
+    }
+  ],
+  "classification_note": "Ranked by points, then head-to-head points, head-to-head goal difference, goal difference, goals scored, then a play-off."
+}

@@ -134,8 +134,25 @@ class ClubPack(unittest.TestCase):
         n = c.execute("SELECT COUNT(*) FROM match_events WHERE fixture_id LIKE 'UCL1213%' AND player_id IS NOT NULL").fetchone()[0]
         self.assertGreater(n, 300)
         self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='UCL1213'").fetchone()[0], 4)
-        self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='SERIEA1213'").fetchone()[0], 3)
+        self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='SERIEA1213'").fetchone()[0], 4)
         self.assertEqual(validate.check_edition(c, "UCL1213"), [])
+
+
+class SerieA1314(unittest.TestCase):
+    def test_the_second_season_is_in_the_pack(self):
+        from footsim import api, stats
+        d = Path(tempfile.mkdtemp()) / "t.db"
+        c = db.init_db(d)
+        self.assertEqual(validate.check_edition(c, "SERIEA1314"), [])
+        v = api.edition_view(c, "SERIEA1314", None)
+        t = v["groups"]["A"]["table"]
+        self.assertEqual((v["champion"], t[0]["pts"], t[0]["gf"], t[0]["ga"]), ("c_juventus", 102, 80, 23))
+        self.assertEqual([r["team"] for r in t[:3]], ["c_juventus", "c_roma", "c_napoli"])
+        self.assertEqual({r["team"] for r in t[-3:]}, {"c_livorno", "c_bologna", "c_catania"})
+        self.assertEqual(set(v["promoted"]), {"c_hellasverona", "c_livorno", "c_sassuolo"})
+        st = stats.edition_stats(c, "SERIEA1314", None)
+        self.assertEqual(max(p.goals for p in st.players.values()), 22)                  # Immobile
+        self.assertEqual(c.execute("SELECT COUNT(*) FROM match_events WHERE fixture_id LIKE 'SERIEA1314%' AND event_type IN ('yellow','second_yellow','red')").fetchone()[0], 1906)
 
 
 if __name__ == "__main__":

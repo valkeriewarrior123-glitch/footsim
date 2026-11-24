@@ -1,6 +1,6 @@
 {
   "edition_id": "SERIEA1213",
-  "data_version": 3,
+  "data_version": 4,
   "format": "league",
   "promoted": ["c_pescara", "c_torino", "c_sampdoria"],
   "relegated_previous": ["Lecce", "Cesena", "Novara"],
