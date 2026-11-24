@@ -176,7 +176,7 @@ details.tour .body { padding: 0 14px 14px; }
 .drawer { width: min(480px, 100%); }
 @media (min-width: 900px) { body { transition: padding-right .2s; } body.dr-open { padding-right: 480px; } }
 @media (min-width: 900px) and (max-width: 1299px) { body.dr-open:not(.side-collapsed) #layout { grid-template-columns: minmax(0, 1fr); } body.dr-open:not(.side-collapsed) #side { display: none; } }
-@media (min-width: 641px) and (max-width: 899px) {
+@media (min-width: 641px) and (max-width: 899px), (max-width: 640px) and (hover: hover) and (pointer: fine) {
   .drawer { inset: auto 0 0 0; width: 100%; height: 50vh; border-left: none; border-top: 1px solid var(--line); transform: translateY(100%); box-shadow: 0 -8px 24px rgba(0,0,0,.12); }
   .drawer.open { transform: none; }
   body.dr-open { padding-bottom: 50vh; }
