@@ -190,10 +190,10 @@ details.tour .body { padding: 0 14px 14px; }
 .tl-lane, .tl-axis, .tl-ticks, .tl-name { position: relative; }
 .tl-ball { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--muted); background: var(--panel, #fff); display: grid; place-items: center; font-size: 9px; font-weight: 700; color: var(--muted); box-sizing: border-box; line-height: 1; }
 .tl-ball.g::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
-.tl-ball.p { border-color: #2f6fd6; color: #2f6fd6; background: rgba(47,111,214,.14); }
+.tl-ball.p { width: 18px; height: 18px; border-color: #3B6D11; color: #fff; background: #3B6D11; }
 .tl-ball.og { width: 20px; height: 20px; border-color: #BA7517; color: #BA7517; background: rgba(186,117,23,.16); }
-.tl-ball.x { border-color: #d63b3b; color: #d63b3b; background: rgba(214,59,59,.14); position: relative; width: 18px; height: 18px; }
-.tl-ball.x::after { content: ""; position: absolute; width: 20px; height: 1.5px; background: #d63b3b; transform: rotate(-45deg); }
+.tl-ball.x { width: 18px; height: 18px; border-color: #d63b3b; color: #fff; background: #d63b3b; }
+.tl-emoji { font-size: 16px; line-height: 1; }
 .tl-pens { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
 .tl-ph { text-align: center; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; } .tl-ph b { font-weight: 500; color: inherit; }
 .tl-pr { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 5px 0; }
@@ -768,7 +768,6 @@ async function openFixture(fid) {
 $("#dClose").onclick = () => $("#drawer").classList.remove("open");
 document.addEventListener("keydown", e => { if (e.key === "Escape") { $("#drawer").classList.remove("open"); $("#modal").classList.remove("open"); } });
 
-const BALL_IMG = `<svg class="tl-bimg" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#fff" stroke="#2b2f36" stroke-width="1.3"/><polygon points="10,6 13.8,8.8 12.4,13.2 7.6,13.2 6.2,8.8" fill="#2b2f36"/><path d="M10 6V1.6M13.8 8.8l4.2-1.4M12.4 13.2l2.6 3.6M7.6 13.2L5 16.8M6.2 8.8L2 7.4" stroke="#2b2f36" stroke-width="1.2" fill="none"/></svg>`;
 // A strip for the match: home events above the line, away events below, a minute marker every 15'. Hover or tap a marker for who and when.
 function matchTimeline(f) {
   const et = f.extra_time, end = et ? 120 : 90;
@@ -809,7 +808,7 @@ function matchTimeline(f) {
     const html = mine.map(i => {
       const x = pos(i.minute); let r = rows.findIndex(last => x - last >= 4.2);
       if (r < 0) { r = rows.length; rows.push(-99); } rows[r] = x;
-      const icon = i.kind === "goal" ? BALL_IMG : i.kind === "pen_goal" ? `<span class="tl-ball p">P</span>`
+      const icon = i.kind === "goal" ? `<span class="tl-emoji">⚽</span>` : i.kind === "pen_goal" ? `<span class="tl-ball p">P</span>`
         : i.kind === "own_goal" ? `<span class="tl-ball og">OG</span>` : i.kind === "pen_miss" ? `<span class="tl-ball x">P</span>`
         : i.kind === "yellow" ? `<span class="tl-card y"></span>` : i.kind === "red" ? `<span class="tl-card r"></span>`
         : i.kind === "second_yellow" ? `<span class="tl-card2"><i class="y"></i><i class="r"></i></span>` : `<span class="tl-sub">⇄</span>`;
