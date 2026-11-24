@@ -476,10 +476,15 @@ def _cascade_slots(conn, edition_id: str, branch_id: int, reuse_history: bool = 
     """Walk the bracket and persist its state. Repeats until stable."""
     baseline_ids = {r["match_no"]: r["fixture_id"] for r in conn.execute(
         "SELECT match_no, fixture_id FROM fixtures WHERE edition_id = ? AND match_no IS NOT NULL", (edition_id,))}
+    leg_rows = {(r["match_no"], r["leg"]): dict(r) for r in conn.execute(
+        "SELECT * FROM fixtures WHERE edition_id = ? AND match_no IS NOT NULL AND leg IS NOT NULL", (edition_id,))}
     for _ in range(10):
         res = resolve(conn, edition_id, branch_id)
         changed = False
         for s in res.slots:
+            if s.legs == 2:
+                changed |= _cascade_tie(conn, edition_id, branch_id, s, leg_rows)
+                continue
             fid = baseline_ids.get(s.match_no, f"{edition_id}_M{s.match_no}")
             existing = conn.execute(
                 "SELECT status, origin, home_team_id, away_team_id FROM fixture_overrides "
@@ -530,6 +535,41 @@ def _cascade_slots(conn, edition_id: str, branch_id: int, reuse_history: bool = 
         if not changed:
             return res
     return resolve(conn, edition_id, branch_id)
+
+
+def _cascade_tie(conn, edition_id: str, branch_id: int, s: Slot, leg_rows: dict) -> bool:
+    """Keep the two leg fixtures of a home-and-away slot in step with who is in it. True if anything changed."""
+    changed = False
+    for leg in (1, 2):
+        base = leg_rows.get((s.match_no, leg))
+        if base is None:
+            continue
+        fid = base["fixture_id"]
+        existing = conn.execute("SELECT status, origin, home_team_id, away_team_id FROM fixture_overrides "
+                                "WHERE branch_id = ? AND fixture_id = ?", (branch_id, fid)).fetchone()
+        if s.status == "valid":
+            continue
+        if s.status == "tbd":                            # upstream unknown: a stale override means nothing
+            if existing and existing["status"] != "pending":
+                conn.execute("DELETE FROM fixture_overrides WHERE branch_id = ? AND fixture_id = ?", (branch_id, fid))
+                changed = True
+            continue
+        home, away = (s.home, s.away) if leg == 1 else (s.away, s.home)
+        if existing and existing["status"] == "pending" and {existing["home_team_id"], existing["away_team_id"]} == {home, away}:
+            continue
+        if existing and existing["origin"] in ("cascade", "reused_historical") and \
+                (base["home_team_id"], base["away_team_id"]) == (home, away):
+            conn.execute("DELETE FROM fixture_overrides WHERE branch_id = ? AND fixture_id = ?", (branch_id, fid))
+            changed = True                               # back to the real pairing: the real leg shows again
+            continue
+        if existing is None and (base["home_team_id"], base["away_team_id"]) == (home, away):
+            continue                                     # the real leg is already right (the tie is level, see resolve)
+        stub = Fixture(fid, s.stage, None, s.match_no, base["date"], home, away, None, None)
+        stub.leg = leg
+        set_result(conn, branch_id, stub, None, None, status="pending", origin="cascade",
+                   reason=s.reason, edition_id=edition_id)
+        changed = True
+    return changed
 
 
 def _slot_date(conn, edition_id: str, match_no: int) -> str:

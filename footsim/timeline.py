@@ -105,9 +105,9 @@ def set_result(conn, branch_id: int, fixture: Fixture, home_score: int | None, a
            (branch_id, seq, fixture_id, edition_id, stage, grp, leg, match_no, date,
             home_team_id, away_team_id, home_score, away_score, extra_time, pen_home, pen_away,
             status, origin, reason)
-           VALUES (?,?,?,?,?,?,NULL,?,?,?,?,?,?,?,?,?,?,?,?)""",
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (branch_id, _next_seq(conn, branch_id), fixture.fixture_id, edition_id, fixture.stage, fixture.grp,
-         fixture.match_no, fixture.date, fixture.home, fixture.away, home_score, away_score,
+         fixture.leg, fixture.match_no, fixture.date, fixture.home, fixture.away, home_score, away_score,
          extra_time, pen_home, pen_away, status, origin, reason),
     )
     oid = cur.lastrowid
@@ -180,3 +180,46 @@ def active_fixtures(conn, edition_id: str, branch_id: int | None = None, raw: bo
         from footsim import player
         player.transform_fixtures(conn, edition_id, branch_id, out)
     return out
+
+
+# ------------------------------------------------------------------ how a match must end
+
+class TieRule:
+    """When does a match need extra time and a shootout? One-off knockout: when level. Group match or the
+    first leg of a tie: never. Second leg: extra time when the two legs are level on aggregate, a shootout
+    when still level after that (and level on away goals, where the edition uses them)."""
+
+    def __init__(self, stage: str, leg: int | None, first: "Fixture | None", away_goals: bool):
+        self.stage, self.leg, self.first, self.away_goals = stage, leg, first, away_goals
+
+    def aggregate(self, hs: int, as_: int):
+        """(home total, away total) for the leg-2 home/away teams, or None when this isn't a second leg."""
+        if self.leg != 2 or self.first is None or self.first.home_score is None:
+            return None
+        return hs + self.first.away_score, as_ + self.first.home_score
+
+    def et(self, hs: int, as_: int) -> bool:
+        if self.stage == "group" or self.leg == 1:
+            return False
+        agg = self.aggregate(hs, as_)
+        return (agg[0] == agg[1]) if agg else hs == as_
+
+    def pens(self, hs: int, as_: int) -> bool:
+        if not self.et(hs, as_):
+            return False
+        if self.aggregate(hs, as_) and self.away_goals and as_ != self.first.away_score:
+            return False                      # away goals settle it
+        return True
+
+
+def tie_rule(conn, edition_id: str, branch_id: int | None, fixture: "Fixture", fixtures: dict | None = None) -> TieRule:
+    from footsim import db
+    first = None
+    if fixture.leg == 2:
+        fx = fixtures if fixtures is not None else active_fixtures(conn, edition_id, branch_id)
+        first = next((f for f in fx.values() if f.match_no == fixture.match_no and f.leg == 1
+                      and f.home == fixture.away and f.away == fixture.home), None)
+        if first is not None and first.home_score is None:
+            first = None
+    away_goals = bool(db.get_ruleset(conn, edition_id)["knockout"].get("away_goals")) if fixture.leg else False
+    return TieRule(fixture.stage, fixture.leg, first, away_goals)

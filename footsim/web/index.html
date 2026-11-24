@@ -204,7 +204,7 @@ details.tour .body { padding: 0 14px 14px; }
 .tl-card.y { background: #f2c230; } .tl-card.r { background: #d63b3b; }
 .tl-card.yy { background: #f2c230; box-shadow: 3px 2px 0 -1px #d63b3b; }
 .tl-sub { font-size: 12px; color: var(--muted); font-weight: 700; }
-.tl-name { font-size: 11px; font-weight: 600; margin: 0 10px; } .tl-name.h { color: #2f6fd6; } .tl-name.a { color: #e07a1f; }
+.tl-name { font-size: 11px; font-weight: 600; margin: 2px 10px 0; line-height: 1.2; } .tl-name.h { color: #2f6fd6; } .tl-name.a { color: #e07a1f; }
 .tl-axis.h { background: #2f6fd6; } .tl-axis.a { background: #e07a1f; }
 .tl-axis.h i { background: #2f6fd6; } .tl-axis.a i { background: #e07a1f; }
 
@@ -790,14 +790,38 @@ function matchTimeline(f) {
   const tick = `<div class="tl-ticks">${ticks.map(m => `<span style="left:${pos(m)}%">${m}'</span>`).join("")}</div>`;
   const ln = c => `<div class="tl-axis ${c}">${ticks.map(m => `<i class="${m === 45 ? "ht" : ""}" style="left:${pos(m)}%"></i>`).join("")}</div>`;
   return `<div class="tl">
-    <div class="tl-name h">${esc(tname(f.home))}</div>
     ${lane(f.home, "top")}
+    <div class="tl-name h">${esc(tname(f.home))}</div>
     ${ln("h")}
     ${tick}
     ${ln("a")}
-    ${lane(f.away, "bot")}
     <div class="tl-name a">${esc(tname(f.away))}</div>
+    ${lane(f.away, "bot")}
   </div>`;
+}
+
+// Two-legged ties: the running aggregate for this leg, and what the leg still needs (extra time, shootout).
+function tieState(f, hs, as_) {
+  if (!f.tie) return null;
+  const o = f.tie.other, leg = f.tie.leg;
+  if (!o || o.home_score == null || hs == null || as_ == null) return { known: false, leg };
+  const h = hs + o.away_score, a = as_ + o.home_score;           // this leg's home team is the other leg's away team
+  const level = h === a;
+  const awayDecides = leg === 2 && level && f.tie.away_goals && as_ !== o.away_score;
+  return { known: true, leg, h, a, level, awayDecides, needEt: leg === 2 && level, needPens: leg === 2 && level && !awayDecides };
+}
+function tieBlock(f, ts, as_) {
+  if (!ts) return "";
+  const o = f.tie.other, th = tname(f.home), ta = tname(f.away);
+  if (!ts.known) return `<div class="msg info">${ts.leg === 1 ? "Leg 2" : "Leg 1"} has no result yet, so there's no aggregate.</div>`;
+  const other = `${ts.leg === 1 ? "Leg 2" : "Leg 1"}: ${esc(tname(o.home))} ${o.home_score}–${o.away_score} ${esc(tname(o.away))}`;
+  let verdict = "";
+  if (ts.leg === 2) {
+    verdict = ts.needPens ? " · level, so extra time and a shootout"
+      : ts.awayDecides ? ` · level, ${esc(as_ > o.away_score ? ta : th)} go through on away goals`
+      : ts.level ? "" : ` · ${esc(ts.h > ts.a ? th : ta)} go through`;
+  }
+  return `<div class="msg info">Aggregate <b>${esc(th)} ${ts.h}–${ts.a} ${esc(ta)}</b>${verdict}<br><span style="font-size:12px">${other}</span></div>`;
 }
 
 function stageLine(f) { return `${STAGE[f.stage]}${f.group ? " " + f.group : ""}${f.leg ? " · " + f.leg + (f.leg === 1 ? "st" : "nd") + " leg" : f.match_no ? " · Match " + f.match_no : ""} · ${fmtDate(f.date)}`; }
@@ -808,6 +832,7 @@ function renderReadOnly(f, ripple) {
     ${f.home_score == null ? `<p>No result yet.</p>` : `<div class="scoreline"><div class="tn r">${esc(tname(f.home))}</div>
       <input value="${f.home_score}" disabled><span>–</span><input value="${f.away_score}" disabled><div class="tn">${esc(tname(f.away))}</div></div>
       ${f.pen_home != null ? `<p>Penalties ${f.pen_home}–${f.pen_away}</p>` : ""}`}
+    ${f.home_score == null ? "" : tieBlock(f, tieState(f, f.home_score, f.away_score), f.away_score)}
     ${f.home_score == null ? "" : matchTimeline(f)}
     <div class="sec">Events</div>
     ${f.events.map(e => `<div class="evline"><span class="mn">${e.minute}'</span><span>${EVLABEL[e.event_type]}</span><span>${e.player_name ? esc(e.player_name) : (/goal/.test(e.event_type) ? `<i style="color:var(--muted)">scorer unknown</i>` : "")}</span>
@@ -879,7 +904,7 @@ function outcomePanel(f, draft) {
       <label>${esc(tname(f.away))} <input type="number" min="0" id="ocA" value="${v.away_score ?? draft.away_score}"></label>
       ${mine ? `<label>${esc(state.view.player_name)}'s goals <input type="number" min="0" id="ocMine" value="${v.my_goals ?? 1}"></label>
         <label>…and assists <input type="number" min="0" id="ocMineA" value="${v.my_assists ?? ""}" placeholder="any"></label>` : ""}
-      ${ko ? `<label>Pens if drawn <input type="number" min="0" id="ocPH" value="${v.pen_home ?? ""}" style="width:48px"> – <input type="number" min="0" id="ocPA" value="${v.pen_away ?? ""}" style="width:48px"></label>` : ""}
+      ${(f.tie ? f.tie.leg === 2 : ko) ? `<label>${f.tie ? "Pens if level on aggregate" : "Pens if drawn"} <input type="number" min="0" id="ocPH" value="${v.pen_home ?? ""}" style="width:48px"> – <input type="number" min="0" id="ocPA" value="${v.pen_away ?? ""}" style="width:48px"></label>` : ""}
       <label style="grid-column:1/-1"><input type="checkbox" id="ocKeep" ${v.keep_real === false ? "" : "checked"}> Keep this match's goals, cards and lineup where possible</label>
     </div>
     <div style="margin-top:10px"><button class="primary" id="ocPreview">Preview</button></div></div>`;
@@ -892,7 +917,10 @@ function renderEditor(f, error) {
     pen_home: f.pen_home, pen_away: f.pen_away, events: f.events.map(e => ({ minute: e.minute, team_id: e.team_id,
       player_id: e.player_id, event_type: e.event_type, assist_player_id: e.assist_player_id })), scoreLocked: false };
   const susp = Object.entries(f.suspended || {}).map(([t, ps]) => `${t}: ${ps.map(esc).join(", ")}`).join(" · ");
-  const isDraw = draft.home_score === draft.away_score;
+  const ts = tieState(f, draft.home_score, draft.away_score);
+  const showEt = f.tie ? f.tie.leg === 2 : ko;                       // a first leg never has extra time
+  const needEt = ts ? ts.needEt : false;
+  const isDraw = ts ? ts.needPens : draft.home_score === draft.away_score;   // does a shootout score belong here?
   $("#dBody").innerHTML = `
     ${error ? `<div class="msg err">${esc(error)}</div>` : ""}
     <div class="msg info">${stageLine(f)}${f.status === "pending" ? " · <b>needs a result</b>" : f.origin === "user_edit" ? " · edited in this branch" : f.status === "historical" ? " · real result" : ""}</div>
@@ -905,7 +933,8 @@ function renderEditor(f, error) {
       <div class="tn">${esc(tname(f.away))}</div></div>
     <div class="row" style="justify-content:center"><label title="Rolling keeps this score"><input type="checkbox" id="scoreLock" ${draft.scoreLocked ? "checked" : ""}> 🔒 Lock score</label>
       <span style="color:var(--muted);font-size:12px">Lock the score or any event (🔓), then Roll: only the unlocked parts change.</span></div>
-    ${ko ? `<div class="row"><label><input type="checkbox" id="et" ${draft.extra_time ? "checked" : ""}> Went to extra time</label>
+    ${tieBlock(f, ts, draft.away_score)}
+    ${showEt ? `<div class="row"><label><input type="checkbox" id="et" ${draft.extra_time || needEt ? "checked" : ""} ${needEt ? "disabled" : ""}> Went to extra time${needEt ? " (level on aggregate)" : ""}</label>
       ${isDraw ? `<span class="pens">Penalties <input type="number" min="0" id="ph" value="${draft.pen_home ?? ""}"> – <input type="number" min="0" id="pa" value="${draft.pen_away ?? ""}"></span>` : ""}</div>` : ""}
     <div class="sec"><span>Events</span><span>
       <button class="link" data-add="goal">+ Goal</button><button class="link" data-add="yellow">+ Card</button><button class="link" data-add="pen_miss">+ Other</button>
@@ -997,8 +1026,10 @@ function renderEditor(f, error) {
     const body = { ...draft, events: draft.events.map(({ locked, ...e }) => e) };
     for (const k of ["rollNote", "notes", "source", "scoreLocked", "preview"]) delete body[k];
     state.outcomeOpen = false;
-    if (!ko || draft.home_score !== draft.away_score) { body.pen_home = body.pen_away = null; }
-    if (!ko) body.extra_time = false;
+    const tsv = tieState(f, draft.home_score, draft.away_score);
+    if (!(tsv ? tsv.needPens : ko && draft.home_score === draft.away_score)) { body.pen_home = body.pen_away = null; }
+    if (!showEt) body.extra_time = false;
+    else if (tsv && tsv.needEt) body.extra_time = true;
     try {
       const r = await api("POST", `/api/fixture/${ED}/${f.fixture_id}${q()}`, body);
       state.draft = null; $("#drawer").classList.remove("open");

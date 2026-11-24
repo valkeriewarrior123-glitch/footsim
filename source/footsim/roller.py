@@ -171,7 +171,7 @@ def roll(conn, edition_id: str, branch_id: int | None, fixture: Fixture, *, seed
     info = dict(info or _player_info(conn, edition_id))
     bonus = dict(bonus or {})
     start = conn.execute("SELECT start_date FROM editions WHERE edition_id = ?", (edition_id,)).fetchone()[0]
-    knockout = fixture.stage != "group"
+    tie = timeline.tie_rule(conn, edition_id, branch_id, fixture)
 
     banned = suspended_for(conn, edition_id, branch_id, fixture)
     lineup = (build_lineup(conn, edition_id, branch_id, fixture, fixture.home, banned, info, rng, 90) +
@@ -208,7 +208,7 @@ def roll(conn, edition_id: str, branch_id: int | None, fixture: Fixture, *, seed
     goal_minutes = {fixture.home: sorted(rng.randint(1, 90) for _ in range(hs)),
                     fixture.away: sorted(rng.randint(1, 90) for _ in range(as_))}
     extra_time = False
-    if knockout and hs == as_:
+    if tie.et(hs, as_):
         extra_time = True
         eh_, ea_ = _poisson(rng, lh / 3), _poisson(rng, la / 3)
         goal_minutes[fixture.home] += sorted(rng.randint(91, 120) for _ in range(eh_))
@@ -274,7 +274,7 @@ def roll(conn, edition_id: str, branch_id: int | None, fixture: Fixture, *, seed
                            "event_type": "pen_miss", "assist_player_id": None})
 
     pen_home = pen_away = None
-    if knockout and hs == as_:
+    if tie.pens(hs, as_):
         pen_home, pen_away, kicks = _shootout(rng, fixture, lineup, info, length)
         events += kicks
 
@@ -333,7 +333,7 @@ def roll_and_save(conn, edition_id: str, branch_id: int, fixture_id: str, seed: 
     fx = timeline.active_fixtures(conn, edition_id, branch_id)
     f = fx[fixture_id]
     payload = roll(conn, edition_id, branch_id, f, seed=seed)
-    api._validate(f, payload)
+    api._validate(f, payload, timeline.tie_rule(conn, edition_id, branch_id, f, fx))
     timeline.set_result(conn, branch_id, f, payload["home_score"], payload["away_score"],
                         events=payload["events"], lineup=payload["lineup"],
                         extra_time=int(payload["extra_time"]), pen_home=payload["pen_home"],
@@ -353,9 +353,14 @@ def roll_pending(conn, edition_id: str, branch_id: int, seed: int | None = None)
             break
         fx = timeline.active_fixtures(conn, edition_id, branch_id)
         for s in pending:
-            fid = next(k for k, f in fx.items() if f.match_no == s.match_no)
-            roll_and_save(conn, edition_id, branch_id, fid, seed=rng.randrange(1 << 30),
-                          origin="second_order_generated")
+            todo = sorted((f for f in fx.values() if f.match_no == s.match_no and (s.legs == 1 or f.leg)
+                           and f.home_score is None and {f.home, f.away} == {s.home, s.away}),
+                          key=lambda f: f.leg or 0)
+            if not todo:                                  # one-off slot with a stale stand-in
+                todo = [next(f for f in fx.values() if f.match_no == s.match_no)]
+            for f in todo:                                # leg 1 is saved before leg 2 is rolled
+                roll_and_save(conn, edition_id, branch_id, f.fixture_id, seed=rng.randrange(1 << 30),
+                              origin="second_order_generated")
             rolled.append(s.match_no)
     engine.apply_cascade(conn, edition_id, branch_id)
     return rolled
@@ -402,7 +407,7 @@ def roll_with(conn, edition_id: str, branch_id: int | None, fixture: Fixture, co
     me = cp.profile(conn, branch_id)
     if me is not None:
         info[me.player_id] = cp.scoring_info(me)
-    knockout = fixture.stage != "group"
+    tie = timeline.tie_rule(conn, edition_id, branch_id, fixture)
     locked = [dict(e) for e in c.get("locked_events") or []]
     keep_real = bool(c.get("keep_real")) and bool(fixture.lineup) and fixture.home_score is not None
 
@@ -442,11 +447,10 @@ def roll_with(conn, edition_id: str, branch_id: int | None, fixture: Fixture, co
             got = base["home_score" if idx == 0 else "away_score"]
             target[team] = max(got, need)
     hs, as_ = target[fixture.home], target[fixture.away]
-    draw = hs == as_
-    extra_time = bool(c.get("extra_time")) if c.get("extra_time") is not None else (knockout and draw)
+    extra_time = bool(c.get("extra_time")) if c.get("extra_time") is not None else tie.et(hs, as_)
     if any(e["minute"] > 90 for e in locked if e["event_type"] in GOAL_TYPES + ("own_goal",)):
         extra_time = True
-    if knockout and draw:
+    if tie.et(hs, as_):
         extra_time = True
     length = 120 if extra_time else 90
 
@@ -595,12 +599,12 @@ def roll_with(conn, edition_id: str, branch_id: int | None, fixture: Fixture, co
 
     # shootout
     pen_home = pen_away = None
-    if knockout and draw:
+    if tie.pens(hs, as_):
         if c.get("pen_home") is not None and c.get("pen_away") is not None:
             pen_home, pen_away = int(c["pen_home"]), int(c["pen_away"])
             if pen_home == pen_away:
                 raise EditError("The shootout needs a winner")
-        elif keep_real and fixture.pen_home is not None and fixture.home_score == fixture.away_score:
+        elif keep_real and fixture.pen_home is not None and fixture.home_score == hs and fixture.away_score == as_:
             pen_home, pen_away = fixture.pen_home, fixture.pen_away
             events += [dict(e) for e in current if e["event_type"] in ("shootout_score", "shootout_miss")]
         else:

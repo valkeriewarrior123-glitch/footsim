@@ -210,9 +210,13 @@ def fixture_detail(conn, edition_id: str, fixture_id: str, branch_id: int | None
     out["lineup"] = [{**l, "name": nm.get(l["player_id"])} for l in lineup]
     out["is_historical"] = f.status == "historical"
     me = player.profile(conn, branch_id)
-    out["editable"] = (me is None or me.team_id in (f.home, f.away) or branch_mode(conn, branch_id) == "free") \
-        and not (f.leg and f.stage != "group")        # home-and-away knockout ties: editing comes in a later step
+    out["editable"] = (me is None or me.team_id in (f.home, f.away) or branch_mode(conn, branch_id) == "free")
     out["leg"] = f.leg
+    if f.leg:                                          # one leg of a home-and-away tie: show the other leg and the aggregate
+        other = next((o for o in fx.values() if o.match_no == f.match_no and o.leg and o.leg != f.leg), None)
+        rule = timeline.tie_rule(conn, edition_id, branch_id, f, fx)
+        out["tie"] = {"leg": f.leg, "away_goals": rule.away_goals,
+                      "other": _fixture_json(other, nm) if other is not None else None}
     out["focus_team"] = me.team_id if me else None
     res = engine.resolve(conn, edition_id, branch_id)
     out["suspended"] = {t: [nm.get(p, p) for p in ps] for t, ps in res.suspensions.get(fixture_id, {}).items()}
@@ -342,7 +346,7 @@ def _log_displacements(conn, edition_id: str, branch_id: int) -> None:
 
 # ------------------------------------------------------------------ edits
 
-def _validate(f: Fixture, payload: dict) -> list:
+def _validate(f: Fixture, payload: dict, tie=None) -> list:
     hs, as_ = payload.get("home_score"), payload.get("away_score")
     if not isinstance(hs, int) or not isinstance(as_, int) or hs < 0 or as_ < 0:
         raise EditError("Scores must be whole numbers, 0 or more")
@@ -364,7 +368,20 @@ def _validate(f: Fixture, payload: dict) -> list:
             raise EditError(f"{team} scored {score} but {goals} goal event(s) are listed. "
                             "Add or remove scorers (an own goal belongs to the defender's team).")
     ph, pa = payload.get("pen_home"), payload.get("pen_away")
-    if f.stage != "group":
+    if tie is not None and f.leg:                       # one leg of a home-and-away tie
+        if f.leg == 1:
+            if payload.get("extra_time") or ph is not None or pa is not None:
+                raise EditError("The first leg has no extra time or shootout")
+        else:
+            if tie.et(hs, as_) and not payload.get("extra_time"):
+                raise EditError("The two legs are level on aggregate: the second leg goes to extra time")
+            if tie.pens(hs, as_):
+                if ph is None or pa is None or ph == pa:
+                    raise EditError("Still level after extra time: the second leg needs a penalty shootout winner")
+            elif ph is not None or pa is not None:
+                raise EditError("No shootout needed: the tie is already decided on aggregate"
+                                + (" / away goals" if tie.away_goals else ""))
+    elif f.stage != "group":
         if hs == as_:
             if not payload.get("extra_time"):
                 raise EditError("A drawn knockout match must go to extra time")
@@ -378,9 +395,6 @@ def _validate(f: Fixture, payload: dict) -> list:
 
 
 def edit_fixture(conn, edition_id: str, branch_id: int, fixture_id: str, payload: dict) -> dict:
-    _leg = conn.execute("SELECT leg, stage FROM fixtures WHERE fixture_id = ?", (fixture_id,)).fetchone()
-    if _leg and _leg["leg"] and _leg["stage"] != "group":
-        raise EditError("Editing the legs of a home-and-away knockout tie isn't available yet")
     if branch_id is None:
         raise EditError("Real history can't be edited. Create or pick a branch first.")
     locked = conn.execute("SELECT locked FROM editions WHERE edition_id = ?", (edition_id,)).fetchone()
@@ -392,7 +406,7 @@ def edit_fixture(conn, edition_id: str, branch_id: int, fixture_id: str, payload
     f = fx[fixture_id]
     me = player.profile(conn, branch_id)
     check_ripple(me, f, branch_mode(conn, branch_id))
-    events = _validate(f, payload)
+    events = _validate(f, payload, timeline.tie_rule(conn, edition_id, branch_id, f, fx))
     lineup = payload.get("lineup") or f.lineup or (
         default_lineup(conn, edition_id, f.home, branch_id, f.date) +
         default_lineup(conn, edition_id, f.away, branch_id, f.date))
@@ -498,7 +512,7 @@ def roll_constrained(conn, edition_id: str, branch_id: int | None, fixture_id: s
     if f.status != "pending":
         check_ripple(player.profile(conn, branch_id), f, branch_mode(conn, branch_id))
     out = roller.roll_with(conn, edition_id, branch_id, f, constraints, seed=seed)
-    _validate(f, out)
+    _validate(f, out, timeline.tie_rule(conn, edition_id, branch_id, f, fx))
     nm = names(conn)
     for e in out["events"]:
         e["player_name"], e["assist_name"] = nm.get(e["player_id"]), nm.get(e.get("assist_player_id"))

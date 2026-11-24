@@ -86,16 +86,16 @@ class ClubPack(unittest.TestCase):
         self.assertEqual((celtic.fixture.home_score, celtic.fixture.away_score), (0, 5))
         self.assertEqual((res.champion, res.runner_up), ("c_bayernmunchen", "c_borussiadortmund"))
 
-    def test_ucl_tie_legs_in_view_and_not_editable(self):
+    def test_ucl_tie_legs_in_view_and_editable(self):
         from footsim import api, timeline
         v = api.edition_view(self.conn, "UCL1213", None)
         tie = next(s for s in v["slots"] if s["home"] == "c_celticfc")
         self.assertEqual(len(tie["legs"]), 2)
         b = timeline.create_branch(self.conn, "t")
         d = api.fixture_detail(self.conn, "UCL1213", tie["legs"][0]["fixture_id"], b)
-        self.assertFalse(d["editable"])
-        with self.assertRaises(api.EditError):
-            api.edit_fixture(self.conn, "UCL1213", b, tie["legs"][0]["fixture_id"], {"home_score": 1, "away_score": 1})
+        self.assertTrue(d["editable"])
+        self.assertEqual(d["tie"]["leg"], 1)
+        self.assertEqual(d["tie"]["other"]["fixture_id"], tie["legs"][1]["fixture_id"])
 
     def test_ucl_details_are_declared(self):
         kinds = {r[0] for r in self.conn.execute("SELECT DISTINCT kind FROM data_notes WHERE edition_id='UCL1213'")}
