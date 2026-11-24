@@ -1,5 +1,6 @@
 {
   "edition_id": "SERIEA1213",
+  "data_version": 2,
   "format": "league",
   "teams": 20,
   "source": "Serie A 2012/13 regulations as played: 3 points a win; head-to-head decides ties between two teams (points, then goal difference in those matches), then overall goal difference, then goals scored",

@@ -4,3 +4,4 @@ __pycache__/
 .pytest_cache/
 site/
 tools/merge_transfermarkt.log
+data_packs/SERIEA1213/merge_transfermarkt.log

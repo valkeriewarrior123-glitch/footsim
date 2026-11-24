@@ -1,0 +1,546 @@
+player_id,full_name,birth_date,position
+fs_andreaschiavone,Andrea Schiavone,1993-02-25,MF
+fs_danielerugani,Daniele Rugani,1994-07-29,DF
+fs_elviskabashi,Elvis Kabashi,1994-02-20,MF
+fs_federicogagliardini,Federico Gagliardini,1994-01-24,GK
+fs_laurentiubranescu,Laurenţiu Brănescu,1994-03-30,GK
+fs_nicolasanelka,Nicolas Anelka,1979-03-14,FW
+fs_polgarciatena,Pol García Tena,1995-02-18,DF
+fs_rubinho,Rubinho,1982-08-04,GK
+fs_simonepepe,Simone Pepe,1983-08-30,MF
+fs_stefanobeltrame,Stefano Beltrame,1993-02-08,FW
+kg_100033,Alvaro Pereira,1985-11-28,MF
+kg_103266,Davide Astori,1987-01-07,DF
+kg_103941,Facundo Parra,1985-06-15,FW
+kg_104744,Riccardo Cazzola,1985-10-08,MF
+kg_105548,Abel Hernandez,1990-08-08,FW
+kg_108808,Mario Balotelli,1990-08-12,FW
+kg_109060,Sergio Romero,1987-02-22,GK
+kg_109121,Alberto Paloschi,1990-01-04,FW
+kg_109298,Mauricio Isla,1988-06-12,DF
+kg_109338,Marco Davide Faraoni,1991-10-25,MF
+kg_110378,Panagiotis Tachtsidis,1991-02-15,MF
+kg_110883,Matias Rodriguez,1986-04-14,MF
+kg_111739,Simone Romagnoli,1990-02-09,DF
+kg_111862,Kwadwo Asamoah,1988-12-09,MF
+kg_112476,Lorenzo Ariaudo,1989-06-11,DF
+kg_112848,Carlos Labrin,1990-12-02,
+kg_113318,Facundo Sebastian Roncaglia,1987-02-10,DF
+kg_113604,Adrian Daniel Calello,1987-05-14,MF
+kg_113631,Mauro Formica,1988-04-04,MF
+kg_113702,Mariano Angel Paglialunga,1988-10-29,MF
+kg_113757,Milton Joel Caraglio,1988-12-01,FW
+kg_113774,Nicolas Bianchi Arce,1987-01-27,DF
+kg_114476,Player 114476,,
+kg_114769,Miguel Britos,1985-07-17,DF
+kg_115330,Cristian Pasquato,1989-07-20,MF
+kg_11685,Antonio Candreva,1987-02-28,MF
+kg_120221,Matias Cabrera,1986-05-16,
+kg_121044,Nenad Krsticic,1990-09-03,MF
+kg_121960,Renan,1986-06-19,MF
+kg_127460,Giacomo Bonaventura,1989-08-22,MF
+kg_128020,Marquinho,1986-07-03,MF
+kg_128732,Jonathas,1989-03-06,FW
+kg_130155,Danilo D'Ambrosio,1988-09-09,DF
+kg_136516,Mervan Celik,1990-05-26,FW
+kg_144999,Nenad Tomovic,1987-08-30,DF
+kg_147951,Josip Ilicic,1988-01-29,FW
+kg_150388,Federico Casarini,1989-08-07,MF
+kg_150401,Libor Kozak,1989-05-30,FW
+kg_150410,Gianluca Sansone,1987-05-12,FW
+kg_150670,Kamil Glik,1988-02-03,DF
+kg_154239,Andrea Bertolacci,1991-01-11,FW
+kg_154246,Joel Chukwuma Obi,1991-05-22,MF
+kg_154249,Mattia Destro,1991-03-20,FW
+kg_155050,Federico Fernandez,1989-02-22,DF
+kg_155056,Thiago Ribeiro,1986-02-24,FW
+kg_155066,Juan Cuadrado,1988-05-26,MF
+kg_155246,Angelo da Costa,1983-11-12,GK
+kg_155257,Omar El Kaddouri,1990-08-21,FW
+kg_155260,Gabriele Angella,1989-04-28,DF
+kg_155738,Adem Ljajic,1991-09-29,FW
+kg_156097,Keko,1991-12-27,MF
+kg_157284,Zeljko Brkic,1986-07-09,GK
+kg_15732,Ivan Radovanovic,1988-08-29,MF
+kg_158263,Dorlan Pabon,1988-01-24,FW
+kg_161328,Stephan El Shaarawy,1992-10-27,FW
+kg_161660,Ciro Immobile,1990-02-20,FW
+kg_161661,Isaac Cofie,1991-04-05,MF
+kg_161682,Rodney Strasser,1990-03-30,
+kg_163199,Vladimir Weiss,1989-11-30,FW
+kg_163919,Pedro Mba Obiang,1992-03-27,MF
+kg_164029,Ezequiel Munoz,1990-10-08,DF
+kg_164319,Neto,1988-05-26,DF
+kg_165624,Marcelo Larrondo,1988-02-01,FW
+kg_166509,Lucas Nahuel Castro,1989-04-09,FW
+kg_167634,Emanuele Giaccherini,1985-05-05,MF
+kg_168047,Adrian Stoian,1991-02-11,FW
+kg_170660,Ante Vukusic,1991-01-04,FW
+kg_170667,Rene Krhin,1990-05-21,MF
+kg_170775,Haris Seferovic,1992-02-22,FW
+kg_171338,Jorge Teixeira,1986-08-27,DF
+kg_172644,Victor Ibarbo,1990-05-19,FW
+kg_172899,Manolo Gabbiadini,1991-11-26,FW
+kg_173509,Paul Papp,1989-11-11,DF
+kg_174850,Erik Lamela,1992-03-25,FW
+kg_176186,Neto,1989-07-19,GK
+kg_177688,Innocent Emeghara,1989-05-27,FW
+kg_177874,Dodo,1992-02-06,DF
+kg_17836,Angelo,1981-06-12,MF
+kg_178603,Romulo,1987-05-22,MF
+kg_178955,Stefan Savic,1991-01-08,DF
+kg_179791,Thomas Heurtaux,1988-07-03,DF
+kg_181910,Mattia Perin,1992-11-10,GK
+kg_181984,Marco Andreolli,1986-06-10,DF
+kg_181995,Roberto Soriano,1991-02-08,MF
+kg_182106,Ishak Belfodil,1992-01-12,FW
+kg_182606,Luca Marrone,1990-03-28,MF
+kg_182765,Matias Ezequiel Schelotto,1989-05-23,MF
+kg_182776,Archimede Morleo,1983-09-26,DF
+kg_182791,Diego Fabbrini,1990-07-31,FW
+kg_183039,Giuseppe Rizzo,1991-03-18,MF
+kg_184536,Philippe Coutinho,1992-06-12,FW
+kg_184770,Uros Cosic,1992-10-24,DF
+kg_184999,Shkodran Mustafi,1992-04-17,DF
+kg_18506,Mauro Zarate,1987-03-18,FW
+kg_185867,Ze Eduardo,1987-10-29,FW
+kg_18590,Cristian Llama,1986-06-26,MF
+kg_185925,Luis Pedro Cavanda,1991-01-02,DF
+kg_18733,Pablo Barrientos,1985-01-17,FW
+kg_18823,Matias Silvestre,1984-09-25,DF
+kg_18859,Mauro Boselli,1985-05-22,FW
+kg_188652,Allan,1991-01-08,MF
+kg_18880,Nicolas Federico Spolli,1983-02-20,DF
+kg_18923,Carlos Matheu,1985-05-13,DF
+kg_190971,Damiano Zanon,1983-09-02,DF
+kg_191081,Alen Stevanovic,1991-01-07,MF
+kg_192325,Emmanuel Agyemang-Badu,1990-12-02,MF
+kg_19249,Danilo,1984-05-10,DF
+kg_192504,Alexander Merkel,1992-02-22,MF
+kg_193441,Lorenzo Insigne,1991-06-04,FW
+kg_19352,Jonathan,1986-02-27,DF
+kg_195190,Ivan Piris,1989-03-10,DF
+kg_195199,Nicola Sansone,1991-09-10,FW
+kg_196205,Santiago Garcia,1988-07-08,MF
+kg_196484,Luis Muriel,1991-04-18,FW
+kg_197352,Juan,1991-06-10,DF
+kg_197952,Dejan Stojanovic,1993-07-19,GK
+kg_198400,Mathias Abero,1990-04-09,DF
+kg_199833,Saphir Taider,1992-02-29,MF
+kg_202341,Gabriel Silva,1991-05-13,MF
+kg_202343,Anselmo,1989-02-20,MF
+kg_206242,Marko Livaja,1993-08-26,FW
+kg_206711,Mauro Goicoechea,1988-03-27,GK
+kg_207617,Juan Quintero,1993-01-18,MF
+kg_210278,Roberto Pereyra,1991-01-07,MF
+kg_210704,Danilo Fernando Avelar,1989-06-09,DF
+kg_210932,Jasmin Kurtic,1989-01-10,MF
+kg_212772,Antonio Donnarumma,1990-07-07,GK
+kg_213366,Afriyie Acquah,1992-01-05,MF
+kg_213485,Matija Nastasic,1993-03-28,DF
+kg_213699,Marti Riverola,1991-01-26,MF
+kg_214449,Salvador Agra,1991-11-11,FW
+kg_21446,Hernanes,1985-05-29,MF
+kg_215723,Marco Capuano,1991-10-14,DF
+kg_22337,Leandro Castan,1986-11-05,DF
+kg_231753,Frederik Soerensen,1992-04-14,DF
+kg_23688,Mathieu Flamini,1984-03-07,MF
+kg_237602,Luka Krajnc,1994-09-19,DF
+kg_239219,Mateo Kovacic,1994-05-06,MF
+kg_24013,Per Kroeldrup,1979-07-31,DF
+kg_24132,Mohamed Lamine Sissoko,1985-01-22,MF
+kg_24235,Leonardo Bonucci,1987-05-01,DF
+kg_243608,Cristian Battocchio,1992-02-10,MF
+kg_24403,Michele Canini,1985-06-05,DF
+kg_24405,Daniele Conti,1979-01-09,MF
+kg_24414,Francesco Pisano,1986-04-29,DF
+kg_24436,Siqueira De Olivera Luciano,1975-12-03,MF
+kg_24443,Andrea Mantovani,1984-06-22,DF
+kg_24448,Sergio Pellissier,1979-04-12,FW
+kg_24454,Lorenzo Squizzi,1974-06-20,GK
+kg_24459,Sergio Bernardo Almiron,1980-11-07,MF
+kg_244835,Giuseppe De Luca,1991-10-11,FW
+kg_24484,Stefano Lucchini,1980-10-02,DF
+kg_244840,Amidu Salifu,1992-09-20,MF
+kg_24491,Nicola Pozzi,1986-06-30,FW
+kg_24500,Davide Brivio,1988-08-17,DF
+kg_24502,Marco Donadel,1983-04-21,MF
+kg_24503,Sebastian Frey,1980-03-18,GK
+kg_24504,Alessandro Gamberini,1981-08-27,DF
+kg_24507,Riccardo Montolivo,1985-01-18,MF
+kg_24536,Manuel Pasqual,1982-03-13,MF
+kg_24546,Michele Pazienza,1982-08-05,MF
+kg_24549,Giampaolo Pazzini,1984-08-02,FW
+kg_24622,Federico Balzaretti,1981-12-06,DF
+kg_24789,Lazaros Christodoulopoulos,1986-12-19,MF
+kg_24792,Daniele Portanova,1978-12-17,DF
+kg_24793,Daniele Gastaldello,1983-06-25,DF
+kg_248453,Paul Pogba,1993-03-15,MF
+kg_24854,Simone Vergassola,1976-01-24,MF
+kg_24970,Cristian Zapata,1986-09-30,DF
+kg_252650,Gianluca Caprari,1993-07-30,FW
+kg_25519,Boukari Drame,1985-07-22,DF
+kg_25526,Andrea Ranocchia,1988-02-16,DF
+kg_25587,Lorenzo De Silvestri,1988-05-23,MF
+kg_25594,Stefano Mauri,1980-01-08,MF
+kg_25595,Gaby Mudingayi,1981-10-01,MF
+kg_25597,Goran Pandev,1983-07-27,FW
+kg_25598,Tommaso Rocchi,1977-09-19,FW
+kg_25735,Juan Pablo Carrizo,1984-05-06,GK
+kg_25772,Zdravko Kuzmanovic,1987-09-22,MF
+kg_25815,Steve von Bergen,1983-06-10,DF
+kg_25818,Gokhan Inler,1984-06-27,MF
+kg_26171,Lorik Cana,1983-07-27,DF
+kg_26214,Diego Perez,1980-05-18,MF
+kg_26223,Bostjan Cesar,1982-07-09,DF
+kg_26253,Mauro Cetto,1982-04-14,DF
+kg_26294,Ederson,1986-01-13,MF
+kg_26315,Mario Yepes,1976-01-13,DF
+kg_26472,Michael Bradley,1987-07-31,MF
+kg_264842,Alessandro Florenzi,1991-03-11,MF
+kg_26522,Kevin Constant,1987-05-10,DF
+kg_265275,Naldo,1988-08-25,DF
+kg_267365,Marquinhos,1994-05-14,DF
+kg_26797,Simon Poulsen,1984-10-07,MF
+kg_27335,Kevin-Prince Boateng,1987-03-06,FW
+kg_27411,Marvin Compper,1985-06-14,DF
+kg_27558,Francesco Benussi,1981-10-15,GK
+kg_27560,Antonio Rosati,1983-06-26,GK
+kg_27599,Jaime Valdes,1981-01-11,MF
+kg_27610,Stefano Morrone,1978-10-26,MF
+kg_27615,Marco Storari,1977-01-07,GK
+kg_27630,Kamil Vacek,1987-05-18,MF
+kg_27657,Sergio Floccari,1981-11-12,FW
+kg_27658,Federico Agliardi,1983-02-11,GK
+kg_27660,Giuseppe Biava,1977-05-08,DF
+kg_27663,Franco Brienza,1979-03-19,FW
+kg_27665,David Di Michele,1976-01-06,FW
+kg_27668,Matteo Contini,1980-04-16,DF
+kg_27671,Luca Cigarini,1986-06-20,MF
+kg_27672,Daniele Dessena,1987-05-10,MF
+kg_27677,Ivan Pelizzoli,1980-11-18,GK
+kg_27679,Alessandro Lucarelli,1977-07-22,DF
+kg_27680,Francesco Modesto,1982-02-16,DF
+kg_27684,Giandomenico Mesto,1982-05-25,MF
+kg_27690,Rolando Bianchi,1983-02-15,FW
+kg_27691,Gianluca Curci,1985-07-12,GK
+kg_27692,Cristian Chivu,1980-10-26,DF
+kg_27694,Alberto Aquilani,1984-07-07,MF
+kg_27695,Rodrigo Taddei,1980-03-06,DF
+kg_27697,Luca Castellazzi,1975-07-19,GK
+kg_27702,Angelo Palombo,1981-09-25,DF
+kg_27708,Danilo Soddimo,1987-09-27,
+kg_27719,Felipe,1984-07-31,DF
+kg_27720,Marco Motta,1986-05-14,DF
+kg_27721,Cesare Natali,1979-04-05,DF
+kg_27731,Giampiero Pinzi,1981-03-11,MF
+kg_27733,Barreto,1985-07-12,FW
+kg_27734,Antonio Di Natale,1977-10-13,FW
+kg_281019,Alexis Rolin,1989-02-07,DF
+kg_281760,Nicola Murru,1994-12-16,DF
+kg_282438,Valerio Verre,1994-01-11,MF
+kg_282770,Mauro Icardi,1993-02-19,FW
+kg_288613,Mattia De Sciglio,1992-10-20,DF
+kg_28907,Pablo Sebastian Alvarez,1984-04-17,DF
+kg_29587,Maxi Moralez,1987-02-27,FW
+kg_299411,Mario Sampirisi,1992-10-31,DF
+kg_299653,Alvaro Ampuero,1992-09-25,MF
+kg_30143,"Alberto Frison,18",1988-07-21,GK
+kg_30424,Andreas Granqvist,1985-04-16,DF
+kg_30453,Phillippe Mexes,1982-03-30,DF
+kg_30460,Javier Zanetti,1973-08-10,MF
+kg_30474,Stephan Lichtsteiner,1984-01-16,DF
+kg_30492,Walter Samuel,1978-03-23,DF
+kg_30549,Diego Milito,1979-06-12,FW
+kg_305661,Player 305661,,
+kg_30598,Nigel de Jong,1984-11-30,MF
+kg_30603,Urby Emanuelson,1986-06-16,FW
+kg_30638,Miroslav Klose,1978-06-09,FW
+kg_30682,Daniele De Rossi,1983-07-24,MF
+kg_30709,Luca Toni,1977-05-26,FW
+kg_30713,Marco Amelia,1982-04-02,GK
+kg_30714,Francesco Totti,1976-09-27,FW
+kg_30717,Gianluigi Buffon,1978-01-28,GK
+kg_30724,Dejan Stankovic,1978-09-11,MF
+kg_30731,Andrea Pirlo,1979-05-19,MF
+kg_30735,Louis Saha,1978-08-08,FW
+kg_30747,Simone Perrotta,1977-09-17,MF
+kg_30841,Maarten Stekelenburg,1982-09-22,GK
+kg_30878,Wesley Sneijder,1984-06-09,FW
+kg_30881,Alberto Gilardino,1982-07-05,FW
+kg_30902,Andrea Barzagli,1981-05-08,DF
+kg_30905,Sulley Ali Muntari,1984-08-27,MF
+kg_30906,Cristian Zaccardo,1981-12-21,DF
+kg_30920,Edgar Barreto,1984-07-15,MF
+kg_30928,Nicolas Burdisso,1981-04-12,DF
+kg_30930,Esteban Cambiasso,1980-08-18,MF
+kg_30940,Blerim Dzemaili,1986-04-12,MF
+kg_30966,Valon Behrami,1985-04-19,MF
+kg_30983,Dusan Basta,1984-08-18,MF
+kg_30991,Rodrigo Palacio,1982-02-05,FW
+kg_31300,Rolando,1985-08-31,DF
+kg_31303,Nelson,1983-06-10,MF
+kg_31304,Alessandro Rosina,1984-01-31,FW
+kg_31614,Maicosuel,1986-06-16,FW
+kg_317156,Alfred Duncan,1993-03-10,
+kg_31725,Mario Alberto Santana,1981-12-23,MF
+kg_317717,Ogenyi Onazi,1992-12-25,MF
+kg_325916,Paulo Dybala,1993-11-15,FW
+kg_32746,Morgan De Sanctis,1977-03-26,GK
+kg_32747,Fabrizio Miccoli,1979-06-27,FW
+kg_32748,Antonio Cassano,1982-07-12,FW
+kg_32751,Massimo Ambrosini,1977-05-29,MF
+kg_32769,Paolo Cannavaro,1981-06-26,DF
+kg_33422,Guillermo Rodriguez,1984-03-21,DF
+kg_33640,Maxi Lopez,1984-04-03,FW
+kg_33816,Massimo Gobbi,1980-10-31,MF
+kg_33817,Reginaldo,1983-07-31,FW
+kg_33974,Robinho,1984-01-25,FW
+kg_34000,Enzo Maresca,1980-02-10,MF
+kg_34008,Emiliano Moretti,1981-06-11,DF
+kg_34530,Christian Abbiati,1977-07-08,GK
+kg_34633,Nene,1983-07-28,FW
+kg_34952,Daniele Bonera,1981-05-31,DF
+kg_35244,Andre Dias,1979-05-15,DF
+kg_35421,German Denis,1981-09-10,FW
+kg_35497,Mounir El Hamdaoui,1984-07-14,FW
+kg_35575,Mauricio Pinilla,1984-02-04,FW
+kg_35643,Marco Marchionni,1980-07-22,MF
+kg_35644,Antonio Mirante,1983-07-08,GK
+kg_358759,Marko Bakic,1993-11-01,MF
+kg_36121,Valter Birsa,1986-08-07,MF
+kg_361946,Dario Del Fabro,1995-03-24,DF
+kg_362110,Souleymane Doukara,1991-09-29,FW
+kg_362113,Marco Benassi,1994-05-05,MF
+kg_362114,Simone Pasa,1994-01-21,DF
+kg_362194,Nicolas Lopez,1993-10-01,FW
+kg_362195,Alessio Romagnoli,1995-01-12,DF
+kg_362198,Eder Citadin Martins,1986-11-15,FW
+kg_362203,Player 362203,,
+kg_362212,Piotr Zielinski,1994-05-20,FW
+kg_36410,Nicklas Bendtner,1988-01-16,FW
+kg_365531,Giulio Sanseverino,1994-02-10,MF
+kg_371535,Player 371535,,
+kg_37254,Mahamadou Samassa,1986-05-01,FW
+kg_37273,Gonzalo Bergessio,1984-07-20,FW
+kg_37350,Pablo Caceres,1985-04-22,DF
+kg_37503,Albano Benjamin Bizzarri,1977-11-09,GK
+kg_37508,Massimo Paci,1978-05-09,DF
+kg_37520,Michele Paolucci,1986-02-06,FW
+kg_37537,Luigi Giorgi,1987-04-19,MF
+kg_37541,Daniele Galloppa,1985-05-15,MF
+kg_37545,David Pizarro,1979-09-11,MF
+kg_37767,Giuseppe Sculli,1981-03-23,MF
+kg_37768,Ciro Capuano,1981-07-10,DF
+kg_38433,Borja Valero,1985-01-12,MF
+kg_38458,Gonzalo Rodriguez,1984-04-10,DF
+kg_38717,Mirko Vucinic,1983-10-01,FW
+kg_38827,Amauri,1980-06-03,FW
+kg_38920,Cyril Thereau,1983-04-24,FW
+kg_38922,Lionel Scaloni,1978-05-16,DF
+kg_39170,Andrea Consigli,1987-01-27,GK
+kg_39194,Massimo Donati,1981-03-26,DF
+kg_39198,Fernando Damian Tissone,1986-07-24,MF
+kg_39201,Gianpaolo Bellini,1980-03-27,DF
+kg_39207,Giulio Migliaccio,1981-06-23,MF
+kg_39222,Davide Biondini,1983-01-24,MF
+kg_39229,Cristiano Del Grosso,1983-03-24,MF
+kg_39264,Giuseppe Colucci,1980-08-24,MF
+kg_39267,Mariano Julio Izco,1983-03-13,MF
+kg_39271,Takayuki Morimoto,1988-05-07,FW
+kg_39273,Gennaro Sardo,1979-05-08,DF
+kg_39284,Giovanni Marchese,1984-10-17,DF
+kg_39301,Gianluca Musacci,1987-04-01,MF
+kg_39304,Dario Dainelli,1979-06-09,DF
+kg_39314,Alessandro Potenza,1984-03-08,
+kg_39334,Christian Daniel Ledesma,1982-09-24,MF
+kg_39345,Aleandro Rosi,1987-05-17,MF
+kg_39357,Giovanni Pasquale,1982-01-05,MF
+kg_39367,Antonio Nocerino,1985-04-09,MF
+kg_39376,Matteo Brighi,1981-02-14,MF
+kg_39391,Salvatore Masiello,1982-01-31,DF
+kg_39397,Fabrizio Grillo,1987-02-02,MF
+kg_39415,Mariano Andujar,1983-07-30,GK
+kg_39419,Cesare Bovo,1983-01-14,DF
+kg_39422,Mattia Cassani,1983-08-26,MF
+kg_39423,Paolo Hernan Dellafiore,1985-02-02,DF
+kg_39426,Roberto Guana,1981-01-21,MF
+kg_39428,Gianni Munari,1983-06-24,MF
+kg_39444,Christian Brocchi,1976-01-30,MF
+kg_39447,Marco Borriello,1982-06-18,FW
+kg_39450,Panagiotis Kone,1987-07-26,MF
+kg_39474,Robert Acquafresca,1987-09-11,FW
+kg_39477,Stefano Sorrentino,1979-03-28,GK
+kg_39485,Antonio Bocchetti,1980-06-11,DF
+kg_39487,Perparim Hetemaj,1986-12-12,MF
+kg_39488,Igor Budan,1980-04-22,FW
+kg_39490,Paolo Castellini,1979-03-25,DF
+kg_39498,Daniel Tozser,1985-05-12,MF
+kg_39509,Salvatore Aronica,1978-01-20,DF
+kg_39535,Christian Maggio,1982-02-11,MF
+kg_39537,Ruben Olivera,1983-05-04,MF
+kg_39540,Fabio Quagliarella,1983-01-31,FW
+kg_39541,Christian Terlizzi,1979-11-25,DF
+kg_39549,Luca Antonini,1982-02-04,DF
+kg_39555,Ignazio Abate,1986-11-12,DF
+kg_39562,Abdoulay Konko,1984-03-09,DF
+kg_39567,Nicola Pavarini,1974-02-24,GK
+kg_39599,Federico Marchetti,1983-02-07,GK
+kg_39638,Erjon Bogdani,1977-04-14,FW
+kg_39643,Andrea Coda,1985-04-25,DF
+kg_39644,Gaetano D'Agostino,1982-06-03,MF
+kg_39694,Michele Ferri,1981-05-29,DF
+kg_39713,Ciro Polito,1979-04-12,GK
+kg_39719,Juan Vargas,1983-10-05,MF
+kg_39725,Bogdan Lobont,1978-01-18,GK
+kg_39726,Guglielmo Stendardo,1981-05-06,DF
+kg_39729,Luciano Zauri,1978-01-20,DF
+kg_39745,Elvis Abbruscato,1981-04-14,FW
+kg_39769,Tommaso Berni,1983-03-06,GK
+kg_39774,Lucio,1978-05-08,DF
+kg_40001,Michael Ciani,1984-04-06,DF
+kg_40165,Pablo Osvaldo,1986-01-12,FW
+kg_40274,Birkir Bjarnason,1988-05-27,MF
+kg_402803,Player 402803,,
+kg_40428,McDonald Mariga,1987-04-04,MF
+kg_40601,Bosko Jankovic,1984-03-01,MF
+kg_40621,Gabriel Paletta,1986-02-15,DF
+kg_40656,Francesco Bolzoni,1989-05-07,MF
+kg_40686,Jonathan Biabiany,1988-04-28,FW
+kg_41045,Samir Ujkani,1988-07-05,GK
+kg_41199,Fredy Guarin,1986-06-30,MF
+kg_41269,Alessio Cerci,1987-07-23,MF
+kg_41318,Maurizio Domizzi,1980-06-28,DF
+kg_41326,Andrea Cossu,1980-05-03,FW
+kg_413599,Player 413599,,
+kg_41394,Marco Rigoni,1980-01-05,MF
+kg_41404,Andrea Lazzari,1984-12-03,MF
+kg_41411,Alessandro Matri,1984-08-15,FW
+kg_41412,Nicola Legrottaglie,1976-10-20,DF
+kg_41413,Raffaele Palladino,1984-04-17,
+kg_41432,Giuseppe Vives,1980-07-14,MF
+kg_41433,Radja Nainggolan,1988-05-04,MF
+kg_41475,Alessandro Diamanti,1983-05-02,MF
+kg_41478,Gabriele Perico,1984-03-11,DF
+kg_414788,Gianluca Pegolo,1981-03-25,GK
+kg_414792,Andrea Dossena,1981-09-11,MF
+kg_41497,Federico Peluso,1984-01-20,DF
+kg_41536,Daniele Capelli,1986-06-20,DF
+kg_41542,Antonio Floro Flores,1983-06-18,FW
+kg_41605,Djamel Mesbah,1984-10-09,DF
+kg_41629,Francelino Matuzalem,1980-06-10,MF
+kg_41652,Gaetano Berardi,1988-08-21,DF
+kg_41658,Marek Hamsik,1987-07-27,FW
+kg_41661,Daniele Mannini,1983-10-25,MF
+kg_41666,Fabiano Santacroce,1986-08-24,DF
+kg_41667,Marius Stankevicius,1981-07-15,DF
+kg_41671,Emiliano Viviano,1985-12-01,GK
+kg_41694,Francesco Lodi,1984-03-23,MF
+kg_41754,Manuel Coppola,1982-05-11,
+kg_41760,Marco Rossi,1978-04-01,MF
+kg_41769,Antonio Balzano,1986-06-13,DF
+kg_41809,Nicola Belmonte,1987-04-15,MF
+kg_41816,Alessandro Gazzi,1983-01-28,MF
+kg_41818,Jean-Francois Gillet,1979-05-31,GK
+kg_41841,Francesco Della Rocca,1987-09-14,MF
+kg_41865,Andrea Costa,1986-02-01,DF
+kg_41869,Thomas Manfredini,1980-05-27,DF
+kg_41874,Claudio Terzi,1984-06-19,DF
+kg_41884,Giorgio Chiellini,1984-08-14,DF
+kg_41887,Manuele Blasi,1980-08-17,MF
+kg_41890,Claudio Marchisio,1986-01-19,MF
+kg_41892,Paolo De Ceglie,1986-09-17,MF
+kg_41930,Gyorgy Garics,1984-03-08,DF
+kg_41962,Valerio Di Cesare,1983-05-23,DF
+kg_42008,Nicholas Sebastian Frey,1984-03-06,DF
+kg_42017,Ferdinando Sforzini,1984-12-04,FW
+kg_42041,Emanuele Calaio,1982-01-08,FW
+kg_42043,Gianluca Grava,1977-03-07,DF
+kg_42306,Alexandros Tzorvas,1982-08-12,GK
+kg_42308,Mikael Antonsson,1981-05-31,DF
+kg_42388,Hugo Campagnaro,1980-06-27,DF
+kg_42390,Ferdinando Coppola,1978-06-10,GK
+kg_42420,Emmanuel Cascione,1983-09-22,MF
+kg_42422,Samir Handanovic,1984-07-14,GK
+kg_42425,Davide Moscardelli,1980-02-03,FW
+kg_42433,Francesco Valiani,1980-10-29,FW
+kg_42434,Roberto Vitiello,1983-05-08,MF
+kg_42437,Riccardo Meggiorini,1985-09-04,FW
+kg_42478,Vlada Avramov,1979-04-05,GK
+kg_42482,Alessio Sestu,1983-09-29,FW
+kg_42502,Michael Agazzi,1984-07-03,GK
+kg_42579,Tiberio Guarente,1985-11-01,MF
+kg_42601,Nico Pulzetti,1984-02-13,MF
+kg_42645,Simone Padoin,1984-03-18,MF
+kg_42650,Cristian Raimondi,1981-04-30,DF
+kg_42651,Luca Rigoni,1984-12-07,MF
+kg_42652,Alessandro Sgrigna,1980-04-24,FW
+kg_42692,Daniele Padelli,1985-10-25,GK
+kg_43341,Stefan Daniel Radu,1986-10-22,DF
+kg_438507,Federico Di Francesco,1994-06-14,MF
+kg_449229,N'Diaye Djiby,1994-01-05,MF
+kg_45220,Alejandro Daro Gomez,1988-02-15,FW
+kg_45457,Nicolas Bertolo,1986-02-01,MF
+kg_46241,Mbaye Niang,1994-12-19,FW
+kg_46242,Bakaye Traore,1985-03-06,MF
+kg_46374,Luca Antonelli,1987-02-11,MF
+kg_46554,Alexandre Pato,1989-09-02,FW
+kg_46820,Matteo Darmian,1989-12-02,DF
+kg_46875,Mehdi Benatia,1987-04-17,DF
+kg_47373,Matias Fernandez,1986-05-15,MF
+kg_47553,Blazey Augustyn,1988-01-26,
+kg_47564,James Troisi,1988-07-03,MF
+kg_49543,Angelo Obinze Ogbonna,1988-05-23,DF
+kg_49677,Edinson Cavani,1987-02-14,FW
+kg_49860,Pablo Armero,1986-11-02,MF
+kg_49897,Felipe Seymour,1987-07-23,MF
+kg_49939,Arturo Vidal,1987-05-22,DF
+kg_49940,Carlos Carmona,1987-02-21,MF
+kg_50074,Juan Camilo Zuniga,1985-12-14,MF
+kg_50189,Ricardo Alvarez,1988-04-12,MF
+kg_50449,Cristobal Jorquera,1988-08-04,FW
+kg_50661,Eduardo Vargas,1989-11-20,
+kg_50669,Christian Puggioni,1981-01-17,GK
+kg_56576,Egidio Arevalo,1982-01-01,MF
+kg_56585,Walter Gargano,1984-07-23,MF
+kg_56600,Willians,1986-01-29,MF
+kg_56992,Marco Biagianti,1984-04-19,MF
+kg_57067,Alvaro Gonzalez,1984-10-29,MF
+kg_57082,Ribair Rodriguez,1987-10-04,MF
+kg_57114,Romulo Togni,1982-09-09,MF
+kg_57124,Andrea Poli,1989-09-29,MF
+kg_58485,Sotiris Ninis,1990-04-03,MF
+kg_58499,Bojan Jokic,1986-05-17,DF
+kg_66890,Senad Lulic,1986-01-18,MF
+kg_67300,Matti Lund Nielsen,1988-05-08,MF
+kg_68404,Nicolas Viola,1989-10-12,MF
+kg_68436,Marcelo Estigarribia,1987-09-21,MF
+kg_71500,Vasilios Torosidis,1985-06-10,DF
+kg_71768,Albin Ekdal,1989-07-28,MF
+kg_71788,Mathias Ranegie,1984-06-14,FW
+kg_71903,Linus Hallenius,1989-04-01,FW
+kg_72448,Pavol Farkas,1985-03-27,DF
+kg_72518,Juraj Kucka,1987-02-26,MF
+kg_73024,Francesco Acerbi,1988-08-10,DF
+kg_73841,Nicolo Cherubin,1986-12-02,DF
+kg_73845,Matteo Rubin,1987-07-09,MF
+kg_73977,Migjen Basha,1987-01-05,MF
+kg_73999,Marco Parolo,1985-01-25,MF
+kg_74009,Luca Rossettini,1985-05-09,DF
+kg_77767,Giuseppe Bellusci,1989-08-21,DF
+kg_79013,Bruno Pereirinha,1988-03-02,DF
+kg_79253,Marco Sau,1987-12-03,FW
+kg_89079,Sebastian Eriksson,1989-01-31,MF
+kg_92532,Michel Morganella,1989-05-17,MF
+kg_92666,Stevan Jovetic,1989-11-02,FW
+kg_94326,Yohan Benalouane,1987-03-28,DF
+kg_95225,Rinaldo Cruzado,1984-09-21,MF
+kg_96398,Miralem Pjanic,1990-04-02,MF
+kg_96509,Joaquin Larrivey,1984-08-20,FW
+kg_96540,Sebastian Giovinco,1987-01-26,FW
+kg_96616,Martin Caceres,1987-04-07,DF
+kg_96643,Bojan Krkic,1990-08-28,FW
+kg_96645,Jonathan Rossini,1989-04-05,DF
+kg_97657,Alejandro Faurlin,1986-08-09,MF
+kg_97789,Eros Pisano,1987-03-31,MF
+kg_98254,Yuto Nagatomo,1986-09-12,MF

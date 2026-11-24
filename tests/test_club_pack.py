@@ -33,7 +33,14 @@ class ClubPack(unittest.TestCase):
         n = self.conn.execute("SELECT COUNT(*) FROM squads WHERE edition_id='SERIEA1213' AND team_id='c_juventus'").fetchone()[0]
         self.assertGreaterEqual(n, 33)
         kinds = {r[0] for r in self.conn.execute("SELECT DISTINCT kind FROM data_notes WHERE edition_id='SERIEA1213'")}
-        self.assertIn("subs_estimated", kinds)
+        self.assertIn("subs_estimated", kinds)                          # only Cagliari - Roma has no Transfermarkt line-up
+        q = lambda sql: self.conn.execute(sql).fetchone()[0]
+        self.assertEqual(q("SELECT COUNT(*) FROM data_notes WHERE edition_id='SERIEA1213' AND kind='subs_estimated'"), 1)
+        self.assertEqual(q("SELECT COUNT(*) FROM lineups WHERE started = 0 AND fixture_id LIKE 'SERIEA1213%' AND fixture_id != 'SERIEA1213_1286999'"), 2194)   # real substitutes
+        self.assertEqual(q("SELECT COUNT(*) FROM match_events WHERE event_type IN ('yellow','second_yellow','red') AND fixture_id LIKE 'SERIEA1213%'"), 2009 + q("SELECT COUNT(*) FROM match_events WHERE event_type IN ('yellow','second_yellow','red') AND fixture_id = 'SERIEA1213_1286999'"))
+        self.assertGreater(q("SELECT COUNT(*) FROM match_events WHERE assist_player_id IS NOT NULL AND fixture_id LIKE 'SERIEA1213%'"), 770)
+        for r in self.conn.execute("SELECT fixture_id, team_id, COUNT(*) FROM lineups WHERE started = 1 AND fixture_id LIKE 'SERIEA1213%' GROUP BY 1, 2 HAVING COUNT(*) != 11"):
+            self.assertIn(r[0], {"SERIEA1213_1286999"} | set(x[0] for x in self.conn.execute("SELECT fixture_id FROM data_notes WHERE kind='lineup_incomplete'")), r)
 
     def test_reimport_is_a_no_op(self):
         before = self.conn.execute("SELECT COUNT(*) FROM lineups").fetchone()[0]
@@ -127,6 +134,7 @@ class ClubPack(unittest.TestCase):
         n = c.execute("SELECT COUNT(*) FROM match_events WHERE fixture_id LIKE 'UCL1213%' AND player_id IS NOT NULL").fetchone()[0]
         self.assertGreater(n, 300)
         self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='UCL1213'").fetchone()[0], 4)
+        self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='SERIEA1213'").fetchone()[0], 2)
         self.assertEqual(validate.check_edition(c, "UCL1213"), [])
 
 

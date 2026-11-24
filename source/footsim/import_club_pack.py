@@ -76,6 +76,8 @@ def import_pack(conn, pack: Path) -> dict:
                 p = e["player_id"]
                 if p in starters or p in subs:
                     continue
+                if real_subs and e["event_type"] in ("yellow", "second_yellow", "red"):
+                    continue                        # the real substitutions are known: a booked player who never came on stays on the bench
                 m = max(1, int(e["minute"]) - 1)
                 group = players[p]["position"] or "MF"
                 cand = [s for s in starters if starters[s]["off"] is None and s not in busy
