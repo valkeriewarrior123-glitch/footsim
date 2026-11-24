@@ -14,9 +14,15 @@ with sync_playwright() as p:
     pg.wait_for_selector("#main .card, :text('Look around without saving')", timeout=180000)
     if pg.query_selector(":text('Look around without saving')"): pg.click(":text('Look around without saving')")
     pg.wait_for_selector("#main .card", timeout=180000)
+    def side(sel):
+        if not pg.is_visible("#side"): pg.click("#menuBtn"); pg.wait_for_timeout(300)
+        pg.click(sel)
     def step(name, fn):
         t = time.time(); fn(); print(f"ok  {name} ({time.time()-t:.1f}s)")
-    def tab(): pg.click("#topnav [data-level=tournament]"); pg.click("#subnav [data-tab=outcomes]"); pg.wait_for_selector(".card h3:has-text('Outcomes')"); pg.wait_for_timeout(800)
+    def tab():
+        if pg.query_selector("#side [data-ed=WC2022]"): side("#side [data-ed=WC2022]")
+        else: side("#side [data-go=all]"); pg.click("#main [data-open=WC2022]")
+        pg.wait_for_selector("#tabs [data-tab]"); pg.click("#tabs [data-tab=outcomes]"); pg.wait_for_selector(".card h3:has-text('Outcomes')"); pg.wait_for_timeout(800)
     def no_branch():
         tab(); assert pg.query_selector("text=Pick or create a branch first")
     step("needs a branch", no_branch)

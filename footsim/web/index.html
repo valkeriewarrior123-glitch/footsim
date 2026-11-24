@@ -45,10 +45,27 @@ header { position: sticky; top: var(--barh); z-index: 5; background: var(--panel
 .banner { padding: 8px 20px; font-size: 13px; background: var(--pitch-soft); border-bottom: 1px solid var(--line); }
 .banner.history { background: var(--bg); color: var(--muted); }
 
+#layout { display: grid; grid-template-columns: 236px minmax(0, 1fr); align-items: start; }
+#content { min-width: 0; }
+#side { position: sticky; top: calc(var(--barh, 0px) + 56px); max-height: calc(100vh - 70px); overflow-y: auto; padding: 12px 10px 24px;
+        border-right: 1px solid var(--line); font-size: 14px; }
+#side .sh { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 14px 8px 4px; }
+#side .sh:first-child { margin-top: 2px; }
+#side a.si { display: block; padding: 5px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; }
+#side a.si:hover { background: var(--panel); color: var(--ink); }
+#side a.si.on { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--pitch); }
+#side a.si.kid { margin-left: 14px; }
+#side a.si.season { color: var(--ink); }
+body.side-collapsed #layout { grid-template-columns: minmax(0, 1fr); }
+body.side-collapsed #side { display: none; }
+#menuBtn { padding: 4px 10px; font-size: 16px; line-height: 1; }
+#chead { padding: 12px 20px 0; }
+#chead .summary { margin: 0; }
+.me-dot { color: var(--pitch); font-size: 10px; vertical-align: 1px; margin-left: 3px; }
+.crumb { color: var(--pitch); }
 nav { display: flex; gap: 4px; padding: 12px 20px 0; }
 nav button { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 8px 12px; color: var(--muted); }
 nav + nav { padding-top: 0; }
-nav button[data-back] { color: var(--pitch); }
 nav button.on { color: var(--ink); border-bottom-color: var(--pitch); font-weight: 600; }
 main { padding: 16px 24px 80px; max-width: 2200px; margin: 0 auto; }
 
@@ -286,6 +303,13 @@ details.tour .body { padding: 0 14px 14px; }
   header .branchbar select { grid-column: 1 / -1; grid-row: 1; }
   .banner { padding: 8px 12px; }
 
+  #layout { grid-template-columns: minmax(0, 1fr); }
+  #side { display: none; position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; width: min(280px, 82vw); max-height: none; background: var(--bg);
+          border-right: 1px solid var(--line); padding-top: 54px; box-shadow: 4px 0 18px rgba(0,0,0,.18); }
+  body.side-open #side { display: block; }
+  body.side-collapsed #side { display: none; }
+  body.side-collapsed.side-open #side { display: block; }
+  #chead { padding: 8px 8px 0; }
   nav { position: sticky; top: var(--barh); z-index: 6; background: var(--bg); padding: 4px 8px 0; gap: 0;
         overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); }
   nav::-webkit-scrollbar { display: none; }
@@ -356,8 +380,9 @@ details.tour .body { padding: 0 14px 14px; }
 </head>
 <body>
 <header>
+  <button id="menuBtn" aria-label="Menu" title="Show or hide the side menu">☰</button>
   <div class="brand">Foot<span>Sim</span></div>
-  <select id="edition" class="edition" aria-label="Tournament" style="display:none"></select>
+  <select id="edition" class="edition" aria-label="Tournament" style="display:none" hidden></select>
   <div class="branchbar">
     <label for="branch">Timeline</label>
     <select id="branch"></select>
@@ -366,22 +391,15 @@ details.tour .body { padding: 0 14px 14px; }
     <button id="delBranch" class="danger">Delete</button>
   </div>
 </header>
-<div id="banner" class="banner"></div>
-<nav id="topnav">
-  <button data-level="home" class="on">Player</button>
-  <button data-level="tournament">Tournaments</button>
-  <button data-level="library">Library</button>
-  <button data-level="changes">Changes</button>
-</nav>
-<nav id="subnav" style="display:none">
-  <button data-back="1" title="Back to your player">← Player</button>
-  <button data-tab="groups" class="on">Groups</button>
-  <button data-tab="bracket">Knockouts</button>
-  <button data-tab="stats">Stats &amp; awards</button>
-  <button data-tab="player">His matches</button>
-  <button data-tab="outcomes">Outcomes</button>
-</nav>
-<main id="main"></main>
+<div id="layout">
+  <aside id="side" aria-label="Menu"></aside>
+  <div id="content">
+    <div id="banner" class="banner"></div>
+    <div id="chead" style="display:none"></div>
+    <nav id="tabs" style="display:none"></nav>
+    <main id="main"></main>
+  </div>
+</div>
 
 <aside class="drawer" id="drawer">
   <div class="hd"><h2 id="dTitle">Match</h2><button class="link" id="dClose" aria-label="Close">✕</button></div>
@@ -406,6 +424,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "
 const q = () => state.branch ? `?branch=${state.branch}` : "";
 const fmtDate = d => d && d !== "TBD" ? new Date(d + "T12:00").toLocaleDateString(undefined, { day: "numeric", month: "short" }) : "TBD";
 const tname = c => state.view?.teams?.[c] || c || "?";
+const meDot = c => state.branch && state.view?.focus_team && c === state.view.focus_team ? `<span class="me-dot" title="His club">●</span>` : "";
 
 // One place talks to the engine. In the static (phone) build `window.footsimBackend` runs the Python engine
 // in the browser; with the local server it is absent and we call the JSON endpoints instead.
@@ -435,7 +454,7 @@ $("#newBranch").onclick = async () => {
   const name = prompt("Name for the new timeline branch:", "My alternate World Cup");
   if (!name) return;
   const b = await api("POST", "/api/branches", { name }).catch(e => alert(e.message));
-  if (b) { state.branch = b.branch_id; refresh(); }
+  if (b) { state.branch = b.branch_id; state.level = "home"; refresh(); }
 };
 $("#forkBranch").onclick = async () => {
   const cur = state.branches.find(b => b.branch_id === state.branch);
@@ -450,33 +469,89 @@ $("#delBranch").onclick = async () => {
   await api("DELETE", `/api/branches/${state.branch}`).then(() => { state.branch = null; refresh(); }).catch(e => alert(e.message));
 };
 
-// ---------------------------------------------------------------- tabs
-// Two levels: the player (home) comes first; tournaments are opened from him, or from the Tournaments button.
-state.level = "home";
-function setLevel(level) {
+// ---------------------------------------------------------------- navigation
+// Left menu (a sheet on phones): player, his seasons (each with its competitions), then all tournaments, library, changes.
+// One row of tabs, only inside a competition. Levels: home (player page / all tournaments in real history), season, all, tournament, library, changes.
+state.level = "home"; state.season = null; state.home = null;
+const TABS = [["groups", "Groups"], ["bracket", "Knockouts"], ["stats", "Stats & awards"], ["player", "His matches"], ["outcomes", "Outcomes"]];
+const seasonLabel = x => String(x || "").replace(/^(\d{4})-(\d{2})$/, "$1/$2");
+const shortName = n => String(n || "").replace(/ \d{4}([\/-]\d{2,4})?$/, "");
+function seasonGroups() {
+  const out = new Map();
+  for (const c of state.home?.competitions || []) {
+    if (!out.has(c.season)) out.set(c.season, { season: c.season, team: c.team, comps: [] });
+    out.get(c.season).comps.push(c);
+  }
+  return [...out.values()];
+}
+const seasonOfEd = ed => state.home?.competitions?.find(c => c.edition_id === ed)?.season || null;
+async function loadHome() { state.home = state.branch ? await api("GET", `/api/player_home${q()}`).catch(() => null) : null; if (state.home && !state.home.player) state.home = null; }
+
+function renderSide() {
+  const el = $("#side"), h = state.home, item = (attr, label, cls = "") => `<a href="#" class="si ${cls}" ${attr}>${label}</a>`;
+  const open = state.level === "season" ? state.season : state.level === "tournament" ? seasonOfEd(ED) : state.lastSeason;
+  if (open) state.lastSeason = open;
+  let html = "";
+  if (state.branch) {
+    html += `<div class="sh">Player</div>` + item('data-go="home"', esc(h?.player?.name || "Create your player"), state.level === "home" ? "on" : "");
+    if (h?.player) {
+      html += `<div class="sh">Seasons</div>`;
+      for (const g of seasonGroups()) {
+        html += item(`data-go="season" data-season="${esc(g.season)}"`, `${esc(seasonLabel(g.season))} · ${esc(g.team)}`, "season" + (state.level === "season" && state.season === g.season ? " on" : ""));
+        if (g.season === open) html += g.comps.map(c => item(`data-ed="${c.edition_id}"`, esc(shortName(edName(c.edition_id))), "kid" + (state.level === "tournament" && ED === c.edition_id ? " on" : ""))).join("");
+      }
+    }
+    html += `<div class="sh">More</div>` + item('data-go="all"', "All tournaments", state.level === "all" ? "on" : "")
+      + item('data-go="library"', "Library", state.level === "library" ? "on" : "") + item('data-go="changes"', "Changes", state.level === "changes" ? "on" : "");
+  } else {
+    html += `<div class="sh">Tournaments (real history)</div>` + state_editions.map(e => item(`data-ed="${e.edition_id}"`, esc(e.name), state.level === "tournament" && ED === e.edition_id ? "on" : "")).join("")
+      + `<div class="sh">More</div>` + item('data-go="library"', "Library", state.level === "library" ? "on" : "");
+  }
+  el.innerHTML = html;
+}
+$("#side").onclick = e => {
+  const a = e.target.closest("a.si"); if (!a) return;
+  e.preventDefault();
+  if (a.dataset.ed) return openTournament(a.dataset.ed, state.tab === "bracket" && isLeagueEd(a.dataset.ed) ? "groups" : (state.level === "tournament" ? state.tab : "groups"));
+  setLevel(a.dataset.go, a.dataset.season);
+};
+$("#menuBtn").onclick = () => {
+  if (window.innerWidth <= 800) document.body.classList.toggle("side-open");
+  else { document.body.classList.toggle("side-collapsed"); try { localStorage.setItem("footsim.side", document.body.classList.contains("side-collapsed") ? "0" : "1"); } catch (e) {} }
+};
+$("#content").addEventListener("click", () => document.body.classList.remove("side-open"));
+try { if (localStorage.getItem("footsim.side") === "0") document.body.classList.add("side-collapsed"); } catch (e) {}
+
+function renderTabs() {
+  const t = $("#tabs"), ch = $("#chead"), v = state.view;
+  if (state.level !== "tournament" || !v) { t.style.display = "none"; ch.style.display = "none"; return; }
+  const lg = isLeague(), sea = seasonOfEd(ED);
+  const tabs = TABS.filter(([k]) => !(k === "bracket" && lg) && !(k === "player" && !state.branch));
+  if (!tabs.some(([k]) => k === state.tab)) state.tab = "groups";
+  t.style.display = "";
+  t.innerHTML = (sea ? `<button data-crumb="1" class="crumb" title="Back to this season">← ${esc(seasonLabel(sea))}</button>` : "")
+    + tabs.map(([k, l]) => `<button data-tab="${k}" class="${k === state.tab ? "on" : ""}">${k === "groups" && lg ? "Table" : l}</button>`).join("");
+  t.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { setSubtab(b.dataset.tab); render(); });
+  const cr = t.querySelector("[data-crumb]"); if (cr) cr.onclick = () => setLevel("season", sea);
+  const medals = [["🥇", "Champion", v.champion], ["🥈", "Runner-up", v.runner_up], ["🥉", "Third", v.third]].filter(m => m[2]);
+  ch.style.display = "";
+  ch.innerHTML = `<div class="summary"><div><b>${esc(edName(ED))}</b></div>${medals.map(m => `<div>${m[0]} ${m[1]} <b>${esc(tname(m[2]))}</b></div>`).join("")}</div>`;
+}
+function setLevel(level, season) {
   state.level = level;
-  document.querySelectorAll("#topnav button").forEach(x => x.classList.toggle("on", x.dataset.level === level));
-  $("#subnav").style.display = level === "tournament" ? "" : "none";
-  $("#edition").style.display = level === "tournament" && state_editions.length > 1 ? "" : "none";
+  if (season !== undefined) state.season = season;
+  document.body.classList.remove("side-open");
+  renderTabs(); renderSide();
   return render();
 }
-function setSubtab(tab) {
-  state.tab = tab;
-  document.querySelectorAll("#subnav button[data-tab]").forEach(x => x.classList.toggle("on", x.dataset.tab === tab));
-}
-document.querySelectorAll("#topnav button").forEach(b => b.onclick = () => setLevel(b.dataset.level));
-document.querySelectorAll("#subnav button[data-tab]").forEach(b => b.onclick = () => { setSubtab(b.dataset.tab); render(); });
-$("#subnav [data-back]").onclick = () => setLevel("home");
+function setSubtab(tab) { state.tab = tab; renderTabs(); }
 // open one tournament (optionally on a tab), loading it first
 async function openTournament(ed, tab) {
   ED = ed; leagueTeam = "";
   try { localStorage.setItem("footsim.edition", ED); } catch (err) {}
-  if ($("#edition")) $("#edition").value = ED;
-  setSubtab(tab || "groups");
+  state.tab = tab || "groups";
   state.level = "tournament";
-  document.querySelectorAll("#topnav button").forEach(x => x.classList.toggle("on", x.dataset.level === "tournament"));
-  $("#subnav").style.display = "";
-  $("#edition").style.display = state_editions.length > 1 ? "" : "none";
+  document.body.classList.remove("side-open");
   await refresh();
 }
 
@@ -486,23 +561,16 @@ async function loadEditions() {
   const sel = $("#edition");
   sel.innerHTML = state_editions.map(e => `<option value="${e.edition_id}">${esc(e.name)}</option>`).join("");
   sel.value = ED;
-  sel.style.display = state_editions.length > 1 ? "" : "none";
 }
-$("#edition").onchange = e => {
-  ED = e.target.value; leagueTeam = "";
-  try { localStorage.setItem("footsim.edition", ED); } catch (err) {}
-  setSubtab("groups");
-  refresh();
-};
 const isLeague = () => state.view?.format === "league";
 
 async function refresh() {
   if (!state_editions.length) await loadEditions();
   await loadBranches();
   state.view = await api("GET", `/api/edition/${ED}${q()}`);
-  document.querySelector('#subnav [data-tab="bracket"]').style.display = isLeague() ? "none" : "";
-  document.querySelector('#subnav [data-tab="groups"]').textContent = isLeague() ? "League table" : "Groups";
-  if (isLeague() && state.tab === "bracket") setSubtab("groups");
+  await loadHome();
+  if (isLeague() && state.tab === "bracket") state.tab = "groups";
+  renderTabs(); renderSide();
   const b = $("#banner");
   if (state.branch) {
     const cur = state.branches.find(x => x.branch_id === state.branch);
@@ -525,6 +593,8 @@ async function render() {
   const m = $("#main"), v = state.view;
   if (!v) return;
   if (state.level === "home") return renderPlayerHome();
+  if (state.level === "season") return renderSeasonPage();
+  if (state.level === "all") return renderAllTournaments();
   if (state.level === "library") return renderLibraryTab();
   if (state.level === "changes") { m.innerHTML = await renderChanges(); return; }
   if (state.tab === "groups") m.innerHTML = renderSummary(v) + (isLeague() ? renderLeague(v) : renderGroups(v));
@@ -559,7 +629,7 @@ function renderLeague(v) {
     <section class="card"><h3>${esc(state_editions.find(e => e.edition_id === ED)?.name || "League")}</h3>
       <table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>
       ${d.table.map((r, i) => { const z = zoneOf(v, r.team, i + 1);
-        return `<tr class="${z ? "z-" + z.kind : ""}" ${r.team === v.club_focus ? 'style="font-weight:600"' : ""}><td>${i + 1}</td><td>${esc(r.name)}${i === 0 && v.champion === r.team ? " (C)" : ""}${z?.kind === "rel" ? " (R)" : ""}${r.adj ? ` <span class="lots" title="${esc(v.adjust_notes?.[r.team] || "")}">${r.adj > 0 ? "+" : ""}${r.adj}</span>` : ""}</td>
+        return `<tr class="${z ? "z-" + z.kind : ""}" ${r.team === v.club_focus ? 'style="font-weight:600"' : ""}><td>${i + 1}</td><td>${esc(r.name)}${meDot(r.team)}${i === 0 && v.champion === r.team ? " (C)" : ""}${z?.kind === "rel" ? " (R)" : ""}${r.adj ? ` <span class="lots" title="${esc(v.adjust_notes?.[r.team] || "")}">${r.adj > 0 ? "+" : ""}${r.adj}</span>` : ""}</td>
         <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><b>${r.pts}</b></td></tr>`; }).join("")}
       </tbody></table>${zoneLegend(v)}</section>
     <section class="card mlist"><h3>Matches ${pick}</h3>
@@ -573,10 +643,8 @@ function renderLeague(v) {
 
 function renderSummary(v) {
   const pend = v.slots.filter(s => s.status === "pending").length;
+  if (!pend && !v.violations.length) return "";
   return `<div class="summary">
-    <div>🥇 Champion <b>${v.champion ? esc(tname(v.champion)) : "undecided"}</b></div>
-    ${v.runner_up ? `<div>🥈 Runner-up <b>${esc(tname(v.runner_up))}</b></div>` : ""}
-    ${v.third ? `<div>🥉 Third <b>${esc(tname(v.third))}</b></div>` : ""}
     ${pend ? `<div>Matches needing a result <b style="color:var(--pending)">${pend}</b>
       ${state.branch ? ` <button id="rollAll" title="Generate every remaining match, weighted by team strength">🎲 Roll remaining matches</button>` : ""}</div>` : ""}
     ${v.violations.length ? `<div style="color:var(--bad)">Suspended players who played: ${v.violations.map(x => esc(x.player)).join(", ")}</div>` : ""}
@@ -588,7 +656,7 @@ function renderGroups(v) {
     <section class="card">
       <h3>Group ${g}</h3>
       <table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>
-      ${d.table.map((r, i) => `<tr class="${(z => z ? "z-" + z.kind : "")(zoneOf(v, r.team, i + 1))}"><td>${i + 1}</td><td>${esc(r.name)}${r.lots ? ` <span class="lots" title="Tied on everything; order decided by drawing lots">lots</span>` : ""}</td>
+      ${d.table.map((r, i) => `<tr class="${(z => z ? "z-" + z.kind : "")(zoneOf(v, r.team, i + 1))}"><td>${i + 1}</td><td>${esc(r.name)}${meDot(r.team)}${r.lots ? ` <span class="lots" title="Tied on everything; order decided by drawing lots">lots</span>` : ""}</td>
         <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join("")}
       </tbody></table>
       <ul class="fx">${d.fixtures.map(f => `
@@ -1250,7 +1318,7 @@ function roleRow(mt, p) {
 function gotoTab(tab) {
   if (tab === "library" || tab === "changes") return setLevel(tab);
   if (tab === "home") return setLevel("home");
-  setSubtab(tab); return setLevel("tournament");
+  state.tab = tab; return setLevel("tournament");
 }
 
 function libraryRow(l) {
@@ -1446,26 +1514,15 @@ function syncDialog(p) {
 const edName = id => state_editions.find(e => e.edition_id === id)?.name || id;
 async function renderPlayerHome() {
   const m = $("#main");
-  if (!state.branch) {
-    m.innerHTML = `<section class="card" style="max-width:720px"><h3>Your player</h3>
-      <div class="empty">Pick or create a timeline (branch) at the top, then create your player here. His competitions, clubs and career all hang off this page.</div>
-      <div style="margin-top:10px"><button id="browseT">Browse real history instead</button></div></section>`;
-    $("#browseT").onclick = () => setLevel("tournament");
-    return;
-  }
+  if (!state.branch) return renderAllTournaments();
   const h = await api("GET", `/api/player_home${q()}`);
+  state.home = h.player ? h : null; renderSide();
   if (!h.player) {                                              // nobody yet: create him, choosing his first competition
     ED = state_editions.some(e => e.edition_id === ED) ? ED : "WC2022";
     return renderCreateForm();
   }
   const p = h.player;
   const stat = (n, l) => `<div class="stat"><b>${n ?? 0}</b><span>${l}</span></div>`;
-  const comp = c => `<div class="libcard">
-      <div><b>${esc(edName(c.edition_id))}</b> <span style="color:var(--muted)">· ${esc(c.team)}${c.home ? " · first competition" : ""}</span></div>
-      <div class="stats-row" style="margin:2px 0">${stat(c.apps, "apps")}${stat(c.goals, "goals")}${stat(c.assists, "assists")}${stat(c.minutes, "min")}</div>
-      <div class="row"><button class="primary" data-open="${c.edition_id}" data-tab="player">His matches</button>
-        <button data-open="${c.edition_id}" data-tab="groups">Open ${esc(isLeagueEd(c.edition_id) ? "table" : "tournament")}</button>
-        <button data-open="${c.edition_id}" data-tab="outcomes">Outcomes</button></div></div>`;
   const add = a => `<div class="libcard">
       <div><b>${esc(edName(a.edition_id))}</b> <span style="color:var(--muted)">· ${a.fixed ? "he is at " + esc(a.fixed.team) + " this season" : a.kind === "club" ? "pick a club" : "pick a national team"}</span></div>
       ${a.possible ? `<div class="row"><button data-add="${a.edition_id}">Add him here</button></div>`
@@ -1477,7 +1534,10 @@ async function renderPlayerHome() {
       <span style="color:var(--muted)">Player</span><span>${p.position}${p.roles?.length ? " · " + p.roles.join(", ") : ""} · ${esc(p.tier_label)} ${p.overall}${p.birth_date ? " · born " + fmtLong(p.birth_date) : ""}</span>
       ${libraryRow(h.library)}
     </div></section>
-    <section class="card"><h3>Competitions he plays in</h3>${h.competitions.map(comp).join("")}</section>
+    <section class="card"><h3>His seasons</h3>${seasonGroups().map(g => `<div class="libcard">
+      <div><b>${esc(seasonLabel(g.season))} · ${esc(g.team)}</b> <span style="color:var(--muted)">· ${g.comps.map(c => esc(shortName(edName(c.edition_id)))).join(", ")}</span></div>
+      <div class="stats-row" style="margin:2px 0">${stat(g.comps.reduce((a, c) => a + (c.apps || 0), 0), "apps")}${stat(g.comps.reduce((a, c) => a + (c.goals || 0), 0), "goals")}${stat(g.comps.reduce((a, c) => a + (c.assists || 0), 0), "assists")}</div>
+      <div class="row"><button class="primary" data-season="${esc(g.season)}">Open season</button></div></div>`).join("")}</section>
     ${h.addable.length ? `<section class="card"><h3>Add him to another competition</h3>
       <p style="color:var(--muted);margin:0 0 4px;font-size:13px">One club per season: in a season where he's at a club, he plays that club's other competitions only.</p>
       ${h.addable.map(add).join("")}</section>` : ""}
@@ -1487,7 +1547,7 @@ async function renderPlayerHome() {
         : `<p style="color:var(--muted);margin:0">${h.profile ? "No clubs on his profile yet." : "Save him to the library to keep a club history."}</p>`}
       <div style="margin-top:8px"><button id="openLibH">${h.profile ? "Edit career in the library" : "Open library"}</button></div>
     </section></div></div>`;
-  m.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openTournament(b.dataset.open, b.dataset.tab));
+  m.querySelectorAll("[data-season]").forEach(b => b.onclick = () => setLevel("season", b.dataset.season));
   m.querySelectorAll("[data-add]").forEach(b => b.onclick = () => openTournament(b.dataset.add, "player"));
   $("#openLibH").onclick = () => gotoTab("library");
   if ($("#saveLib")) $("#saveLib").onclick = async () => {
@@ -1499,6 +1559,31 @@ async function renderPlayerHome() {
     const v = await api("GET", `/api/player/${ED}${q()}`);
     renderCreateForm(v.player);
   };
+}
+function compCard(c) {
+  const stat = (n, l) => `<div class="stat"><b>${n ?? 0}</b><span>${l}</span></div>`;
+  return `<div class="libcard">
+      <div><b>${esc(shortName(edName(c.edition_id)))}</b> <span style="color:var(--muted)">· ${esc(c.team)}</span></div>
+      <div class="stats-row" style="margin:2px 0">${stat(c.apps, "apps")}${stat(c.goals, "goals")}${stat(c.assists, "assists")}${stat(c.minutes, "min")}</div>
+      <div class="row"><button class="primary" data-open="${c.edition_id}" data-tab="groups">Open ${isLeagueEd(c.edition_id) ? "table" : "tournament"}</button>
+        <button data-open="${c.edition_id}" data-tab="player">His matches</button>
+        <button data-open="${c.edition_id}" data-tab="outcomes">Outcomes</button></div></div>`;
+}
+async function renderSeasonPage() {
+  const m = $("#main");
+  if (!state.home) await loadHome();
+  const g = seasonGroups().find(x => x.season === state.season);
+  if (!g) return setLevel("home");
+  m.innerHTML = `<section class="card" style="max-width:760px"><h3>${esc(seasonLabel(g.season))} · ${esc(g.team)}</h3>${g.comps.map(compCard).join("")}</section>`;
+  m.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openTournament(b.dataset.open, b.dataset.tab));
+}
+function renderAllTournaments() {
+  const m = $("#main");
+  m.innerHTML = `<section class="card" style="max-width:760px"><h3>All tournaments</h3>
+    ${state.branch ? "" : `<p style="color:var(--muted);margin:0 0 6px;font-size:13px">You're viewing real history. Pick or create a timeline at the top to create your player.</p>`}
+    ${state_editions.map(e => `<div class="libcard"><div><b>${esc(e.name)}</b> <span style="color:var(--muted)">· ${e.kind === "club" ? "club" : "national teams"}</span></div>
+      <div class="row"><button class="primary" data-open="${e.edition_id}">Open</button></div></div>`).join("")}</section>`;
+  m.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openTournament(b.dataset.open, "groups"));
 }
 const isLeagueEd = id => state_editions.find(e => e.edition_id === id)?.format === "league";
 

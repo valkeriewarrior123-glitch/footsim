@@ -201,7 +201,7 @@ def editions(conn) -> list:
                           "JOIN competitions c USING(competition_id) JOIN rulesets USING(edition_id) ORDER BY e.start_date DESC"):
         rules = _db.get_ruleset(conn, r["edition_id"])
         out.append({"edition_id": r["edition_id"], "name": rules.get("display_name") or f"{r['name']} {r['season']}",
-                    "kind": r["kind"], "format": rules.get("format", "groups_then_knockout"), "focus_team": rules.get("focus_team")})
+                    "season": r["season"], "kind": r["kind"], "format": rules.get("format", "groups_then_knockout"), "focus_team": rules.get("focus_team")})
     return out
 
 

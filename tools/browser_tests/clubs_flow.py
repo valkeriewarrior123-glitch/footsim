@@ -15,25 +15,29 @@ with sync_playwright() as p:
     pg.wait_for_selector("#main .card, :text('Look around without saving')", timeout=180000)
     if pg.query_selector(":text('Look around without saving')"): pg.click(":text('Look around without saving')")
     pg.wait_for_selector("#main .card", timeout=180000)
+    def side(sel):
+        if not pg.is_visible("#side"): pg.click("#menuBtn"); pg.wait_for_timeout(300)
+        pg.click(sel)
     def step(name, fn):
         t = time.time(); fn(); print(f"ok  {name} ({time.time()-t:.1f}s)")
     def close_modal():
+        pg.wait_for_timeout(1000)
         for _ in range(3):
             b = pg.query_selector("#modal button:visible")
             if not b: break
             b.click(); pg.wait_for_timeout(400)
-    def top(level): close_modal(); pg.click(f"#topnav [data-level={level}]"); pg.wait_for_timeout(1200)
+    def top(go): close_modal(); side(f"#side [data-go={go}]"); pg.wait_for_timeout(1200)
     def home_without_branch():
-        assert "Pick or create a timeline" in pg.inner_text("#main")
-    step("Player page asks for a timeline first", home_without_branch)
+        assert "all tournaments" in pg.inner_text("#main").lower()
+    step("real history lands on All tournaments", home_without_branch)
     step("new branch", lambda: (pg.click("#newBranch"), pg.wait_for_selector("#banner:has-text('Clubs test')")))
     def create_serie_a():
         pg.wait_for_selector("#cpEd", timeout=15000); pg.select_option("#cpEd", label="Serie A 2012/13"); pg.wait_for_timeout(1500)
         pg.fill("#cpName", "Test Star"); pg.select_option("#cpTeam", label="Juventus"); pg.wait_for_timeout(1500)
         pg.wait_for_selector("#cpRep option", state="attached")
         pg.eval_on_selector("#cpRep", "e => { const o = [...e.options].find(x => /\\d+ min/.test(x.textContent) && !/ 0 min/.test(x.textContent)); e.value = o.value; }")
-        pg.click("#cpCreate"); pg.wait_for_selector("text=Competitions he plays in", timeout=60000)
-        assert "Serie A 2012/13" in pg.inner_text("#main")
+        pg.click("#cpCreate"); pg.wait_for_selector("text=His seasons", timeout=60000)
+        assert "2012/13" in pg.inner_text("#main")
     step("create him on the Player page (first competition Serie A)", create_serie_a)
     def add_ucl():
         card = pg.locator(".libcard:has-text('Champions League 2012/13')")
@@ -42,14 +46,13 @@ with sync_playwright() as p:
         pg.click("#apGo"); pg.wait_for_selector("text=Plays in", timeout=60000); pg.screenshot(path="/tmp/shot_clubs_ucl.png")
     step("add him to the Champions League (opens that tournament)", add_ucl)
     def back_home():
-        close_modal(); pg.click("#subnav [data-back]"); pg.wait_for_selector("text=Competitions he plays in")
-        assert pg.locator(".libcard:has-text('Champions League 2012/13') [data-open][data-tab=player]").count() == 1
-        assert pg.locator(".libcard:has-text('Serie A 2012/13') [data-open][data-tab=player]").count() == 1
+        close_modal(); side("#side [data-go=home]"); pg.wait_for_selector("text=His seasons")
+        assert "Champions League" in pg.inner_text("#side") and "Serie A" in pg.inner_text("#side"), pg.inner_text("#side")
         pg.screenshot(path="/tmp/shot_player_home.png")
     step("back on his page both competitions show", back_home)
     def outcomes_lock():
         pg.wait_for_timeout(1500)
-        pg.locator(".libcard:has-text('Serie A 2012/13') [data-open][data-tab=outcomes]").dispatch_event("click"); pg.wait_for_selector("#oKind")
+        side("#side [data-go=season]"); pg.wait_for_selector(".libcard:has-text('Serie A') [data-open][data-tab=outcomes]"); pg.locator(".libcard:has-text('Serie A') [data-open][data-tab=outcomes]").dispatch_event("click"); pg.wait_for_selector("#oKind")
         pg.select_option("#oKind", "player_total")
         pg.select_option("#oTeam", label="Juventus"); pg.wait_for_selector("#oPlayer option:has-text('Test Star')", state="attached")
         pg.select_option("#oPlayer", label="Test Star"); pg.fill("#oG", "14"); pg.fill("#oAs", "4"); close_modal(); pg.click("#oAdd"); pg.wait_for_selector("[data-rm]")
@@ -57,9 +60,8 @@ with sync_playwright() as p:
         pg.screenshot(path="/tmp/shot_clubs_outcome.png")
     step("Outcomes from his page: lock his goals and assists", outcomes_lock)
     def tournaments():
-        top("tournament"); pg.wait_for_selector("#edition", state="visible")
-        pg.select_option("#edition", label="FIFA World Cup 2022"); pg.wait_for_selector(".groups", timeout=60000)
-        top("home"); pg.wait_for_selector("text=Competitions he plays in")
+        top("all"); pg.click("#main [data-open=WC2022]"); pg.wait_for_selector(".groups", timeout=60000)
+        top("home"); pg.wait_for_selector("text=His seasons")
     step("Tournaments button shows every tournament, Player page is level 2", tournaments)
     def library():
         top("library"); pg.wait_for_selector("#libNew")

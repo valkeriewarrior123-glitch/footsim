@@ -11,10 +11,17 @@ with sync_playwright() as p:
     pg.on("pageerror", lambda e: logs.append(f"[pageerror] {e}"))
     pg.on("response", lambda r: bad.append(f"{r.status} {r.url}") if r.status >= 400 else None)
     pg.on("dialog", lambda d: d.accept(next(names)) if d.type == "prompt" else d.accept())
-    pg.goto(url); pg.wait_for_selector("#main .card", timeout=180000); pg.click("#topnav [data-level=tournament]"); pg.wait_for_selector(".groups")
+    pg.goto(url); pg.wait_for_selector("#main .card", timeout=180000); pg.click("#menuBtn"); pg.click("#side [data-ed=WC2022]"); pg.wait_for_selector(".groups")
+    def open_ed(ed="WC2022", tab="groups"):
+        if pg.query_selector(f"#side [data-ed={ed}]"): side(f"#side [data-ed={ed}]")
+        else: side("#side [data-go=all]"); pg.click(f"#main [data-open={ed}]")
+        pg.wait_for_selector("#tabs [data-tab]"); pg.click(f"#tabs [data-tab={tab}]"); pg.wait_for_timeout(500)
+    def side(sel):
+        if not pg.is_visible("#side"): pg.click("#menuBtn"); pg.wait_for_timeout(300)
+        pg.click(sel)
     def step(name, fn):
         t = time.time(); fn(); print(f"ok  {name} ({time.time()-t:.1f}s)")
-    def lib(): pg.click("#topnav [data-level=library]"); pg.wait_for_selector("#libNew")
+    def lib(): side("#side [data-go=library]"); pg.wait_for_selector("#libNew")
     def make_profile():
         lib(); pg.click("#libNew"); pg.wait_for_selector("#pfName")
         pg.fill("#pfName", "Mateo Rivas"); pg.fill("#pfKnown", "Rivas"); pg.select_option("#pfPos", "FW")
@@ -44,7 +51,7 @@ with sync_playwright() as p:
         pg.screenshot(path="/tmp/shot_lib_list.png")
     step("one branch still differs", check)
     def view_b():
-        pg.click("#topnav [data-level=tournament]"); pg.click("#subnav [data-tab=player]"); pg.wait_for_selector("#ovr")
+        open_ed("WC2022", "player"); pg.wait_for_selector("#ovr")
         assert pg.input_value("#ovr") == "83", pg.input_value("#ovr")        # Branch B kept the old value
         assert pg.query_selector("text=differs from profile")
     step("branch B unchanged", view_b)
