@@ -172,10 +172,16 @@ details.tour .body { padding: 0 14px 14px; }
           box-shadow: -8px 0 30px rgba(0,0,0,.12); transform: translateX(100%); transition: transform .2s; z-index: 20;
           display: flex; flex-direction: column; }
 .drawer.open { transform: none; }
-/* push the page aside only when there is room for the menu, the tables and the drawer; otherwise the drawer slides over */
-@media (min-width: 1800px) { body { transition: padding-right .2s; } body.dr-open { padding-right: min(880px, 100%); } }
-@media (min-width: 1500px) and (max-width: 1799px) { body { transition: padding-right .2s; } body.dr-open { padding-right: 640px; } .drawer { width: 640px; } body.dr-open:not(.side-collapsed) #layout { grid-template-columns: minmax(0, 1fr); } body.dr-open:not(.side-collapsed) #side { display: none; } }
-@media (max-width: 1499px) { .drawer { box-shadow: -8px 0 28px rgba(0,0,0,.25); } }
+/* match panel: 480px beside the page when wide; menu tucks away when medium; half-and-half (page on top, panel below) when small */
+.drawer { width: min(480px, 100%); }
+@media (min-width: 900px) { body { transition: padding-right .2s; } body.dr-open { padding-right: 480px; } }
+@media (min-width: 900px) and (max-width: 1299px) { body.dr-open:not(.side-collapsed) #layout { grid-template-columns: minmax(0, 1fr); } body.dr-open:not(.side-collapsed) #side { display: none; } }
+@media (min-width: 641px) and (max-width: 899px) {
+  .drawer { inset: auto 0 0 0; width: 100%; height: 50vh; border-left: none; border-top: 1px solid var(--line); transform: translateY(100%); box-shadow: 0 -8px 24px rgba(0,0,0,.12); }
+  .drawer.open { transform: none; }
+  body.dr-open { padding-bottom: 50vh; }
+  body.dr-open:not(.side-collapsed) #layout { grid-template-columns: minmax(0, 1fr); } body.dr-open:not(.side-collapsed) #side { display: none; }
+}
 .drawer .hd { padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
 .drawer .hd h2 { margin: 0; font-size: 16px; flex: 1; }
 .drawer .bd { padding: 14px 18px; overflow-y: auto; flex: 1; }
