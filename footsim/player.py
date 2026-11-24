@@ -38,6 +38,15 @@ class Profile:
     roles: tuple = ()
 
 
+def check_birth_date(birth_date) -> None:
+    """Age is ignored on purpose (a once-in-a-million talent): the date only has to be real."""
+    from footsim.api import EditError
+    try:
+        date.fromisoformat(birth_date)
+    except (TypeError, ValueError):
+        raise EditError("Birth date must be YYYY-MM-DD")
+
+
 def _root_branch_with_player(conn, branch_id):
     """The branch (this one or an ancestor) that owns the created player."""
     b = branch_id
@@ -80,13 +89,7 @@ def create(conn, branch_id: int, *, full_name: str, known_as: str | None, birth_
     if not 1 <= overall <= 99:
         raise EditError("Overall rating must be 1 to 99")
     start = conn.execute("SELECT start_date FROM editions WHERE edition_id = ?", (edition_id,)).fetchone()[0]
-    try:
-        bd = date.fromisoformat(birth_date)
-    except (TypeError, ValueError):
-        raise EditError("Birth date must be YYYY-MM-DD")
-    age = (date.fromisoformat(start) - bd).days / 365.25
-    if not 15 <= age <= 45:
-        raise EditError(f"Your player would be {age:.0f} at the tournament; it must be 15 to 45")
+    check_birth_date(birth_date)
     in_squad = conn.execute("SELECT shirt_number FROM squads WHERE edition_id = ? AND team_id = ? AND player_id = ?",
                             (edition_id, team_id, replaces_player_id)).fetchone()
     if in_squad is None:
@@ -149,13 +152,7 @@ def update(conn, branch_id: int, *, full_name=None, known_as=None, birth_date=No
     if known_as is not None:
         conn.execute("UPDATE players SET known_as = ? WHERE player_id = ?", (known_as.strip() or None, p.player_id))
     if birth_date is not None:
-        start = conn.execute("SELECT start_date FROM editions WHERE edition_id = ?", (p.edition_id,)).fetchone()[0]
-        try:
-            age = (date.fromisoformat(start) - date.fromisoformat(birth_date)).days / 365.25
-        except ValueError:
-            raise EditError("Birth date must be YYYY-MM-DD")
-        if not 15 <= age <= 45:
-            raise EditError(f"Your player would be {age:.0f} at the tournament; it must be 15 to 45")
+        check_birth_date(birth_date)
         conn.execute("UPDATE players SET birth_date = ? WHERE player_id = ?", (birth_date, p.player_id))
     if position is not None:
         if position not in ("GK", "DF", "MF", "FW"):

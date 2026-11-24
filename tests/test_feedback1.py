@@ -47,7 +47,8 @@ class Feedback(unittest.TestCase):
         p = player.profile(self.conn, self.b)
         self.assertEqual((p.position, p.overall, p.birth_date), ("MF", 90, "1999-01-01"))
         with self.assertRaises(api.EditError):
-            api.update_player(self.conn, self.b, {"birth_date": "2015-01-01"})
+            api.update_player(self.conn, self.b, {"birth_date": "not a date"})
+        api.update_player(self.conn, self.b, {"birth_date": "2015-01-01"})      # age is ignored on purpose
 
     def test_change_replaced_player(self):
         sane = next(p for p in api.squad(self.conn, ED, "GER") if "Sané" in p["name"])["player_id"]

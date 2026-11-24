@@ -9,7 +9,7 @@ import traceback
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from footsim import api, db
+from footsim import api, db, library
 
 ROUTES = [
     ("GET", r"/api/branches", lambda c, q, b: api.list_branches(c)),
@@ -35,6 +35,13 @@ ROUTES = [
                                                                              b.get("third") or None)),
     ("GET", r"/api/player/(\w+)", lambda c, q, b, ed: api.player_view(c, ed, q)),
     ("POST", r"/api/player/(\w+)", lambda c, q, b, ed: api.create_player(c, ed, q, b)),
+    ("GET", r"/api/library", lambda c, q, b: library.list_profiles(c)),
+    ("POST", r"/api/library", lambda c, q, b: library.create_profile(c, b)),
+    ("POST", r"/api/library/save_branch_player", lambda c, q, b: library.save_branch_player(c, q, b.get("name"))),
+    ("POST", r"/api/library/unlink", lambda c, q, b: library.unlink_branch_player(c, q)),
+    ("POST", r"/api/library/(\d+)", lambda c, q, b, pid: library.update_profile(c, int(pid), b)),
+    ("DELETE", r"/api/library/(\d+)", lambda c, q, b, pid: library.delete_profile(c, int(pid))),
+    ("POST", r"/api/library/(\d+)/apply", lambda c, q, b, pid: library.apply_to_branches(c, int(pid), b.get("branch_ids"))),
     ("POST", r"/api/player_update", lambda c, q, b: api.update_player(c, q, b, "WC2022")),
     ("POST", r"/api/role/(\w+)/([\w-]+)", lambda c, q, b, ed, f: api.set_role(c, ed, q, f, b)),
     ("POST", r"/api/injury/(\w+)", lambda c, q, b, ed: api.add_injury(c, ed, q, b)),

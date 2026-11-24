@@ -43,7 +43,7 @@ class CreatedPlayer(unittest.TestCase):
         b2 = api.create_branch(self.conn, "x")["branch_id"]
         base = {"full_name": "A", "birth_date": "2001-01-01", "team_id": "ARG", "position": "FW",
                 "replaces_player_id": self.dybala, "tier": "star"}
-        for bad in ({"birth_date": "2015-01-01"}, {"position": "XX"}, {"tier": "god"}, {"overall": 120},
+        for bad in ({"birth_date": "not a date"}, {"position": "XX"}, {"tier": "god"}, {"overall": 120},
                     {"replaces_player_id": "sb_3009"}):          # Mbappé isn't Argentinian
             with self.assertRaises(api.EditError, msg=bad):
                 api.create_player(self.conn, ED, b2, {**base, **bad})

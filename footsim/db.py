@@ -26,6 +26,7 @@ def init_db(path: Path = DEFAULT_DB) -> sqlite3.Connection:
     conn = connect(path)
     conn.executescript(SCHEMA.read_text(encoding="utf-8"))
     _add_column(conn, "created_players", "roles", "TEXT")          # added after v1
+    _add_column(conn, "created_players", "profile_id", "INTEGER")  # link to the player library
     _add_column(conn, "branches", "mode", "TEXT NOT NULL DEFAULT 'focus'")
     apply_squad_lists(conn)
     apply_role_minutes(conn)

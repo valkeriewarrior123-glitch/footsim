@@ -2,7 +2,7 @@
 
 server.py exposes these over HTTP; tests call them directly.
 """
-from footsim import engine, player, season_stats, stats, timeline
+from footsim import engine, library, player, season_stats, stats, timeline
 from footsim.timeline import Fixture
 
 GOAL_TYPES = ("goal", "pen_goal")
@@ -50,7 +50,14 @@ def delete_branch(conn, branch_id: int) -> dict:
     conn.execute("DELETE FROM lineup_overrides WHERE override_id IN "
                  "(SELECT override_id FROM fixture_overrides WHERE branch_id = ?)", (branch_id,))
     conn.execute("DELETE FROM fixture_overrides WHERE branch_id = ?", (branch_id,))
+    made = [r[0] for r in conn.execute("SELECT player_id FROM created_players WHERE branch_id = ?", (branch_id,))]
+    for (t,) in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT IN "
+                             "('branches', 'sqlite_sequence')").fetchall():
+        if any(c[1] == "branch_id" for c in conn.execute(f"PRAGMA table_info({t})")):
+            conn.execute(f"DELETE FROM {t} WHERE branch_id = ?", (branch_id,))     # created player, roles, logs...
     conn.execute("DELETE FROM branches WHERE branch_id = ?", (branch_id,))
+    for pid in made:                         # the branch's created player goes with it (library profiles stay)
+        conn.execute("DELETE FROM players WHERE player_id = ? AND is_created = 1", (pid,))
     conn.commit()
     return {"deleted": branch_id}
 
@@ -633,6 +640,10 @@ def create_player(conn, edition_id: str, branch_id: int, body: dict) -> dict:
                       tier=body.get("tier"), overall=body.get("overall"),
                       detail_position=body.get("detail_position"), edition_id=edition_id,
                       roles=body.get("roles"))
+    if body.get("profile_id"):                                 # made from a library profile: remember the link
+        library._row(conn, int(body["profile_id"]))
+        conn.execute("UPDATE created_players SET profile_id = ? WHERE branch_id = ?", (int(body["profile_id"]), branch_id))
+        conn.commit()
     return {"ok": True, "player_id": p.player_id}
 
 
@@ -770,6 +781,7 @@ def player_view(conn, edition_id: str, branch_id: int | None) -> dict:
             "SELECT injury_id, start_date, end_date, description FROM injuries WHERE branch_id = ? AND player_id = ? "
             "ORDER BY start_date", (branch_id, me.player_id))],
         "calendar": calendar(conn, edition_id, branch_id, me),
+        "library": library.branch_link(conn, branch_id),
     }
 
 

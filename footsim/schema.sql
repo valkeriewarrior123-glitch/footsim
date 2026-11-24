@@ -315,3 +315,23 @@ CREATE TABLE IF NOT EXISTS data_notes (
     kind             TEXT NOT NULL,             -- subs_estimated, lineup_incomplete, scorer_unknown, added_to_squad ...
     note             TEXT NOT NULL
 );
+
+
+------------------------------------------------------------
+-- PLAYER LIBRARY: reusable player profiles (not tied to any branch)
+-- A branch's created player is a copy of a profile; created_players.profile_id remembers which one.
+------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS player_profiles (
+    profile_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    full_name        TEXT NOT NULL,
+    known_as         TEXT,
+    birth_date       TEXT,
+    position         TEXT NOT NULL CHECK (position IN ('GK','DF','MF','FW')),
+    roles            TEXT,                                          -- comma list, e.g. 'LW,ST'
+    detail_position  TEXT,
+    tier             TEXT NOT NULL,
+    overall          INTEGER NOT NULL CHECK (overall BETWEEN 1 AND 99),
+    created_at       TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
