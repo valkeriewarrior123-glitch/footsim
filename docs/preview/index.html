@@ -391,9 +391,9 @@ details.tour .body { padding: 0 14px 14px; }
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=c3d0ae8cb9", "seed": "footsim-seed.db?v=c3d0ae8cb9", "worker": "engine-worker.js?v=c3d0ae8cb9", "version": "c3d0ae8cb9", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
-<script src="cloud.js?v=c3d0ae8cb9"></script>
-<script src="engine.js?v=c3d0ae8cb9"></script>
+<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=a8bd16e65b", "seed": "footsim-seed.db?v=a8bd16e65b", "worker": "engine-worker.js?v=a8bd16e65b", "version": "a8bd16e65b", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
+<script src="cloud.js?v=a8bd16e65b"></script>
+<script src="engine.js?v=a8bd16e65b"></script>
 <script>
 let ED = (() => { try { return localStorage.getItem("footsim.edition") || "WC2022"; } catch (e) { return "WC2022"; } })();
 let state_editions = [];
@@ -1315,8 +1315,8 @@ async function renderOutcomesTab() {
       const r = await api("POST", `/api/outcomes/${ED}/run${q()}`, { apply, seed: outSeed });
       outSeed = r.seed;
       if (!r.ok) { $("#oRes").innerHTML = `<div class="msg err"><b>These locks can't all be true. Nothing was changed.</b><ul>${r.contradictions.map(c => `<li>${esc(c.message)}</li>`).join("")}</ul></div>`; return; }
-      if (apply) { outSeed = null; await refresh(); await new Promise(r => setTimeout(r, 400)); $("#oRes").innerHTML = `<div class="msg ok">Applied. Every lock is true in this branch.</div>`; showDiff(r.diff); return; }
-      $("#oRes").innerHTML = `<div class="msg ok">All locks can be met. Nothing is saved yet.</div>
+      if (apply) { outSeed = null; await refresh(); await new Promise(r => setTimeout(r, 400)); $("#oRes").innerHTML = `<div class="msg ok">Applied. Every lock is true in this branch.${(r.notes || []).map(n => `<br>${esc(n)}`).join("")}</div>`; showDiff(r.diff); return; }
+      $("#oRes").innerHTML = `<div class="msg ok">All locks can be met. Nothing is saved yet.${(r.notes || []).map(n => `<br>${esc(n)}`).join("")}</div>
         <div class="row" style="margin-top:8px"><button class="primary" id="oApply">Apply</button><button id="oShow">What would change</button><button id="oAgain">Roll again</button></div>`;
       $("#oApply").onclick = () => run(true); $("#oShow").onclick = () => showDiff(r.diff);
       $("#oAgain").onclick = () => { outSeed = null; run(false); };

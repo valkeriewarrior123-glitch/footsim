@@ -1313,8 +1313,8 @@ async function renderOutcomesTab() {
       const r = await api("POST", `/api/outcomes/${ED}/run${q()}`, { apply, seed: outSeed });
       outSeed = r.seed;
       if (!r.ok) { $("#oRes").innerHTML = `<div class="msg err"><b>These locks can't all be true. Nothing was changed.</b><ul>${r.contradictions.map(c => `<li>${esc(c.message)}</li>`).join("")}</ul></div>`; return; }
-      if (apply) { outSeed = null; await refresh(); await new Promise(r => setTimeout(r, 400)); $("#oRes").innerHTML = `<div class="msg ok">Applied. Every lock is true in this branch.</div>`; showDiff(r.diff); return; }
-      $("#oRes").innerHTML = `<div class="msg ok">All locks can be met. Nothing is saved yet.</div>
+      if (apply) { outSeed = null; await refresh(); await new Promise(r => setTimeout(r, 400)); $("#oRes").innerHTML = `<div class="msg ok">Applied. Every lock is true in this branch.${(r.notes || []).map(n => `<br>${esc(n)}`).join("")}</div>`; showDiff(r.diff); return; }
+      $("#oRes").innerHTML = `<div class="msg ok">All locks can be met. Nothing is saved yet.${(r.notes || []).map(n => `<br>${esc(n)}`).join("")}</div>
         <div class="row" style="margin-top:8px"><button class="primary" id="oApply">Apply</button><button id="oShow">What would change</button><button id="oAgain">Roll again</button></div>`;
       $("#oApply").onclick = () => run(true); $("#oShow").onclick = () => showDiff(r.diff);
       $("#oAgain").onclick = () => { outSeed = null; run(false); };

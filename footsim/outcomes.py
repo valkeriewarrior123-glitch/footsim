@@ -478,6 +478,44 @@ def _counts(played, what: str) -> dict:
 
 
 def _fit_players(conn, edition_id, branch_id, locks, rng) -> list:
+    """Make the player locks true. If the created player needs goals or assists but doesn't play enough
+    (he replaced someone who never played, or his team scores too little while he's on the pitch), give him
+    just enough starts: the matches where his team scores most first, one at a time, until the locks fit."""
+    from footsim import player
+    me = player.profile(conn, branch_id, edition_id)
+    mine = {l.id for l in locks if l.kind in ("player_total", "golden_boot") and me and l.p.get("player_id") == me.player_id}
+    if not mine:
+        return _fit_players_once(conn, edition_id, branch_id, locks, rng)
+    problems = _fit_players_once(conn, edition_id, branch_id, locks, rng, allow_rivals=False)
+    if not problems or not all(set(p["locks"]) <= mine for p in problems):
+        return problems
+    played, _ = stats.counted_fixtures(conn, edition_id, branch_id)
+    goals_for = lambda f: f.home_score if f.home == me.team_id else f.away_score
+    order = [f for f in played if me.team_id in (f.home, f.away)
+             and not any(l["player_id"] == me.player_id for l in f.lineup)]
+    rng.shuffle(order)
+    order.sort(key=lambda f: -(goals_for(f) or 0))
+    given = 0
+    while problems and order:
+        step = 1 if given < 6 else 4
+        for f in order[:step]:
+            try:
+                player.set_role(conn, branch_id, f.fixture_id, "start")
+                given += 1
+            except EditError:
+                pass                                   # injured that day: skip the match
+        order = order[step:]
+        problems = _fit_players_once(conn, edition_id, branch_id, locks, rng, allow_rivals=False)
+        if problems and not all(set(p["locks"]) <= mine for p in problems):
+            break
+    if problems:                                       # every start used: only now move rivals' goals
+        problems = _fit_players_once(conn, edition_id, branch_id, locks, rng)
+    if not problems and given:
+        rng.notes = getattr(rng, "notes", []) + [f"{api.names(conn).get(me.player_id)} was given {given} start{'s' if given != 1 else ''} to make his locks possible. Change them in His matches."]
+    return problems
+
+
+def _fit_players_once(conn, edition_id, branch_id, locks, rng, allow_rivals=True) -> list:
     wants = {}
     for l in locks:
         if l.kind == "player_total":
@@ -608,11 +646,19 @@ def _fit_players(conn, edition_id, branch_id, locks, rng) -> list:
                         e["assist_player_id"] = None
                     continue
             leader = next((q for q, g in sorted(rivals.items(), key=lambda kv: -kv[1]) if q not in frozen), None)
+            if not allow_rivals:
+                problems.append({"locks": w["ids"], "message": (
+                    f"{nm.get(pid)} has {mine} goals and the top scorer has {top}: he needs to be in more matches.")})
+                break
             if leader is None or not give_away(leader, "goals", protect={pid}):
                 problems.append({"locks": w["ids"], "message": (
                     f"{nm.get(pid)} can't be made top scorer: he has {mine} and {nm.get(max(rivals, key=rivals.get)) if rivals else 'nobody'} "
                     f"has {top}, and there aren't enough of his team's goals (in the matches he plays) to close the gap.")})
                 break
+        else:
+            goals = _counts(played, "goals")
+            problems.append({"locks": w["ids"], "message": (
+                f"{nm.get(pid)} can't be made top scorer: he has {goals.get(pid, 0)} goals in the matches he plays.")})
         frozen.add(pid)
 
     changed = [f for f in played if json.dumps(f.events, sort_keys=True) != before[f.fixture_id]]
@@ -697,7 +743,8 @@ def run(conn, edition_id: str, branch_id: int, apply: bool = False, seed: int | 
             conn.commit()
         else:
             conn.rollback()
-        return {"ok": True, "applied": bool(apply), "seed": seed, "diff": d, "locks": descr, "overrides": changed}
+        return {"ok": True, "applied": bool(apply), "seed": seed, "diff": d, "locks": descr, "overrides": changed,
+                "notes": getattr(rng, "notes", [])}
     except EditError as e:
         conn.rollback()
         return {"ok": False, "applied": False, "seed": seed, "locks": descr,

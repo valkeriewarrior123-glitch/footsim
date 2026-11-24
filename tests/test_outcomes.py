@@ -117,5 +117,21 @@ class Outcomes(unittest.TestCase):
         self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM outcome_locks").fetchone()[0], 0)
 
 
+    def test_golden_boot_gives_a_bench_replacement_just_enough_starts(self):
+        from footsim import player
+        sq = api.squad(self.conn, SA, "c_juventus", None)
+        bench = next(x for x in sq if x["minutes"] == 0)
+        api.create_player(self.conn, SA, self.b, dict(full_name="Bench Star", birth_date="2000-01-01", team_id="c_juventus",
+                                                      position="FW", replaces_player_id=bench["player_id"], tier="star"))
+        me = player.profile(self.conn, self.b).player_id
+        self.lock(SA, "golden_boot", player_id=me)
+        r = outcomes.run(self.conn, SA, self.b, apply=True, seed=1)
+        self.assertTrue(r["ok"], r)
+        self.assertTrue(r["notes"] and "starts" in r["notes"][0])
+        st = stats.edition_stats(self.conn, SA, self.b)
+        self.assertEqual(st.awards["golden_boot"][0], me)
+        self.assertEqual(st.players["kg_49677"].goals, 29)            # Cavani's season is untouched
+
+
 if __name__ == "__main__":
     unittest.main()
