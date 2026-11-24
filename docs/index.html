@@ -151,6 +151,7 @@ details.tour .body { padding: 0 14px 14px; }
           box-shadow: -8px 0 30px rgba(0,0,0,.12); transform: translateX(100%); transition: transform .2s; z-index: 20;
           display: flex; flex-direction: column; }
 .drawer.open { transform: none; }
+@media (min-width: 1100px) { body { transition: padding-right .2s; } body.dr-open { padding-right: min(880px, 100%); } }
 .drawer .hd { padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
 .drawer .hd h2 { margin: 0; font-size: 16px; flex: 1; }
 .drawer .bd { padding: 14px 18px; overflow-y: auto; flex: 1; }
@@ -186,7 +187,27 @@ details.tour .body { padding: 0 14px 14px; }
 
 
 /* match timeline */
-.tl { margin: 4px 0 6px; }
+.tl { margin: 4px 0 6px; } .tl-main { position: relative; }
+.tl-lane, .tl-axis, .tl-ticks, .tl-name { position: relative; }
+.tl-ball { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--muted); background: var(--panel, #fff); display: grid; place-items: center; font-size: 9px; font-weight: 700; color: var(--muted); box-sizing: border-box; line-height: 1; }
+.tl-ball.g::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
+.tl-pb { position: relative; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--c); background: #fff; box-sizing: border-box; display: grid; place-items: center; --c: #2e8b1f; }
+.tl-pb.x { --c: #d63b3b; }
+.tl-pb.og { --c: #BA7517; }
+.tl-pb.og b { font-size: 7.5px; letter-spacing: -.4px; -webkit-text-stroke: 2.5px #fff; }
+.tl-pb u { text-decoration: none; font-size: 14px; line-height: 1; filter: opacity(.8); }
+.tl-pb b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-weight: 900; line-height: 1; color: var(--c); -webkit-text-stroke: 3px #fff; paint-order: stroke fill; }
+.tl-ball.og { width: 20px; height: 20px; border-color: #BA7517; color: #BA7517; background: rgba(186,117,23,.16); }
+.tl-emoji { font-size: 16px; line-height: 1; }
+.tl-pens { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+.tl-ph { text-align: center; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; } .tl-ph b { font-weight: 500; color: inherit; }
+.tl-pr { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 5px 0; }
+.tl-pn { min-width: 110px; text-align: right; font-size: 11px; font-weight: 600; } .tl-pn.h { color: #2f6fd6; } .tl-pn.a { color: #e07a1f; } .tl-pn i { font-style: normal; font-weight: 400; margin-left: 2px; }
+.tl-dots { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tl-k { position: relative; width: 18px; height: 18px; border-radius: 50%; color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; line-height: 1; outline: none; }
+.tl-k.ok { background: #3B6D11; } .tl-k.no { background: #d63b3b; }
+.tl-k .tip { display: none; position: absolute; z-index: 5; bottom: 24px; left: 50%; transform: translateX(-50%); white-space: nowrap; background: #1f2430; color: #fff; font-size: 12px; font-weight: 400; padding: 5px 8px; border-radius: 6px; pointer-events: none; }
+.tl-k:hover, .tl-k:focus { z-index: 6; } .tl-k:hover .tip, .tl-k:focus .tip { display: block; }
 .tl-lane { position: relative; margin: 0 10px; }
 .tl-axis { position: relative; height: 2px; background: var(--line); margin: 6px 10px; border-radius: 1px; }
 .tl-axis i { position: absolute; top: -3px; width: 1px; height: 8px; background: var(--line); }
@@ -194,17 +215,19 @@ details.tour .body { padding: 0 14px 14px; }
 .tl-ticks { position: relative; height: 14px; margin: 0 10px; font-size: 10px; color: var(--muted); font-family: var(--mono); }
 .tl-ticks span { position: absolute; transform: translateX(-50%); }
 .tl-ticks span:first-child { transform: none; } .tl-ticks span:last-child { transform: translateX(-100%); }
-.tl-m { position: absolute; transform: translateX(-50%); width: 18px; height: 18px; display: grid; place-items: center; font-size: 13px; line-height: 1; cursor: default; outline: none; }
+.tl-m { position: absolute; transform: translateX(-50%); width: 20px; height: 20px; display: grid; place-items: center; font-size: 13px; line-height: 1; cursor: default; outline: none; }
 .tl-m .tip { display: none; position: absolute; z-index: 5; left: 50%; transform: translateX(-50%); white-space: nowrap; background: #1f2430; color: #fff; font-size: 12px; padding: 5px 8px; border-radius: 6px; pointer-events: none; font-family: inherit; }
-.tl-lane.top .tip { bottom: 22px; } .tl-lane.bot .tip { top: 22px; }
+.tl-lane.top .tip { bottom: 24px; } .tl-lane.bot .tip { top: 24px; }
 .tl-m.l .tip { left: 0; transform: none; } .tl-m.r .tip { left: auto; right: 0; transform: none; }
 .tl-m:hover, .tl-m:focus { z-index: 6; } .tl-m:hover .tip, .tl-m:focus .tip { display: block; }
 .tl-m .tip b { font-family: var(--mono); font-weight: 600; margin-right: 5px; opacity: .8; }
 .tl-card { width: 9px; height: 12px; border-radius: 2px; display: block; }
 .tl-card.y { background: #f2c230; } .tl-card.r { background: #d63b3b; }
-.tl-card.yy { background: #f2c230; box-shadow: 3px 2px 0 -1px #d63b3b; }
+.tl-card2 { position: relative; width: 19px; height: 15px; display: block; }
+.tl-card2 i { position: absolute; top: 0; width: 9px; height: 13px; border-radius: 2px; }
+.tl-card2 .y { left: 0; background: #f2c230; } .tl-card2 .r { left: 9px; top: 2px; background: #d63b3b; box-shadow: -1.5px 0 0 var(--panel); }
 .tl-sub { font-size: 12px; color: var(--muted); font-weight: 700; }
-.tl-name { font-size: 11px; font-weight: 600; margin: 0 10px; } .tl-name.h { color: #2f6fd6; } .tl-name.a { color: #e07a1f; }
+.tl-name { font-size: 11px; font-weight: 600; margin: 2px 10px 0; line-height: 1.2; } .tl-name.h { color: #2f6fd6; } .tl-name.a { color: #e07a1f; }
 .tl-axis.h { background: #2f6fd6; } .tl-axis.a { background: #e07a1f; }
 .tl-axis.h i { background: #2f6fd6; } .tl-axis.a i { background: #e07a1f; }
 
@@ -354,9 +377,9 @@ details.tour .body { padding: 0 14px 14px; }
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=4a4ebebeef", "seed": "footsim-seed.db?v=4a4ebebeef", "worker": "engine-worker.js?v=4a4ebebeef", "version": "4a4ebebeef", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common"}};</script>
-<script src="cloud.js?v=4a4ebebeef"></script>
-<script src="engine.js?v=4a4ebebeef"></script>
+<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=7c88e336aa", "seed": "footsim-seed.db?v=7c88e336aa", "worker": "engine-worker.js?v=7c88e336aa", "version": "7c88e336aa", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common"}};</script>
+<script src="cloud.js?v=7c88e336aa"></script>
+<script src="engine.js?v=7c88e336aa"></script>
 <script>
 let ED = (() => { try { return localStorage.getItem("footsim.edition") || "WC2022"; } catch (e) { return "WC2022"; } })();
 let state_editions = [];
@@ -745,8 +768,11 @@ async function openFixture(fid) {
   $("#drawer").classList.add("open");
   if (!state.branch) return renderReadOnly(f);
   if (!f.editable) return renderReadOnly(f, true);
-  renderEditor(f);
+  if (f.status === "pending" || state.unlock === fid) return renderEditor(f);    // nothing to show yet, or already unlocked
+  state.unlock = null;
+  renderReadOnly(f, false, true);
 }
+new MutationObserver(() => document.body.classList.toggle("dr-open", $("#drawer").classList.contains("open"))).observe($("#drawer"), { attributes: true, attributeFilter: ["class"] });
 $("#dClose").onclick = () => $("#drawer").classList.remove("open");
 document.addEventListener("keydown", e => { if (e.key === "Escape") { $("#drawer").classList.remove("open"); $("#modal").classList.remove("open"); } });
 
@@ -768,10 +794,21 @@ function matchTimeline(f) {
   const mins = m => m > 90 && !et ? `90+${m - 90}` : String(m);
   const items = [...f.events.filter(e => ["goal", "pen_goal", "own_goal", "pen_miss", "yellow", "second_yellow", "red"].includes(e.event_type)).map(e => ({
     minute: e.minute, team_id: e.team_id, kind: e.event_type,
-    text: ({ goal: "Goal", pen_goal: "Penalty goal", own_goal: "Own goal", pen_miss: "Penalty missed", yellow: "Yellow card", second_yellow: "Second yellow", red: "Red card" })[e.event_type]
+    text: ({ goal: "Goal", pen_goal: "Penalty goal", own_goal: "Own goal", pen_miss: "Penalty missed", yellow: "Yellow card", second_yellow: "Second yellow, sent off", red: "Red card" })[e.event_type]
       + (e.player_name ? " — " + e.player_name : "") + (e.assist_name ? ` (assist ${e.assist_name})` : "") })),
     ...sub.map(x => ({ minute: x.minute, team_id: x.team_id, kind: "sub", text: `Substitution — ${x.on || "?"} on${x.off ? ", " + x.off + " off" : ""}` }))];
-  if (!items.length) return "";
+  const kicks = f.events.filter(e => /^shootout_/.test(e.event_type)).sort((a, b) => a.minute - b.minute);
+  let pens = "";
+  if (f.pen_home != null) {                          // a shootout: one dot per kick in order, a small tally by each name
+    const hk = kicks.filter(e => e.team_id === f.home), ak = kicks.filter(e => e.team_id === f.away), n = Math.max(hk.length, ak.length);
+    const row = (team, ks, tally, cls) => `<div class="tl-pr"><span class="tl-pn ${cls}">${esc(tname(team))} <i>${tally}</i></span><span class="tl-dots" style="width:${Math.min(n, 8) * 24}px">${ks.map((e, i) => {
+      const ok = e.event_type === "shootout_score";
+      return `<span class="tl-k ${ok ? "ok" : "no"}" tabindex="0">${ok ? "✓" : "✕"}<span class="tip">Kick ${i + 1} · ${esc(e.player_name || "Unknown")} ${ok ? "scored" : "missed"}</span></span>`;
+    }).join("")}</span></div>`;
+    pens = n ? `<div class="tl-pens"><div class="tl-ph">Penalties</div>${row(f.home, hk, f.pen_home, "h")}${row(f.away, ak, f.pen_away, "a")}</div>`
+             : `<div class="tl-pens"><div class="tl-ph">Penalties <b>${f.pen_home}–${f.pen_away}</b></div></div>`;
+  }
+  if (!items.length && !pens) return "";
   const pos = m => Math.min(100, Math.max(0, m / end * 100));
   const lane = (team, cls) => {
     const mine = items.filter(i => i.team_id === team).sort((a, b) => a.minute - b.minute);
@@ -779,37 +816,64 @@ function matchTimeline(f) {
     const html = mine.map(i => {
       const x = pos(i.minute); let r = rows.findIndex(last => x - last >= 4.2);
       if (r < 0) { r = rows.length; rows.push(-99); } rows[r] = x;
-      const icon = i.kind === "goal" || i.kind === "pen_goal" ? "⚽" : i.kind === "own_goal" ? "⚽" : i.kind === "pen_miss" ? "✕"
+      const icon = i.kind === "goal" ? `<span class="tl-emoji">⚽</span>` : i.kind === "pen_goal" ? `<span class="tl-pb"><u>⚽</u><b>P</b></span>`
+        : i.kind === "own_goal" ? `<span class="tl-pb og"><u>⚽</u><b>OG</b></span>` : i.kind === "pen_miss" ? `<span class="tl-pb x"><u>⚽</u><b>P</b></span>`
         : i.kind === "yellow" ? `<span class="tl-card y"></span>` : i.kind === "red" ? `<span class="tl-card r"></span>`
-        : i.kind === "second_yellow" ? `<span class="tl-card yy"></span>` : `<span class="tl-sub">⇄</span>`;
+        : i.kind === "second_yellow" ? `<span class="tl-card2"><i class="y"></i><i class="r"></i></span>` : `<span class="tl-sub">⇄</span>`;
       const edge = x < 14 ? " l" : x > 86 ? " r" : "";
-      const label = i.kind === "own_goal" ? `<span style="filter:hue-rotate(150deg)">⚽</span>` : icon;
-      return `<span class="tl-m${edge}" tabindex="0" style="left:${x}%;${cls === "top" ? "bottom" : "top"}:${r * 19}px" title="${esc(mins(i.minute) + "' " + i.text)}">${label}<span class="tip"><b>${mins(i.minute)}'</b>${esc(i.text)}</span></span>`;
+      const label = icon;
+      return `<span class="tl-m${edge}" tabindex="0" style="left:${x}%;${cls === "top" ? "bottom" : "top"}:${r * 22}px" aria-label="${esc(mins(i.minute) + "' " + i.text)}">${label}<span class="tip"><b>${mins(i.minute)}'</b>${esc(i.text)}</span></span>`;
     }).join("");
-    return `<div class="tl-lane ${cls}" style="height:${Math.max(1, rows.length) * 19 + 2}px">${html}</div>`;
+    return `<div class="tl-lane ${cls}" style="height:${Math.max(1, rows.length) * 22 + 2}px">${html}</div>`;
   };
   const ticks = []; for (let m = 0; m <= end; m += 15) ticks.push(m);
   const tick = `<div class="tl-ticks">${ticks.map(m => `<span style="left:${pos(m)}%">${m}'</span>`).join("")}</div>`;
   const ln = c => `<div class="tl-axis ${c}">${ticks.map(m => `<i class="${m === 45 ? "ht" : ""}" style="left:${pos(m)}%"></i>`).join("")}</div>`;
-  return `<div class="tl">
-    <div class="tl-name h">${esc(tname(f.home))}</div>
+  return `<div class="tl"><div class="tl-main">
     ${lane(f.home, "top")}
+    <div class="tl-name h">${esc(tname(f.home))}</div>
     ${ln("h")}
     ${tick}
     ${ln("a")}
-    ${lane(f.away, "bot")}
     <div class="tl-name a">${esc(tname(f.away))}</div>
+    ${lane(f.away, "bot")}
+    </div>${pens}
   </div>`;
+}
+
+// Two-legged ties: the running aggregate for this leg, and what the leg still needs (extra time, shootout).
+function tieState(f, hs, as_) {
+  if (!f.tie) return null;
+  const o = f.tie.other, leg = f.tie.leg;
+  if (!o || o.home_score == null || hs == null || as_ == null) return { known: false, leg };
+  const h = hs + o.away_score, a = as_ + o.home_score;           // this leg's home team is the other leg's away team
+  const level = h === a;
+  const awayDecides = leg === 2 && level && f.tie.away_goals && as_ !== o.away_score;
+  return { known: true, leg, h, a, level, awayDecides, needEt: leg === 2 && level, needPens: leg === 2 && level && !awayDecides };
+}
+function tieBlock(f, ts, as_) {
+  if (!ts) return "";
+  const o = f.tie.other, th = tname(f.home), ta = tname(f.away);
+  if (!ts.known) return `<div class="msg info">${ts.leg === 1 ? "Leg 2" : "Leg 1"} has no result yet, so there's no aggregate.</div>`;
+  const other = `${ts.leg === 1 ? "Leg 2" : "Leg 1"}: ${esc(tname(o.home))} ${o.home_score}–${o.away_score} ${esc(tname(o.away))}`;
+  let verdict = "";
+  if (ts.leg === 2) {
+    verdict = ts.needPens ? " · level, so extra time and a shootout"
+      : ts.awayDecides ? ` · level, ${esc(as_ > o.away_score ? ta : th)} go through on away goals`
+      : ts.level ? "" : ` · ${esc(ts.h > ts.a ? th : ta)} go through`;
+  }
+  return `<div class="msg info">Aggregate <b>${esc(th)} ${ts.h}–${ts.a} ${esc(ta)}</b>${verdict}<br><span style="font-size:12px">${other}</span></div>`;
 }
 
 function stageLine(f) { return `${STAGE[f.stage]}${f.group ? " " + f.group : ""}${f.leg ? " · " + f.leg + (f.leg === 1 ? "st" : "nd") + " leg" : f.match_no ? " · Match " + f.match_no : ""} · ${fmtDate(f.date)}`; }
 
-function renderReadOnly(f, ripple) {
+function renderReadOnly(f, ripple, canEdit) {
   $("#dBody").innerHTML = `<div class="ro">
     <div class="msg info">${stageLine(f)}</div>
     ${f.home_score == null ? `<p>No result yet.</p>` : `<div class="scoreline"><div class="tn r">${esc(tname(f.home))}</div>
       <input value="${f.home_score}" disabled><span>–</span><input value="${f.away_score}" disabled><div class="tn">${esc(tname(f.away))}</div></div>
-      ${f.pen_home != null ? `<p>Penalties ${f.pen_home}–${f.pen_away}</p>` : ""}`}
+      `}
+    ${f.home_score == null ? "" : tieBlock(f, tieState(f, f.home_score, f.away_score), f.away_score)}
     ${f.home_score == null ? "" : matchTimeline(f)}
     <div class="sec">Events</div>
     ${f.events.map(e => `<div class="evline"><span class="mn">${e.minute}'</span><span>${EVLABEL[e.event_type]}</span><span>${e.player_name ? esc(e.player_name) : (/goal/.test(e.event_type) ? `<i style="color:var(--muted)">scorer unknown</i>` : "")}</span>
@@ -824,6 +888,13 @@ function renderReadOnly(f, ripple) {
       try { const r = await api("POST", `/api/roll_save/${ED}/${f.fixture_id}${q()}`); $("#drawer").classList.remove("open"); await refresh(); showDiff(r.diff); }
       catch (e) { alert(e.message); }
     };
+    return;
+  }
+  if (canEdit) {                                       // a match you can change: shown clean, locked until you unlock it
+    $("#dFoot").innerHTML = `${f.origin === "user_edit" || f.status === "generated" ? `<button class="danger" id="revert">Revert to history</button>` : ""}
+      <span style="flex:1"></span><button class="primary" id="unlock">🔓 Unlock to edit</button>`;
+    $("#unlock").onclick = () => { state.unlock = f.fixture_id; renderEditor(f); };
+    if ($("#revert")) $("#revert").onclick = () => revertFixture(f);
     return;
   }
   $("#dFoot").innerHTML = `<span style="color:var(--muted)">Real history is read-only.</span><span style="flex:1"></span><button class="primary" id="mkBranch">Create a branch to edit</button>`;
@@ -881,7 +952,7 @@ function outcomePanel(f, draft) {
       <label>${esc(tname(f.away))} <input type="number" min="0" id="ocA" value="${v.away_score ?? draft.away_score}"></label>
       ${mine ? `<label>${esc(state.view.player_name)}'s goals <input type="number" min="0" id="ocMine" value="${v.my_goals ?? 1}"></label>
         <label>…and assists <input type="number" min="0" id="ocMineA" value="${v.my_assists ?? ""}" placeholder="any"></label>` : ""}
-      ${ko ? `<label>Pens if drawn <input type="number" min="0" id="ocPH" value="${v.pen_home ?? ""}" style="width:48px"> – <input type="number" min="0" id="ocPA" value="${v.pen_away ?? ""}" style="width:48px"></label>` : ""}
+      ${(f.tie ? f.tie.leg === 2 : ko) ? `<label>${f.tie ? "Pens if level on aggregate" : "Pens if drawn"} <input type="number" min="0" id="ocPH" value="${v.pen_home ?? ""}" style="width:48px"> – <input type="number" min="0" id="ocPA" value="${v.pen_away ?? ""}" style="width:48px"></label>` : ""}
       <label style="grid-column:1/-1"><input type="checkbox" id="ocKeep" ${v.keep_real === false ? "" : "checked"}> Keep this match's goals, cards and lineup where possible</label>
     </div>
     <div style="margin-top:10px"><button class="primary" id="ocPreview">Preview</button></div></div>`;
@@ -894,7 +965,10 @@ function renderEditor(f, error) {
     pen_home: f.pen_home, pen_away: f.pen_away, events: f.events.map(e => ({ minute: e.minute, team_id: e.team_id,
       player_id: e.player_id, event_type: e.event_type, assist_player_id: e.assist_player_id })), scoreLocked: false };
   const susp = Object.entries(f.suspended || {}).map(([t, ps]) => `${t}: ${ps.map(esc).join(", ")}`).join(" · ");
-  const isDraw = draft.home_score === draft.away_score;
+  const ts = tieState(f, draft.home_score, draft.away_score);
+  const showEt = f.tie ? f.tie.leg === 2 : ko;                       // a first leg never has extra time
+  const needEt = ts ? ts.needEt : false;
+  const isDraw = ts ? ts.needPens : draft.home_score === draft.away_score;   // does a shootout score belong here?
   $("#dBody").innerHTML = `
     ${error ? `<div class="msg err">${esc(error)}</div>` : ""}
     <div class="msg info">${stageLine(f)}${f.status === "pending" ? " · <b>needs a result</b>" : f.origin === "user_edit" ? " · edited in this branch" : f.status === "historical" ? " · real result" : ""}</div>
@@ -907,7 +981,8 @@ function renderEditor(f, error) {
       <div class="tn">${esc(tname(f.away))}</div></div>
     <div class="row" style="justify-content:center"><label title="Rolling keeps this score"><input type="checkbox" id="scoreLock" ${draft.scoreLocked ? "checked" : ""}> 🔒 Lock score</label>
       <span style="color:var(--muted);font-size:12px">Lock the score or any event (🔓), then Roll: only the unlocked parts change.</span></div>
-    ${ko ? `<div class="row"><label><input type="checkbox" id="et" ${draft.extra_time ? "checked" : ""}> Went to extra time</label>
+    ${tieBlock(f, ts, draft.away_score)}
+    ${showEt ? `<div class="row"><label><input type="checkbox" id="et" ${draft.extra_time || needEt ? "checked" : ""} ${needEt ? "disabled" : ""}> Went to extra time${needEt ? " (level on aggregate)" : ""}</label>
       ${isDraw ? `<span class="pens">Penalties <input type="number" min="0" id="ph" value="${draft.pen_home ?? ""}"> – <input type="number" min="0" id="pa" value="${draft.pen_away ?? ""}"></span>` : ""}</div>` : ""}
     <div class="sec"><span>Events</span><span>
       <button class="link" data-add="goal">+ Goal</button><button class="link" data-add="yellow">+ Card</button><button class="link" data-add="pen_miss">+ Other</button>
@@ -993,28 +1068,37 @@ function renderEditor(f, error) {
       sync(); draft.events.splice(+e.target.dataset.del, 1); renderEditor(f);
     }
   };
-  $("#cancel").onclick = () => { state.draft = null; state.outcomeOpen = false; $("#drawer").classList.remove("open"); };
+  $("#cancel").onclick = () => {
+    state.draft = null; state.outcomeOpen = false;
+    if (f.status === "pending") { $("#drawer").classList.remove("open"); return; }
+    state.unlock = null; renderReadOnly(f, false, true);                      // lock it again without saving
+  };
   $("#save").onclick = async () => {
     sync();
     const body = { ...draft, events: draft.events.map(({ locked, ...e }) => e) };
     for (const k of ["rollNote", "notes", "source", "scoreLocked", "preview"]) delete body[k];
     state.outcomeOpen = false;
-    if (!ko || draft.home_score !== draft.away_score) { body.pen_home = body.pen_away = null; }
-    if (!ko) body.extra_time = false;
+    const tsv = tieState(f, draft.home_score, draft.away_score);
+    if (!(tsv ? tsv.needPens : ko && draft.home_score === draft.away_score)) { body.pen_home = body.pen_away = null; }
+    if (!showEt) body.extra_time = false;
+    else if (tsv && tsv.needEt) body.extra_time = true;
     try {
       const r = await api("POST", `/api/fixture/${ED}/${f.fixture_id}${q()}`, body);
-      state.draft = null; $("#drawer").classList.remove("open");
-      await refresh(); showDiff(r.diff);
+      state.draft = null; state.unlock = null;
+      await refresh();
+      const nf = await api("GET", `/api/fixture/${ED}/${f.fixture_id}${q()}`);   // saved: show it clean and locked
+      state.editing = nf; renderReadOnly(nf, !nf.editable, nf.editable); showDiff(r.diff);
     } catch (err) { renderEditor(f, err.message); }
   };
-  if ($("#revert")) $("#revert").onclick = async () => {
-    if (!confirm("Put this match back to what really happened?")) return;
-    try {
-      const r = await api("DELETE", `/api/fixture/${ED}/${f.fixture_id}${q()}`);
-      state.draft = null; $("#drawer").classList.remove("open");
-      await refresh(); showDiff(r.diff);
-    } catch (err) { renderEditor(f, err.message); }
-  };
+  if ($("#revert")) $("#revert").onclick = () => revertFixture(f);
+}
+async function revertFixture(f) {
+  if (!confirm("Put this match back to what really happened?")) return;
+  try {
+    const r = await api("DELETE", `/api/fixture/${ED}/${f.fixture_id}${q()}`);
+    state.draft = null; state.unlock = null; $("#drawer").classList.remove("open");
+    await refresh(); showDiff(r.diff);
+  } catch (err) { alert(err.message); }
 }
 
 // ---------------------------------------------------------------- my player
