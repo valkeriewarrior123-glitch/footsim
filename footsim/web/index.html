@@ -190,9 +190,11 @@ details.tour .body { padding: 0 14px 14px; }
 .tl-lane, .tl-axis, .tl-ticks, .tl-name { position: relative; }
 .tl-ball { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--muted); background: var(--panel, #fff); display: grid; place-items: center; font-size: 9px; font-weight: 700; color: var(--muted); box-sizing: border-box; line-height: 1; }
 .tl-ball.g::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
-.tl-ball.p { width: 18px; height: 18px; border-color: #3B6D11; color: #fff; background: #3B6D11; }
+.tl-pb { position: relative; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--c); background: #fff; box-sizing: border-box; display: grid; place-items: center; --c: #2e8b1f; }
+.tl-pb.x { --c: #d63b3b; }
+.tl-pb u { text-decoration: none; font-size: 14px; line-height: 1; filter: opacity(.8); }
+.tl-pb b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-weight: 900; line-height: 1; color: var(--c); -webkit-text-stroke: 3px #fff; paint-order: stroke fill; }
 .tl-ball.og { width: 20px; height: 20px; border-color: #BA7517; color: #BA7517; background: rgba(186,117,23,.16); }
-.tl-ball.x { width: 18px; height: 18px; border-color: #d63b3b; color: #fff; background: #d63b3b; }
 .tl-emoji { font-size: 16px; line-height: 1; }
 .tl-pens { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
 .tl-ph { text-align: center; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; } .tl-ph b { font-weight: 500; color: inherit; }
@@ -808,13 +810,13 @@ function matchTimeline(f) {
     const html = mine.map(i => {
       const x = pos(i.minute); let r = rows.findIndex(last => x - last >= 4.2);
       if (r < 0) { r = rows.length; rows.push(-99); } rows[r] = x;
-      const icon = i.kind === "goal" ? `<span class="tl-emoji">⚽</span>` : i.kind === "pen_goal" ? `<span class="tl-ball p">P</span>`
-        : i.kind === "own_goal" ? `<span class="tl-ball og">OG</span>` : i.kind === "pen_miss" ? `<span class="tl-ball x">P</span>`
+      const icon = i.kind === "goal" ? `<span class="tl-emoji">⚽</span>` : i.kind === "pen_goal" ? `<span class="tl-pb"><u>⚽</u><b>P</b></span>`
+        : i.kind === "own_goal" ? `<span class="tl-ball og">OG</span>` : i.kind === "pen_miss" ? `<span class="tl-pb x"><u>⚽</u><b>P</b></span>`
         : i.kind === "yellow" ? `<span class="tl-card y"></span>` : i.kind === "red" ? `<span class="tl-card r"></span>`
         : i.kind === "second_yellow" ? `<span class="tl-card2"><i class="y"></i><i class="r"></i></span>` : `<span class="tl-sub">⇄</span>`;
       const edge = x < 14 ? " l" : x > 86 ? " r" : "";
       const label = icon;
-      return `<span class="tl-m${edge}" tabindex="0" style="left:${x}%;${cls === "top" ? "bottom" : "top"}:${r * 22}px" title="${esc(mins(i.minute) + "' " + i.text)}">${label}<span class="tip"><b>${mins(i.minute)}'</b>${esc(i.text)}</span></span>`;
+      return `<span class="tl-m${edge}" tabindex="0" style="left:${x}%;${cls === "top" ? "bottom" : "top"}:${r * 22}px" aria-label="${esc(mins(i.minute) + "' " + i.text)}">${label}<span class="tip"><b>${mins(i.minute)}'</b>${esc(i.text)}</span></span>`;
     }).join("");
     return `<div class="tl-lane ${cls}" style="height:${Math.max(1, rows.length) * 22 + 2}px">${html}</div>`;
   };
