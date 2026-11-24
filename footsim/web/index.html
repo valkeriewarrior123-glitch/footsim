@@ -204,8 +204,9 @@ details.tour .body { padding: 0 14px 14px; }
 .tl-card.y { background: #f2c230; } .tl-card.r { background: #d63b3b; }
 .tl-card.yy { background: #f2c230; box-shadow: 3px 2px 0 -1px #d63b3b; }
 .tl-sub { font-size: 12px; color: var(--muted); font-weight: 700; }
-.tl-teams { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin: 0 10px; }
-.tl-legend { font-size: 11px; color: var(--muted); text-align: center; margin-top: 2px; }
+.tl-name { font-size: 11px; font-weight: 600; margin: 0 10px; } .tl-name.h { color: #2f6fd6; } .tl-name.a { color: #e07a1f; }
+.tl-axis.h { background: #2f6fd6; } .tl-axis.a { background: #e07a1f; }
+.tl-axis.h i { background: #2f6fd6; } .tl-axis.a i { background: #e07a1f; }
 
 /* what changed */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; place-items: center; z-index: 30; padding: 16px; }
@@ -786,13 +787,16 @@ function matchTimeline(f) {
     return `<div class="tl-lane ${cls}" style="height:${Math.max(1, rows.length) * 19 + 2}px">${html}</div>`;
   };
   const ticks = []; for (let m = 0; m <= end; m += 15) ticks.push(m);
+  const tick = `<div class="tl-ticks">${ticks.map(m => `<span style="left:${pos(m)}%">${m}'</span>`).join("")}</div>`;
+  const ln = c => `<div class="tl-axis ${c}">${ticks.map(m => `<i class="${m === 45 ? "ht" : ""}" style="left:${pos(m)}%"></i>`).join("")}</div>`;
   return `<div class="tl">
-    <div class="tl-teams"><span>${esc(tname(f.home))}</span><span>${esc(tname(f.away))}</span></div>
+    <div class="tl-name h">${esc(tname(f.home))}</div>
     ${lane(f.home, "top")}
-    <div class="tl-axis">${ticks.map(m => `<i class="${m === 45 ? "ht" : ""}" style="left:${pos(m)}%"></i>`).join("")}</div>
-    <div class="tl-ticks">${ticks.map(m => `<span style="left:${pos(m)}%">${m}'</span>`).join("")}</div>
+    ${ln("h")}
+    ${tick}
+    ${ln("a")}
     ${lane(f.away, "bot")}
-    <div class="tl-legend">⚽ goal · <span class="tl-card y" style="display:inline-block;vertical-align:-1px"></span> yellow · <span class="tl-card r" style="display:inline-block;vertical-align:-1px"></span> red · ⇄ substitution · hover or tap for details</div>
+    <div class="tl-name a">${esc(tname(f.away))}</div>
   </div>`;
 }
 
