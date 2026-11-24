@@ -147,11 +147,16 @@ details.tour .body { padding: 0 14px 14px; }
 .m .no { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
 .m .t { display: flex; justify-content: space-between; padding: 2px 0; }
 .m .t.w { font-weight: 700; font-size: 14.5px; }
-.tie2 .t { display: grid; grid-template-columns: minmax(0, 1fr) 22px 22px auto; gap: 6px; align-items: baseline; }
-.tie2 .t .lg { text-align: right; color: var(--muted); font-size: 12.5px; font-weight: 400; }
-.tie2 .t .sc { min-width: 34px; text-align: right; }
+.tie2 { padding: 4px 8px; }
+.tie2 .t { display: grid; grid-template-columns: minmax(0, 1fr) 26px 26px 38px; gap: 0; align-items: stretch; padding: 0; border-top: 1px solid var(--line); }
+.tie2 .t:first-of-type, .tie2 .hint + .t { border-top: 0; }
+.tie2 .t > span { padding: 3px 0; }
+.tie2 .t > span:first-child { padding-right: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tie2 .t .lg, .tie2 .t .sc { text-align: center; border-left: 1px solid var(--line); font-size: 12.5px; }
+.tie2 .t .lg { color: var(--muted); font-weight: 400; }
+.tie2 .t .sc { font-weight: 700; white-space: nowrap; }
+.tie2 .hint { font-size: 10.5px; color: var(--muted); display: flex; justify-content: flex-end; }
 .tie2 .hint .tag { white-space: nowrap; font-size: 10px; padding: 0 6px; }
-.tie2 .hint { font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; }
 .tiedlg .leg { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 4px; border-top: 1px solid var(--line); cursor: pointer; }
 .tiedlg .leg:hover { background: var(--bg); }
 .tiedlg .when { font-size: 12px; color: var(--muted); }
@@ -347,7 +352,7 @@ details.tour .body { padding: 0 14px 14px; }
   .toolbar { gap: 8px; }
 
   /* bracket: swipe sideways, one round at a time */
-  .bracket { grid-template-columns: repeat(4, 76vw); gap: 16px 28px; scroll-snap-type: x proximity; padding-bottom: 8px; }
+  .bracket { grid-template-columns: repeat(4, min(76vw, 300px)); gap: 16px 28px; scroll-snap-type: x proximity; padding-bottom: 8px; }
   .bracket .round { scroll-snap-align: start; }
 
   /* forms */
@@ -706,7 +711,7 @@ function tieCard(s) {
   const pens = f.pen_home != null;
   const row = (t, pen) => `<div class="t ${w === t ? "w" : ""}"><span>${esc(tname(t))}</span><span class="lg">${legScore(t, legs[0])}</span><span class="lg">${legScore(t, legs[1])}</span>
     <span class="sc">${t === f.home ? f.home_score : f.away_score}${pens ? ` <span style="font-weight:400">(${pen})</span>` : ""}</span></div>`;
-  return `<div class="m tie2 ${s.stage === "F" ? "final" : ""}" data-no="${s.match_no}" data-tie="${s.match_no}" title="Show both games"><div class="hint"><span>2 legs · tap</span>${how}</div>
+  return `<div class="m tie2 ${s.stage === "F" ? "final" : ""}" data-no="${s.match_no}" data-tie="${s.match_no}" title="Show both games">${how ? `<div class="hint">${how}</div>` : ""}
     ${row(f.home, f.pen_home)}${row(f.away, f.pen_away)}</div>`;
 }
 
