@@ -92,8 +92,7 @@ class ClubPack(unittest.TestCase):
 
     def test_ucl_details_are_declared(self):
         kinds = {r[0] for r in self.conn.execute("SELECT DISTINCT kind FROM data_notes WHERE edition_id='UCL1213'")}
-        self.assertTrue({"subs_unknown", "lineup_incomplete"} <= kinds)
-        self.assertNotIn("generated_details", kinds)                   # Juventus' lineups are the real ones from UEFA now
+        self.assertEqual(kinds, set())                                 # nothing is estimated or missing any more
         self.assertNotIn("scorer_unknown", kinds)                      # every goal has a scorer from Wikipedia
         unnamed = self.conn.execute("SELECT COUNT(*) FROM match_events WHERE fixture_id LIKE 'UCL1213%' AND event_type IN ('goal','pen_goal','own_goal') AND player_id IS NULL").fetchone()[0]
         self.assertEqual(unnamed, 0)
@@ -105,7 +104,19 @@ class ClubPack(unittest.TestCase):
         late = self.conn.execute("SELECT MIN(date) FROM fixtures WHERE fixture_id LIKE 'UCL1213_G%'").fetchone()[0]
         self.assertTrue(self.conn.execute("SELECT MAX(date) FROM fixtures WHERE fixture_id LIKE 'UCL1213_G%'").fetchone()[0] < "2013-01-01" and late.startswith("2012"))
         n = self.conn.execute("SELECT COUNT(DISTINCT fixture_id) FROM lineups WHERE started = 1 AND fixture_id LIKE 'UCL1213%'").fetchone()[0]
-        self.assertEqual(n, 124)                                       # every match but Braga-Galatasaray has a real starting eleven
+        self.assertEqual(n, 125)                                       # every match has a real starting eleven
+        q = lambda sql: self.conn.execute(sql).fetchone()[0]
+        self.assertEqual(q("SELECT COUNT(*) FROM lineups WHERE started = 0 AND fixture_id LIKE 'UCL1213%'"), 702)     # real substitutes
+        self.assertEqual(q("SELECT COUNT(*) FROM match_events WHERE event_type IN ('yellow','second_yellow','red') AND fixture_id LIKE 'UCL1213%'"), 533)
+        self.assertEqual(q("SELECT COUNT(*) FROM match_events WHERE assist_player_id IS NOT NULL AND fixture_id LIKE 'UCL1213%'"), 325)
+        # Dinamo Zagreb - Porto: Lucho Gonzalez scored in the 41st minute from an Alex Sandro pass
+        row = self.conn.execute("""SELECT s.full_name, a.full_name FROM match_events e JOIN players s ON s.player_id = e.player_id
+                                   JOIN players a ON a.player_id = e.assist_player_id WHERE e.fixture_id = 'UCL1213_GA02' AND e.minute = 41""").fetchone()
+        self.assertEqual(tuple(row), ("Lucho González", "Alex Sandro"))
+        on = q("SELECT minute_on FROM lineups l JOIN players p USING(player_id) WHERE l.fixture_id = 'UCL1213_GA02' AND p.full_name LIKE '%Atsu%'")
+        self.assertEqual(on, 72)                                       # Christian Atsu came on in the 72nd minute
+        for r in self.conn.execute("SELECT fixture_id, team_id, COUNT(*) FROM lineups WHERE started = 1 AND fixture_id LIKE 'UCL1213%' GROUP BY 1, 2"):
+            self.assertEqual(r[2], 11)
 
     def test_older_pack_data_is_replaced_when_the_pack_version_goes_up(self):
         c = self.conn
@@ -115,7 +126,7 @@ class ClubPack(unittest.TestCase):
         db.apply_club_packs(c)
         n = c.execute("SELECT COUNT(*) FROM match_events WHERE fixture_id LIKE 'UCL1213%' AND player_id IS NOT NULL").fetchone()[0]
         self.assertGreater(n, 300)
-        self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='UCL1213'").fetchone()[0], 3)
+        self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='UCL1213'").fetchone()[0], 4)
         self.assertEqual(validate.check_edition(c, "UCL1213"), [])
 
 

@@ -3,3 +3,4 @@ footsim.db
 __pycache__/
 .pytest_cache/
 site/
+tools/merge_transfermarkt.log

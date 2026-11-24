@@ -3,7 +3,7 @@
     python -m footsim.import_club_pack data_packs/SERIEA1213 [--db footsim.db]
 
 The pack's meta lives in its folder name and ruleset.json. Source facts (scores, starters, goals, cards, squad) are
-imported as they are. The source has no substitutions, so a substitute who scored or was carded gets an *estimated*
+imported as they are. Where the source has no substitutions, a substitute who scored or was carded gets an *estimated*
 entry time (a minute before his first event) and a starter of the same position group goes off then. Every estimate
 and gap is also stored in data_notes so the app can say so.
 """
@@ -61,14 +61,17 @@ def import_pack(conn, pack: Path) -> dict:
         fid = f["fixture_id"]
         conn.execute("DELETE FROM lineups WHERE fixture_id = ?", (fid,)); conn.execute("DELETE FROM match_events WHERE fixture_id = ?", (fid,))
         for tid in (f["home_team_id"], f["away_team_id"]):
-            starters = {l["player_id"]: dict(on=0, off=None) for l in lu_by[(fid, tid)]}
+            rows = lu_by[(fid, tid)]
+            # a lineup row may carry the real story (started, minute on, minute off); a plain starters-only pack leaves them blank
+            starters = {l["player_id"]: dict(on=0, off=_int(l.get("minute_off"))) for l in rows if (l.get("started") or "1") != "0"}
+            subs = {l["player_id"]: dict(on=max(1, _int(l.get("minute_on")) or 1), off=_int(l.get("minute_off"))) for l in rows if l.get("started") == "0"}
+            real_subs = bool(subs)
             mine = [e for e in ev_by[fid] if e["team_id"] == tid and e["player_id"] and e["event_type"] != "own_goal"]
             mine += [e for e in ev_by[fid] if e["team_id"] != tid and e["player_id"] and e["event_type"] == "own_goal" and False]
             busy = {e["player_id"] for e in mine}
             for e in mine:                                   # a red card ends a starter's match
-                if e["event_type"] in ("red", "second_yellow") and e["player_id"] in starters:
+                if e["event_type"] in ("red", "second_yellow") and e["player_id"] in starters and starters[e["player_id"]]["off"] is None:
                     starters[e["player_id"]]["off"] = int(e["minute"])
-            subs = {}
             for e in sorted(mine, key=lambda x: int(x["minute"])):
                 p = e["player_id"]
                 if p in starters or p in subs:
@@ -77,8 +80,8 @@ def import_pack(conn, pack: Path) -> dict:
                 group = players[p]["position"] or "MF"
                 cand = [s for s in starters if starters[s]["off"] is None and s not in busy
                         and (players[s]["position"] or "MF") == group and group != "GK"]
-                if p.startswith("wk_") and not players[p]["position"]:
-                    cand = []                       # position unknown (UEFA reports have none): nobody is guessed off
+                if (p.startswith("wk_") and not players[p]["position"]) or real_subs:
+                    cand = []                       # position unknown, or the real substitutions are known: nobody is guessed off
                 if cand:
                     starters[cand[-1]]["off"] = m
                 subs[p] = dict(on=m, off=None); n_sub += 1
@@ -91,12 +94,14 @@ def import_pack(conn, pack: Path) -> dict:
             for p, s in starters.items():
                 conn.execute("INSERT INTO lineups VALUES (?,?,?,1,0,?)", (fid, tid, p, s["off"]))
             for p, s in subs.items():
-                conn.execute("INSERT INTO lineups VALUES (?,?,?,0,?,NULL)", (fid, tid, p, s["on"]))
+                conn.execute("INSERT INTO lineups VALUES (?,?,?,0,?,?)", (fid, tid, p, s["on"], s["off"]))
         for e in ev_by[fid]:
-            if e["player_id"]:
-                _ensure_player(conn, players, e["player_id"])
+            for who in (e["player_id"], e.get("assist_player_id")):
+                if who:
+                    _ensure_player(conn, players, who)
             conn.execute("INSERT INTO match_events (fixture_id, minute, added_time, team_id, player_id, event_type, assist_player_id) "
-                         "VALUES (?,?,NULL,?,?,?,NULL)", (fid, int(e["minute"]), e["team_id"], e["player_id"] or None, e["event_type"]))
+                         "VALUES (?,?,NULL,?,?,?,?)", (fid, int(e["minute"]), e["team_id"], e["player_id"] or None, e["event_type"],
+                                                         e.get("assist_player_id") or None))
     # squads: the listed club squad, and for every other club the players seen in its matches
     conn.execute("DELETE FROM squads WHERE edition_id = ?", (edition,))
     listed = {r["team_id"] for r in squad}
@@ -118,6 +123,10 @@ def import_pack(conn, pack: Path) -> dict:
     return {"fixtures": len(fixtures), "teams": len(teams), "lineups": conn.execute("SELECT COUNT(*) FROM lineups WHERE fixture_id LIKE ?", (edition + "_%",)).fetchone()[0],
             "events": conn.execute("SELECT COUNT(*) FROM match_events WHERE fixture_id LIKE ?", (edition + "_%",)).fetchone()[0],
             "estimated_substitutes": n_sub, "notes": len(notes)}
+
+
+def _int(v):
+    return int(v) if v not in (None, "") else None
 
 
 def _ensure_player(conn, players, pid):

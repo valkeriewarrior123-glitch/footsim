@@ -138,6 +138,7 @@ def main():
         return int(base) + (int(extra) if extra else 0)
 
     matched, new_events, lineup_fx = set(), [], {}
+    roster = []                                 # every UEFA-listed player of every match: used to place Transfermarkt data
     for line in (PACK / "wiki_goals.txt").read_text(encoding="utf-8").splitlines():
         p = line.split("|")
         stage, date, home, score, away, g_home, g_away = p[:7]
@@ -162,6 +163,7 @@ def main():
                 squads[tm] = lst
                 for q in lst:
                     q["pid"] = pid_for_full(tm, q)
+                    roster.append(dict(fixture_id=fid, team_id=tm, player_id=q["pid"], number=q["n"], xi=q["xi"]))
                     if (tm, q["pid"]) not in squad_have:
                         squad_have.add((tm, q["pid"])); squad_rows.append({"team_id": tm, "player_id": q["pid"], "shirt_number": q["n"]})
                 lineup_fx[fid] = lineup_fx.get(fid, []) + [dict(fixture_id=fid, team_id=tm, player_id=q["pid"], started="1", minute_on="0", minute_off="")
@@ -216,6 +218,7 @@ def main():
     write("players.csv", ["player_id", "full_name", "birth_date", "position"], players + list(new_players.values()))
     write("lineups.csv", ["fixture_id", "team_id", "player_id", "started", "minute_on", "minute_off"], lineup_rows)
     write("squad.csv", ["team_id", "player_id", "shirt_number"], squad_rows)
+    write("uefa_roster.csv", ["fixture_id", "team_id", "player_id", "number", "xi"], roster)
     print(f"{len(matched)} matches ({len(matched & juve_fx)} Juventus), {len(new_events)} goals, {len(new_players)} new players, {len(lineup_fx)} with real lineups")
 
 

@@ -313,7 +313,7 @@ def main():
 
     import json
     ruleset = {
-        "edition_id": EDN, "data_version": 3, "display_name": "Champions League 2012/13", "focus_team": "c_juventus",
+        "edition_id": EDN, "data_version": 4, "display_name": "Champions League 2012/13", "focus_team": "c_juventus",
         "source": "openfootball/champions-league (CC0) scores; details generated, see notes",
         "format": "groups_then_knockout",
         "group_stage": {"groups": sorted(groups), "teams_per_group": 4, "round_robin_legs": 2, "qualify_per_group": 2, "best_thirds": 0,
