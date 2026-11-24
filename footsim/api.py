@@ -172,7 +172,7 @@ def edition_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
         s["feeds"] = feeds.get(s["match_no"], [])
         s["loser_feeds"] = losers.get(s["match_no"], [])
 
-    me = player.profile(conn, branch_id)
+    me = player.profile(conn, branch_id, edition_id)
     rules = _db.get_ruleset(conn, edition_id)
     champion, runner_up, third = res.champion, res.runner_up, res.third
     league = rules.get("format") == "league"
@@ -180,8 +180,9 @@ def edition_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
         t = res.tables.get("A", [])
         done = bool(t) and all(r.played == 2 * (len(t) - 1) for r in t)
         champion, runner_up, third = ((t[0].team, t[1].team, t[2].team) if done else (None, None, None))
+    season, kind = player._season_kind(conn, edition_id)
     return {"edition_id": edition_id, "branch_id": branch_id, "teams": tn, "groups": groups, "slots": slots,
-            "format": rules.get("format", "groups_then_knockout"), "club_focus": rules.get("focus_team"), "zones": rules.get("zones") or ([] if league else [
+            "kind": kind, "season": season, "format": rules.get("format", "groups_then_knockout"), "club_focus": rules.get("focus_team"), "zones": rules.get("zones") or ([] if league else [
                 {"positions": [1, 2], "kind": "adv", "label": "Advance to the knockout round"},
                 {"positions": [3, 4], "kind": "out", "label": "Eliminated"}]),
             "adjust_notes": {t: a.get("reason", "") for t, a in (rules.get("group_stage", {}).get("point_adjustments") or {}).items()},
@@ -216,7 +217,7 @@ def fixture_detail(conn, edition_id: str, fixture_id: str, branch_id: int | None
                           default_lineup(conn, edition_id, f.away, branch_id, f.date))
     out["lineup"] = [{**l, "name": nm.get(l["player_id"])} for l in lineup]
     out["is_historical"] = f.status == "historical"
-    me = player.profile(conn, branch_id)
+    me = player.profile(conn, branch_id, edition_id)
     out["editable"] = (me is None or me.team_id in (f.home, f.away) or branch_mode(conn, branch_id) == "free")
     out["leg"] = f.leg
     if f.leg:                                          # one leg of a home-and-away tie: show the other leg and the aggregate
@@ -411,7 +412,7 @@ def edit_fixture(conn, edition_id: str, branch_id: int, fixture_id: str, payload
     if fixture_id not in fx:
         raise EditError(f"No fixture {fixture_id}")
     f = fx[fixture_id]
-    me = player.profile(conn, branch_id)
+    me = player.profile(conn, branch_id, edition_id)
     check_ripple(me, f, branch_mode(conn, branch_id))
     events = _validate(f, payload, timeline.tie_rule(conn, edition_id, branch_id, f, fx))
     lineup = payload.get("lineup") or f.lineup or (
@@ -500,7 +501,7 @@ def roll_preview(conn, edition_id: str, branch_id: int | None, fixture_id: str, 
         raise EditError(f"No fixture {fixture_id}")
     f = fx[fixture_id]
     if f.status != "pending":
-        check_ripple(player.profile(conn, branch_id), f, branch_mode(conn, branch_id))
+        check_ripple(player.profile(conn, branch_id, edition_id), f, branch_mode(conn, branch_id))
     out = roller.roll(conn, edition_id, branch_id, f, seed=seed)
     nm = names(conn)
     for e in out["events"]:
@@ -517,7 +518,7 @@ def roll_constrained(conn, edition_id: str, branch_id: int | None, fixture_id: s
         raise EditError(f"No fixture {fixture_id}")
     f = fx[fixture_id]
     if f.status != "pending":
-        check_ripple(player.profile(conn, branch_id), f, branch_mode(conn, branch_id))
+        check_ripple(player.profile(conn, branch_id, edition_id), f, branch_mode(conn, branch_id))
     out = roller.roll_with(conn, edition_id, branch_id, f, constraints, seed=seed)
     _validate(f, out, timeline.tie_rule(conn, edition_id, branch_id, f, fx))
     nm = names(conn)
@@ -544,7 +545,7 @@ def roll_save(conn, edition_id: str, branch_id: int, fixture_id: str) -> dict:
     if f is None:
         raise EditError(f"No fixture {fixture_id}")
     if f.status != "pending":
-        check_ripple(player.profile(conn, branch_id), f, branch_mode(conn, branch_id))
+        check_ripple(player.profile(conn, branch_id, edition_id), f, branch_mode(conn, branch_id))
     before = snapshot(conn, edition_id, branch_id)
     roller.roll_and_save(conn, edition_id, branch_id, fixture_id, origin="second_order_generated")
     fixes = engine.apply_cascade(conn, edition_id, branch_id).fixes
@@ -607,7 +608,7 @@ def history_diff(conn, edition_id: str, branch_id: int | None) -> dict:
     matches.sort(key=lambda m: (m["date"], m["match_no"] or 0))
     out["matches"] = matches
     out["displacements"] = displacements(conn, edition_id, branch_id)
-    me = player.profile(conn, branch_id)
+    me = player.profile(conn, branch_id, edition_id)
     if me is not None:
         st_now = stats.edition_stats(conn, edition_id, branch_id).players.get(me.player_id)
         st_real = stats.edition_stats(conn, edition_id, None).players.get(me.replaces)
@@ -644,17 +645,36 @@ def create_player(conn, edition_id: str, branch_id: int, body: dict) -> dict:
         library._row(conn, int(body["profile_id"]))
         conn.execute("UPDATE created_players SET profile_id = ? WHERE branch_id = ?", (int(body["profile_id"]), branch_id))
         conn.commit()
+    library.note_season(conn, branch_id, edition_id, p.team_id)
     return {"ok": True, "player_id": p.player_id}
+
+
+def place_player(conn, edition_id: str, branch_id: int, body: dict) -> dict:
+    """Add the branch's existing player to this competition (his club's other competition, say)."""
+    if branch_id is None:
+        raise EditError("Create or pick a branch first")
+    before = snapshot(conn, edition_id, branch_id)
+    player.place(conn, branch_id, edition_id, body.get("team_id"), body.get("replaces_player_id"))
+    library.note_season(conn, branch_id, edition_id, body.get("team_id"))
+    fixes = engine.apply_cascade(conn, edition_id, branch_id).fixes
+    return {"ok": True, "diff": diff(conn, before, snapshot(conn, edition_id, branch_id), fixes)}
+
+
+def unplace_player(conn, edition_id: str, branch_id: int) -> dict:
+    if branch_id is None:
+        raise EditError("Create or pick a branch first")
+    player.unplace(conn, branch_id, edition_id)
+    return {"ok": True}
 
 
 def update_player(conn, branch_id: int, body: dict, edition_id: str = "WC2022") -> dict:
     """Change anything about the created player except his national team."""
-    if player.profile(conn, branch_id) is None:
+    if player.profile(conn, branch_id, edition_id) is None:
         raise EditError("This branch has no created player")
     before = snapshot(conn, edition_id, branch_id)
     player.update(conn, branch_id, **{k: body.get(k) for k in (
         "full_name", "known_as", "birth_date", "position", "detail_position", "tier", "overall",
-        "replaces_player_id", "roles") if k in body})
+        "replaces_player_id", "roles") if k in body}, edition_id=edition_id)
     fixes = engine.apply_cascade(conn, edition_id, branch_id).fixes
     return {"ok": True, "diff": diff(conn, before, snapshot(conn, edition_id, branch_id), fixes)}
 
@@ -668,7 +688,7 @@ def info_cache(conn, edition_id, me):
 
 def set_role(conn, edition_id: str, branch_id: int, fixture_id: str, body: dict) -> dict:
     """Set the player's role in one match. Edited/rolled matches have their saved lineup rewritten."""
-    me = player.profile(conn, branch_id)
+    me = player.profile(conn, branch_id, edition_id)
     if me is None:
         raise EditError("This branch has no created player")
     before = snapshot(conn, edition_id, branch_id)
@@ -706,9 +726,12 @@ def set_role(conn, edition_id: str, branch_id: int, fixture_id: str, body: dict)
 
 
 def player_view(conn, edition_id: str, branch_id: int | None) -> dict:
-    me = player.profile(conn, branch_id)
+    me = player.profile(conn, branch_id, edition_id)
     if me is None:
-        return {"player": None}
+        home = player.profile(conn, branch_id)
+        if home is None:
+            return {"player": None}
+        return {"player": None, "elsewhere": _elsewhere(conn, edition_id, branch_id, home)}
     nm, tn = names(conn), team_names(conn)
     st = stats.edition_stats(conn, edition_id, branch_id)
     res = st.resolution
@@ -782,7 +805,38 @@ def player_view(conn, edition_id: str, branch_id: int | None) -> dict:
             "ORDER BY start_date", (branch_id, me.player_id))],
         "calendar": calendar(conn, edition_id, branch_id, me),
         "library": library.branch_link(conn, branch_id),
+        "placements": _placements(conn, branch_id, edition_id),
     }
+
+
+def _placements(conn, branch_id: int, current: str) -> list:
+    tn = team_names(conn)
+    ed = {r["edition_id"]: f"{r['name']} {r['season']}" for r in conn.execute(
+        "SELECT e.edition_id, c.name, e.season FROM editions e JOIN competitions c USING(competition_id)")}
+    return [{"edition_id": x["edition_id"], "edition": ed.get(x["edition_id"]), "team": tn.get(x["team_id"]),
+             "team_id": x["team_id"], "home": x["home"], "here": x["edition_id"] == current}
+            for x in player.placements(conn, branch_id)]
+
+
+def _elsewhere(conn, edition_id: str, branch_id: int, home) -> dict:
+    """What the My player tab shows when the branch's player isn't in this competition yet."""
+    tn = team_names(conn)
+    season, kind = player._season_kind(conn, edition_id)
+    teams = sorted(({"team_id": r[0], "name": tn.get(r[0], r[0])} for r in conn.execute(
+        "SELECT DISTINCT team_id FROM squads WHERE edition_id = ?", (edition_id,))), key=lambda t: t["name"])
+    fixed = None                                    # one club per season: a club placement this season fixes his club
+    if kind == "club":
+        for x in player.placements(conn, branch_id):
+            s2, k2 = player._season_kind(conn, x["edition_id"])
+            if k2 == "club" and s2 == season:
+                fixed = {"team_id": x["team_id"], "name": tn.get(x["team_id"]),
+                         "in_competition": any(t["team_id"] == x["team_id"] for t in teams)}
+    link = library.branch_link(conn, branch_id)
+    sug = library.season_suggestion(conn, (link or {}).get("profile_id"), edition_id)
+    return {"name": home.name, "kind": kind, "season": season, "teams": teams, "fixed_club": fixed,
+            "suggested": {"team_id": sug["team_id"], "club": sug["club"]} if sug else None,
+            "placements": _placements(conn, branch_id, edition_id),
+            "can_add": player._root_branch_with_player(conn, branch_id) == branch_id}
 
 
 def calendar(conn, edition_id: str, branch_id: int, me) -> list:
@@ -801,7 +855,7 @@ def calendar(conn, edition_id: str, branch_id: int, me) -> list:
 
 
 def add_injury(conn, edition_id: str, branch_id: int, body: dict) -> dict:
-    me = player.profile(conn, branch_id)
+    me = player.profile(conn, branch_id, edition_id)
     if me is None:
         raise EditError("This branch has no created player")
     start, end = body.get("start_date"), body.get("end_date") or None

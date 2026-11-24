@@ -177,7 +177,7 @@ def roll(conn, edition_id: str, branch_id: int | None, fixture: Fixture, *, seed
     lineup = (build_lineup(conn, edition_id, branch_id, fixture, fixture.home, banned, info, rng, 90) +
               build_lineup(conn, edition_id, branch_id, fixture, fixture.away, banned, info, rng, 90))
 
-    me = cp.profile(conn, branch_id)
+    me = cp.profile(conn, branch_id, edition_id)
     if me is not None and me.team_id in (fixture.home, fixture.away):
         from footsim.api import squad
         info[me.player_id] = cp.scoring_info(me)
@@ -404,7 +404,7 @@ def roll_with(conn, edition_id: str, branch_id: int | None, fixture: Fixture, co
     c = dict(constraints or {})
     rng = random.Random(seed)
     info = dict(info or _player_info(conn, edition_id))
-    me = cp.profile(conn, branch_id)
+    me = cp.profile(conn, branch_id, edition_id)
     if me is not None:
         info[me.player_id] = cp.scoring_info(me)
     tie = timeline.tie_rule(conn, edition_id, branch_id, fixture)

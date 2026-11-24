@@ -561,6 +561,11 @@ def _fit_players(conn, edition_id, branch_id, locks, rng) -> list:
                     return
         elif cur < n:
             cands = take_candidates(pid, what)
+            if not any(_window(f.lineup, pid) for f in played):
+                problems.append({"locks": wants[pid]["ids"], "message": (
+                    f"{nm.get(pid)} doesn't play in any match yet, so he can't score or assist. Make him replace a "
+                    f"player who played, or set his role in matches (My player tab), then try again.")})
+                return
             if len(cands) < n - cur:
                 problems.append({"locks": wants[pid]["ids"], "message": (
                     f"{nm.get(pid)} can reach at most {cur + len(cands)} {word}: his team only scores "

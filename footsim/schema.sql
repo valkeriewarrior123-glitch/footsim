@@ -348,3 +348,29 @@ CREATE TABLE IF NOT EXISTS outcome_locks (
     params           TEXT NOT NULL,          -- JSON
     created_at       TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+------------------------------------------------------------
+-- Clubs for the created player.
+-- player_placements: the other competitions a branch's player is in (his first is created_players). A branch's
+--   player can be in several competitions, one club per season across club competitions.
+-- profile_career: a library profile's club history, one row per season; club is free text (the user decides),
+--   team_id only when that club exists in our data.
+------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS player_placements (
+    branch_id          INTEGER NOT NULL REFERENCES branches(branch_id),
+    edition_id         TEXT NOT NULL REFERENCES editions(edition_id),
+    team_id            TEXT NOT NULL REFERENCES teams(team_id),
+    replaces_player_id TEXT NOT NULL REFERENCES players(player_id),
+    shirt_number       INTEGER,
+    PRIMARY KEY (branch_id, edition_id)
+);
+
+CREATE TABLE IF NOT EXISTS profile_career (
+    entry_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id INTEGER NOT NULL REFERENCES player_profiles(profile_id),
+    season     TEXT NOT NULL,
+    club       TEXT NOT NULL,
+    team_id    TEXT,
+    note       TEXT
+);

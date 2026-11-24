@@ -384,9 +384,9 @@ details.tour .body { padding: 0 14px 14px; }
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=434d45db68", "seed": "footsim-seed.db?v=434d45db68", "worker": "engine-worker.js?v=434d45db68", "version": "434d45db68", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
-<script src="cloud.js?v=434d45db68"></script>
-<script src="engine.js?v=434d45db68"></script>
+<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=c045525278", "seed": "footsim-seed.db?v=c045525278", "worker": "engine-worker.js?v=c045525278", "version": "c045525278", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
+<script src="cloud.js?v=c045525278"></script>
+<script src="engine.js?v=c045525278"></script>
 <script>
 let ED = (() => { try { return localStorage.getItem("footsim.edition") || "WC2022"; } catch (e) { return "WC2022"; } })();
 let state_editions = [];
@@ -1119,20 +1119,22 @@ async function renderPlayerTab() {
   const m = $("#main");
   if (!state.branch) { m.innerHTML = `<div class="empty">Pick or create a branch first. Each branch has its own created player.</div>`; return; }
   const v = await api("GET", `/api/player/${ED}${q()}`);
-  if (!v.player) return renderCreateForm();
+  if (!v.player) return v.elsewhere ? renderAddToEdition(v.elsewhere) : renderCreateForm();
   const p = v.player, t = v.totals || {};
   const stat = (n, l) => `<div class="stat"><b>${n ?? 0}</b><span>${l}</span></div>`;
   m.innerHTML = `<div class="cols">
     <div style="display:grid;gap:14px">
       <section class="card"><div class="pcard">
         <div class="big">${esc(p.name)} <button id="editPlayer" style="font-size:13px;vertical-align:middle">Edit player</button></div>
-        <span class="k" style="color:var(--muted)">Team</span><span>${esc(tname(p.team))} · ${p.position}${p.roles?.length ? " · " + p.roles.join(", ") : ""}</span>
+        <span class="k" style="color:var(--muted)">${state.view.kind === "club" ? "Club" : "Team"}</span><span>${esc(tname(p.team))} · ${p.position}${p.roles?.length ? " · " + p.roles.join(", ") : ""}</span>
         <span style="color:var(--muted)">Ability</span><span>${esc(p.tier_label)} · overall
           <input type="number" id="ovr" min="1" max="99" value="${p.overall}" style="width:64px"> <button id="ovrSave">Save</button>
           <span style="color:var(--muted);font-size:12px"> (worth ${p.impact_elo >= 0 ? "+" : ""}${p.impact_elo} Elo to his team per 90 min)</span></span>
         <span style="color:var(--muted)">Replaces</span><span>${esc(p.replaces)} in the real squad</span>
+        ${v.placements.length > 1 ? `<span style="color:var(--muted)">Plays in</span><span>${v.placements.map(x => `${x.here ? "<b>" : ""}${esc(x.edition)} · ${esc(x.team)}${x.here ? "</b>" : ""}`).join("<br>")}</span>` : ""}
         ${p.birth_date ? `<span style="color:var(--muted)">Born</span><span>${fmtLong(p.birth_date)}</span>` : ""}
         ${libraryRow(v.library)}
+        <span style="color:var(--muted)">Competitions</span><span>${v.placements.filter(x => !x.home).map(x => `<button class="link" data-unplace="${x.edition_id}" style="color:var(--bad)">Remove from ${esc(x.edition)}</button>`).join(" ") || `<span style="color:var(--muted);font-size:12px">Open another competition in the picker above to add him there.</span>`}</span>
       </div>
       <div class="stats-row">${stat(t.apps, "apps")}${stat(t.starts, "starts")}${stat(t.minutes, "minutes")}${stat(t.goals, "goals")}${stat(t.assists, "assists")}${stat((t.yellows || 0), "yellows")}${stat(t.reds, "reds")}${v.rating ? `<div class="stat"><b>${v.rating}</b><span>avg rating</span></div>` : ""}
         ${v.golden_boot_rank ? `<div class="stat"><b>#${v.golden_boot_rank}</b><span>Golden Boot</span></div>` : ""}</div>
@@ -1160,6 +1162,9 @@ async function renderPlayerTab() {
     </div></div>`;
 
   $("#editPlayer").onclick = () => renderCreateForm(v.player);
+  m.querySelectorAll("[data-unplace]").forEach(b => b.onclick = async () => {
+    if (!confirm("Take him out of that competition? His place in the squad goes back to the real player.")) return;
+    try { await api("POST", `/api/player_unplace/${b.dataset.unplace}${q()}`, {}); await refresh(); renderPlayerTab(); } catch (e) { alert(e.message); } });
   if ($("#saveLib")) $("#saveLib").onclick = async () => {
     try { await api("POST", `/api/library/save_branch_player${q()}`, {}); renderPlayerTab(); } catch (e) { alert(e.message); } };
   if ($("#openLib")) $("#openLib").onclick = () => gotoTab("library");
@@ -1292,7 +1297,7 @@ async function renderLibraryTab() {
   const m = $("#main");
   m.innerHTML = `<div class="empty">Loading…</div>`;
   const list = await api("GET", "/api/library");
-  const branchHasPlayer = state.branch ? !!(await api("GET", `/api/player/${ED}${q()}`)).player : false;
+  const branchHasPlayer = state.branch ? !!(await api("GET", `/api/player/${ED}${q()}`)).player || !!(await api("GET", `/api/player/${ED}${q()}`)).elsewhere : false;
   const card = p => {
     const differing = p.used_in.filter(u => u.differs.length);
     const useBtn = !state.branch ? `<button disabled title="Pick a branch first">Use in a branch</button>`
@@ -1301,6 +1306,7 @@ async function renderLibraryTab() {
     return `<div class="libcard">
       <div><b>${esc(p.known_as ? `${p.full_name} (${p.known_as})` : p.full_name)}</b>
         <span style="color:var(--muted)"> · ${p.position}${p.roles.length ? " · " + p.roles.join(", ") : ""} · ${esc(p.tier_label)} ${p.overall}${p.birth_date ? " · born " + fmtLong(p.birth_date) : ""}</span></div>
+      <div style="font-size:13px;color:var(--muted)">${p.career.length ? "Career: " + p.career.map(c => `${esc(c.season)} ${esc(c.club)}`).join(" · ") : "No clubs in his career yet"}</div>
       <div style="font-size:13px">${p.used_in.length ? "Used in: " + p.used_in.map(u => `${esc(u.branch)} (${esc(u.team)})${u.differs.length ? ` <span class="badge warn" title="Differs: ${esc(u.differs.join(", "))}">differs</span>` : ""}`).join(", ")
         : `<span style="color:var(--muted)">Not used in any branch yet</span>`}</div>
       <div class="row"><button data-edit="${p.profile_id}">Edit</button>${useBtn}
@@ -1339,6 +1345,11 @@ async function renderProfileForm(cur) {
       <label for="pfOvr">Overall</label><input id="pfOvr" type="number" min="1" max="99" value="${val("overall", 83)}" style="width:80px">
       <span class="hint">${TIER_NOTE}</span>
     </div>
+    ${edit ? `<h4 style="margin:18px 0 6px">Career (clubs by season)</h4>
+      <p style="color:var(--muted);margin:0 0 6px;font-size:13px">One club per season, any club you like. Where the club and season are in the game, he can play there.</p>
+      <div id="pfCareer"></div>
+      <div class="inline" style="margin-top:8px"><input id="pcSeason" placeholder="2014/15" style="width:90px"><input id="pcClub" list="pcClubs" placeholder="Club" style="flex:1;min-width:130px"><datalist id="pcClubs">${Object.values(state.view.teams).map(n => `<option value="${esc(n)}">`).join("")}</datalist><button id="pcAdd">Add</button></div>
+      <div id="pcErr"></div>` : `<p class="hint" style="margin-top:12px">Save the profile first, then add his clubs.</p>`}
     <div id="pfErr"></div>
     <div style="margin-top:14px;display:flex;gap:8px"><button class="primary" id="pfSave">${edit ? "Save profile" : "Create profile"}</button><button id="pfCancel">Cancel</button></div></section>`;
   const drawRoles = () => {
@@ -1355,6 +1366,18 @@ async function renderProfileForm(cur) {
   $("#pfTier").onchange = () => { $("#pfOvr").value = $("#pfTier").selectedOptions[0].dataset.ovr; };
   drawRoles();
   $("#pfCancel").onclick = () => renderLibraryTab();
+  if (edit) {
+    const draw = list => {
+      $("#pfCareer").innerHTML = list.length ? `<ul class="tl">${list.map(c => `<li><span>${esc(c.season)}</span><span>${esc(c.club)}${c.in_data ? "" : ` <span style="color:var(--muted);font-size:12px">(not in the game's data: history only)</span>`}</span><button class="link" data-delc="${c.entry_id}" title="Remove">✕</button></li>`).join("")}</ul>` : `<p style="color:var(--muted);margin:0">No clubs yet.</p>`;
+      $("#pfCareer").querySelectorAll("[data-delc]").forEach(b => b.onclick = async () => { const r = await api("DELETE", `/api/library_career/${b.dataset.delc}`); draw(r.career); });
+    };
+    draw(cur.career || []);
+    $("#pcAdd").onclick = async () => {
+      try { const r = await api("POST", `/api/library/${cur.profile_id}/career`, { season: $("#pcSeason").value, club: $("#pcClub").value });
+        $("#pcSeason").value = ""; $("#pcClub").value = ""; $("#pcErr").innerHTML = ""; draw(r.career); }
+      catch (e) { $("#pcErr").innerHTML = `<div class="msg err" style="margin-top:8px">${esc(e.message)}</div>`; }
+    };
+  }
   $("#pfSave").onclick = async () => {
     const body = { full_name: $("#pfName").value, known_as: $("#pfKnown").value, birth_date: $("#pfBorn").value,
       position: $("#pfPos").value, roles: [...picked], tier: $("#pfTier").value, overall: +$("#pfOvr").value };
@@ -1389,6 +1412,38 @@ function syncDialog(p) {
   };
 }
 
+// His club/country in this competition: shown when the branch's player isn't in the competition you have open.
+async function renderAddToEdition(el) {
+  const m = $("#main");
+  const club = el.kind === "club";
+  const fixed = el.fixed_club;
+  const blocked = fixed && !fixed.in_competition;
+  const teams = fixed && fixed.in_competition ? el.teams.filter(t => t.team_id === fixed.team_id) : el.teams;
+  const pre = el.suggested?.team_id && teams.some(t => t.team_id === el.suggested.team_id) ? el.suggested.team_id : (teams[0]?.team_id || "");
+  m.innerHTML = `<section class="card" style="max-width:720px"><h3>${esc(el.name)} isn't in this competition yet</h3>
+    <p style="color:var(--muted);margin-top:0;font-size:13px">He plays in: ${el.placements.map(x => `${esc(x.edition)} (${esc(x.team)})`).join(", ")}.
+      ${club ? `A player has one club per season, so in ${esc(el.season)} he can only play for the same club in every competition.` : "National team and club careers are separate."}</p>
+    ${blocked ? `<div class="msg info">${esc(fixed.name)} isn't in this competition, so he doesn't play in it this season.</div>`
+    : !el.can_add ? `<div class="msg info">He was created in a parent branch. Add competitions there.</div>` : `
+    <div class="form">
+      <label for="apTeam">${club ? "Club" : "National team"}</label><select id="apTeam" ${fixed ? "disabled" : ""}>${teams.map(t => `<option value="${t.team_id}" ${t.team_id === pre ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select>
+      ${el.suggested && !fixed ? `<span class="hint">His career history has ${esc(el.suggested.club)} for this season.</span>` : ""}
+      <label for="apRep">Replaces</label><select id="apRep" style="width:100%"></select>
+      <span class="hint">This player leaves that squad in this competition. You choose his role in every match.</span>
+    </div><div id="apErr"></div>
+    <div style="margin-top:14px"><button class="primary" id="apGo">Add him to this competition</button></div>`}</section>`;
+  if (blocked || !el.can_add) return;
+  const load = async () => {
+    const sq = await api("GET", `/api/squad/${ED}/${$("#apTeam").value}`);
+    $("#apRep").innerHTML = sq.map(p => `<option value="${p.player_id}">${esc(p.name)} · ${p.position || "?"} · ${p.minutes ? p.minutes + " min" : "didn't play"}</option>`).join("");
+  };
+  $("#apTeam").onchange = load; await load();
+  $("#apGo").onclick = async () => {
+    try { const r = await api("POST", `/api/player_place/${ED}${q()}`, { team_id: $("#apTeam").value, replaces_player_id: $("#apRep").value });
+      await refresh(); if (r.diff && !r.diff.empty) showDiff(r.diff); } catch (e) { $("#apErr").innerHTML = `<div class="msg err" style="margin-top:12px">${esc(e.message)}</div>`; }
+  };
+}
+
 async function renderCreateForm(cur, fromProfile) {
   const m = $("#main"), edit = !!cur;
   const src = cur || fromProfile;                      // values to start the form with
@@ -1396,19 +1451,24 @@ async function renderCreateForm(cur, fromProfile) {
   let picked = new Set(src?.roles || []);
   const teams = Object.entries(state.view.teams).sort((a, b) => a[1].localeCompare(b[1]));
   const val = (k, d) => esc(src?.[k] ?? d);
+  const club = state.view.kind === "club";
+  const yr = s => +((/^\s*(\d{4})/.exec(s) || [])[1] || 0);
+  const sugg = fromProfile?.career?.find(c => c.team_id && yr(c.season) === yr(state.view.season) && state.view.teams[c.team_id]);
   const saved = edit || fromProfile ? [] : await api("GET", "/api/library");
   const startFrom = saved.length ? `<div class="inline" style="margin-bottom:12px"><span style="color:var(--muted)">Start from a saved profile:</span>
       <select id="cpFromLib">${saved.map(x => `<option value="${x.profile_id}">${esc(x.known_as || x.full_name)} · ${x.position} · ${x.overall}</option>`).join("")}</select>
       <button id="cpUseLib">Use</button></div>` : "";
   m.innerHTML = `<section class="card" style="max-width:720px"><h3>${edit ? "Edit your player" : fromProfile ? `Use ${esc(fromProfile.known_as || fromProfile.full_name)} in this branch` : "Create your player"}</h3>
     ${startFrom}
-    <p style="color:var(--muted);margin-top:0">${edit ? "Change anything except his national team (make a new branch for that). His match roles stay as you set them."
+    <p style="color:var(--muted);margin-top:0">${edit ? `Change anything except his ${club ? "club" : "national team"} here (to move him, remove him from this competition and add him again). His match roles stay as you set them.`
+      : club ? "He joins a real club squad in place of a player you pick. One club per season: add him to that club's other competitions later from their My player tab."
       : "He joins a real World Cup 2022 squad in place of a player you pick. Only his national team's matches can then be edited in this branch."}${fromProfile ? " Pick his team and who he replaces; you can still tweak anything for this branch only." : ""}</p>
     <div class="form">
       <label for="cpName">Full name</label><input id="cpName" placeholder="e.g. Mateo Rivas" value="${val("full_name", "")}">
       <label for="cpKnown">Known as</label><input id="cpKnown" placeholder="optional, e.g. Rivas" value="${val("known_as", "")}">
       <label for="cpBorn">Born</label><input id="cpBorn" type="date" value="${val("birth_date", "2001-06-15")}">
-      <label for="cpTeam">National team</label><select id="cpTeam" ${edit ? "disabled" : ""}>${teams.map(([id, n]) => `<option value="${id}" ${cur?.team_id === id ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>
+      <label for="cpTeam">${club ? "Club" : "National team"}</label><select id="cpTeam" ${edit ? "disabled" : ""}>${teams.map(([id, n]) => `<option value="${id}" ${(cur?.team_id || sugg?.team_id) === id ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>
+      ${sugg ? `<span class="hint">His career history has ${esc(sugg.club)} for ${esc(sugg.season)}.</span>` : ""}
       <label for="cpPos">Position</label><select id="cpPos">${[["FW", "Forward"], ["MF", "Midfielder"], ["DF", "Defender"], ["GK", "Goalkeeper"]].map(([k, l]) => `<option value="${k}" ${src?.position === k ? "selected" : ""}>${l}</option>`).join("")}</select>
       <label>Roles</label><div class="chips" id="cpRoles"></div>
       <span class="hint">Pick every role he can play. He's matched with real players who play the same roles.</span>
@@ -1459,7 +1519,7 @@ async function renderCreateForm(cur, fromProfile) {
       position: $("#cpPos").value, roles: [...picked], tier: $("#cpTier").value,
       overall: +$("#cpOvr").value, replaces_player_id: $("#cpRep").value };
     try {
-      if (edit) { const r = await api("POST", `/api/player_update${q()}`, body); await refresh(); if (r.diff && !r.diff.empty) showDiff(r.diff); }
+      if (edit) { const r = await api("POST", `/api/player_update${q()}`, { ...body, edition_id: ED }); await refresh(); if (r.diff && !r.diff.empty) showDiff(r.diff); }
       else { await api("POST", `/api/player/${ED}${q()}`, { ...body, team_id: $("#cpTeam").value, profile_id: fromProfile?.profile_id }); await refresh(); }
     } catch (e) { $("#cpErr").innerHTML = `<div class="msg err" style="margin-top:12px">${esc(e.message)}</div>`; }
   };

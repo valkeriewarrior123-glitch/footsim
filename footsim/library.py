@@ -5,6 +5,8 @@ player is a copy of a profile (`created_players.profile_id` remembers which one)
 never silently changes a branch: after an edit the app lists the branches that now differ and the user
 picks which of them to update.
 """
+import re
+
 from footsim import player
 from footsim.db import ROLE_GROUP, ROLE_ORDER
 
@@ -97,7 +99,7 @@ def _public(conn, r) -> dict:
             "birth_date": r["birth_date"], "position": r["position"],
             "roles": [x for x in (r["roles"] or "").split(",") if x], "detail_position": r["detail_position"],
             "tier": r["tier"], "tier_label": player.TIER_LABEL[r["tier"]], "overall": r["overall"],
-            "used_in": _users(conn, r["profile_id"])}
+            "used_in": _users(conn, r["profile_id"]), "career": career(conn, r["profile_id"])}
 
 
 def list_profiles(conn) -> list:
@@ -135,6 +137,7 @@ def delete_profile(conn, profile_id: int) -> dict:
     """Remove a profile from the library. Branches that used it keep their player (just no longer linked)."""
     _row(conn, profile_id)
     conn.execute("UPDATE created_players SET profile_id = NULL WHERE profile_id = ?", (profile_id,))
+    conn.execute("DELETE FROM profile_career WHERE profile_id = ?", (profile_id,))
     conn.execute("DELETE FROM player_profiles WHERE profile_id = ?", (profile_id,))
     conn.commit()
     return {"ok": True}
@@ -202,3 +205,87 @@ def branch_link(conn, branch_id: int | None) -> dict | None:
     u = next((x for x in _users(conn, pid) if x["branch_id"] == owner), None)
     return {"profile_id": pid, "name": _row(conn, pid)["known_as"] or _row(conn, pid)["full_name"],
             "differs": u["differs"] if u else [], "can_save": False}
+
+
+# ------------------------------------------------------------------ career history (clubs by season)
+
+def _start_year(season: str) -> int | None:
+    m = re.match(r"\s*(\d{4})", season or "")
+    return int(m.group(1)) if m else None
+
+
+def _season_label(season: str) -> str:
+    """'2014-15', '2014/15' or '2014' -> '2014/15' for a club season, kept as '2022' when written with one year."""
+    m = re.fullmatch(r"\s*(\d{4})\s*(?:[/-]\s*(\d{2}|\d{4}))?\s*", season or "")
+    if not m:
+        raise _err("Write the season like 2014/15")
+    y = int(m.group(1))
+    if m.group(2):
+        end = int(m.group(2)[-2:])
+        if end != (y + 1) % 100:
+            raise _err("A club season runs over two years in a row, like 2014/15")
+        return f"{y}/{end:02d}"
+    return str(y)
+
+
+def career(conn, profile_id: int) -> list:
+    rows = conn.execute("SELECT c.*, t.name AS team_name FROM profile_career c LEFT JOIN teams t USING(team_id) "
+                        "WHERE c.profile_id = ?", (profile_id,)).fetchall()
+    out = [{"entry_id": r["entry_id"], "season": r["season"], "club": r["club"], "team_id": r["team_id"],
+            "in_data": r["team_id"] is not None, "note": r["note"]} for r in rows]
+    return sorted(out, key=lambda e: (_start_year(e["season"]) or 0, e["entry_id"]))
+
+
+def career_add(conn, profile_id: int, body: dict) -> dict:
+    """One club per season: adding a season that already has a club replaces it."""
+    _row(conn, profile_id)
+    club = (body.get("club") or "").strip()
+    if not club:
+        raise _err("Write the club's name")
+    season = _season_label(body.get("season"))
+    team_id = body.get("team_id") or None
+    if team_id and not conn.execute("SELECT 1 FROM teams WHERE team_id = ?", (team_id,)).fetchone():
+        raise _err("Unknown club")
+    if not team_id:                                   # the club is in our data when its name matches
+        r = conn.execute("SELECT team_id FROM teams WHERE name = ? COLLATE NOCASE", (club,)).fetchone()
+        team_id = r[0] if r else None
+    conn.execute("DELETE FROM profile_career WHERE profile_id = ? AND season = ?", (profile_id, season))
+    cur = conn.execute("INSERT INTO profile_career (profile_id, season, club, team_id, note) VALUES (?,?,?,?,?)",
+                       (profile_id, season, club, team_id, (body.get("note") or "").strip() or None))
+    conn.execute("UPDATE player_profiles SET updated_at = CURRENT_TIMESTAMP WHERE profile_id = ?", (profile_id,))
+    conn.commit()
+    return {"ok": True, "entry_id": cur.lastrowid, "career": career(conn, profile_id)}
+
+
+def career_delete(conn, entry_id: int) -> dict:
+    r = conn.execute("SELECT profile_id FROM profile_career WHERE entry_id = ?", (entry_id,)).fetchone()
+    conn.execute("DELETE FROM profile_career WHERE entry_id = ?", (entry_id,))
+    conn.commit()
+    return {"ok": True, "career": career(conn, r[0]) if r else []}
+
+
+def season_suggestion(conn, profile_id, edition_id: str) -> dict | None:
+    """The career entry whose season matches this edition's season, if any: {club, team_id, season}."""
+    if not profile_id:
+        return None
+    ed = conn.execute("SELECT season FROM editions WHERE edition_id = ?", (edition_id,)).fetchone()
+    y = _start_year(ed[0]) if ed else None
+    for e in career(conn, profile_id):
+        if y is not None and _start_year(e["season"]) == y:
+            return e
+    return None
+
+
+def note_season(conn, branch_id: int, edition_id: str, team_id: str) -> None:
+    """When a branch's player joins a club for a season, record it in his library career if that season is empty."""
+    owner = player._root_branch_with_player(conn, branch_id)
+    if owner is None:
+        return
+    pid = conn.execute("SELECT profile_id FROM created_players WHERE branch_id = ?", (owner,)).fetchone()[0]
+    r = conn.execute("SELECT e.season, c.kind FROM editions e JOIN competitions c USING(competition_id) "
+                     "WHERE e.edition_id = ?", (edition_id,)).fetchone()
+    if not pid or r is None or r["kind"] != "club" or season_suggestion(conn, pid, edition_id):
+        return
+    y = _start_year(r["season"])
+    club = conn.execute("SELECT name FROM teams WHERE team_id = ?", (team_id,)).fetchone()[0]
+    career_add(conn, pid, {"season": f"{y}/{(y + 1) % 100:02d}", "club": club, "team_id": team_id})

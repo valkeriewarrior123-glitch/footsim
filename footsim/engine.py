@@ -413,7 +413,7 @@ def enforce_suspensions(conn, edition_id: str, branch_id: int) -> list:
         f = fx[fid]
         team = next((l["team_id"] for l in f.lineup if l["player_id"] == banned_player), None)
         banned_here = set(res.suspensions.get(fid, {}).get(team, []))
-        me = cp.profile(conn, branch_id)
+        me = cp.profile(conn, branch_id, edition_id)
         if me is not None and banned_player == me.player_id and f.override_id is None:
             # a real match: just keep the created player out of it
             conn.execute("INSERT OR REPLACE INTO player_roles VALUES (?,?, 'unused', NULL, NULL)", (branch_id, fid))
@@ -453,7 +453,7 @@ def _swap_out(conn, edition_id, branch_id, f, out_player, team, banned_here):
     from footsim.api import squad
     from footsim.roller import _player_info
     info = _player_info(conn, edition_id)
-    me = cp.profile(conn, branch_id)
+    me = cp.profile(conn, branch_id, edition_id)
     if me is not None:
         info[me.player_id] = cp.scoring_info(me)
     squad_ids = [p["player_id"] for p in squad(conn, edition_id, team, branch_id)]

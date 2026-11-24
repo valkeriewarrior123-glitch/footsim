@@ -59,7 +59,9 @@ def _root_branch_with_player(conn, branch_id):
     return None
 
 
-def profile(conn, branch_id: int | None) -> Profile | None:
+def profile(conn, branch_id: int | None, edition_id: str | None = None) -> Profile | None:
+    """The branch's created player. With `edition_id`, the player as placed in that competition (his club or
+    national team and who he replaces there), or None when he isn't in it. Without it, his first competition."""
     if branch_id is None:
         return None
     owner = _root_branch_with_player(conn, branch_id)
@@ -69,8 +71,103 @@ def profile(conn, branch_id: int | None) -> Profile | None:
         "SELECT c.*, p.position, COALESCE(p.known_as, p.full_name) AS name, p.birth_date "
         "FROM created_players c JOIN players p USING(player_id) WHERE c.branch_id = ?", (owner,)).fetchone()
     roles = tuple(x for x in (r["roles"] or "").split(",") if x)
-    return Profile(r["player_id"], branch_id, r["team_id"], r["edition_id"], r["replaces_player_id"],
+    team, ed, rep = r["team_id"], r["edition_id"], r["replaces_player_id"]
+    if edition_id is not None and edition_id != ed:
+        pl = conn.execute("SELECT * FROM player_placements WHERE branch_id = ? AND edition_id = ?",
+                          (owner, edition_id)).fetchone()
+        if pl is None:
+            return None
+        team, ed, rep = pl["team_id"], pl["edition_id"], pl["replaces_player_id"]
+    return Profile(r["player_id"], branch_id, team, ed, rep,
                    r["tier"], r["overall"], r["position"], r["name"], r["birth_date"], roles)
+
+
+def placements(conn, branch_id: int) -> list:
+    """Every competition the branch's player is in: [{edition_id, team_id, replaces, home}] (home = first one)."""
+    owner = _root_branch_with_player(conn, branch_id)
+    if owner is None:
+        return []
+    r = conn.execute("SELECT edition_id, team_id, replaces_player_id FROM created_players WHERE branch_id = ?",
+                     (owner,)).fetchone()
+    out = [{"edition_id": r["edition_id"], "team_id": r["team_id"], "replaces": r["replaces_player_id"], "home": True}]
+    for p in conn.execute("SELECT edition_id, team_id, replaces_player_id FROM player_placements "
+                          "WHERE branch_id = ? ORDER BY rowid", (owner,)):
+        out.append({"edition_id": p["edition_id"], "team_id": p["team_id"], "replaces": p["replaces_player_id"],
+                    "home": False})
+    return out
+
+
+def _season_kind(conn, edition_id):
+    r = conn.execute("SELECT e.season, c.kind FROM editions e JOIN competitions c USING(competition_id) "
+                     "WHERE e.edition_id = ?", (edition_id,)).fetchone()
+    return (r["season"], r["kind"]) if r else (None, None)
+
+
+def place(conn, branch_id: int, edition_id: str, team_id: str, replaces_player_id: str) -> Profile:
+    """Put the branch's player into another competition (e.g. his club's Champions League season).
+    One club per season: club competitions of the same season must all use the same club."""
+    from footsim.api import EditError
+    p = profile(conn, branch_id)
+    if p is None:
+        raise EditError("This branch has no created player")
+    owner = _root_branch_with_player(conn, branch_id)
+    if owner != branch_id:
+        raise EditError("This player was created in a parent branch; add competitions there (forks share him)")
+    if any(x["edition_id"] == edition_id for x in placements(conn, branch_id)):
+        raise EditError("He is already in this competition")
+    ed = conn.execute("SELECT start_date FROM editions WHERE edition_id = ?", (edition_id,)).fetchone()
+    if ed is None:
+        raise EditError("Unknown competition")
+    season, kind = _season_kind(conn, edition_id)
+    tn = {r["team_id"]: r["name"] for r in conn.execute("SELECT team_id, name FROM teams")}
+    if kind == "club":
+        for x in placements(conn, branch_id):
+            s2, k2 = _season_kind(conn, x["edition_id"])
+            if k2 == "club" and s2 == season and x["team_id"] != team_id:
+                raise EditError(f"He plays for {tn.get(x['team_id'])} in {season}, so he can't play for "
+                                f"{tn.get(team_id, team_id)} in the same season")
+    in_squad = conn.execute("SELECT shirt_number FROM squads WHERE edition_id = ? AND team_id = ? AND player_id = ?",
+                            (edition_id, team_id, replaces_player_id)).fetchone()
+    if in_squad is None:
+        raise EditError("The player being replaced must be in that team's real squad")
+    conn.execute("INSERT INTO player_placements (branch_id, edition_id, team_id, replaces_player_id, shirt_number) "
+                 "VALUES (?,?,?,?,?)", (owner, edition_id, team_id, replaces_player_id, in_squad[0]))
+    for (b,) in conn.execute("SELECT branch_id FROM branches WHERE created_player_id = ?", (p.player_id,)).fetchall():
+        seq = conn.execute("SELECT COALESCE(MAX(seq),0) FROM squad_overrides WHERE branch_id = ?", (b,)).fetchone()[0]
+        conn.execute("INSERT OR REPLACE INTO squad_overrides VALUES (?,?,?,?, 'remove', ?)",
+                     (b, edition_id, team_id, replaces_player_id, seq + 1))
+        conn.execute("INSERT OR REPLACE INTO squad_overrides VALUES (?,?,?,?, 'add', ?)",
+                     (b, edition_id, team_id, p.player_id, seq + 2))
+    conn.execute("INSERT INTO player_career_events (branch_id, player_id, date, event_type, team_id, notes) "
+                 "VALUES (?,?,?,?,?,?)", (owner, p.player_id, ed[0], "call_up", team_id,
+                                          "Named in the squad in place of the real player"))
+    conn.commit()
+    return profile(conn, branch_id, edition_id)
+
+
+def unplace(conn, branch_id: int, edition_id: str) -> None:
+    """Take him out of a competition he was added to. His first competition can't be removed (delete the branch)."""
+    from footsim.api import EditError
+    p = profile(conn, branch_id, edition_id)
+    owner = _root_branch_with_player(conn, branch_id)
+    if p is None:
+        raise EditError("He isn't in that competition")
+    if owner != branch_id:
+        raise EditError("This player was created in a parent branch; change competitions there")
+    if profile(conn, branch_id).edition_id == edition_id:
+        raise EditError("That is his first competition; it can't be removed")
+    used = conn.execute("SELECT COUNT(*) FROM fixture_overrides WHERE edition_id = ? AND branch_id IN "
+                        "(SELECT branch_id FROM branches WHERE created_player_id = ?)",
+                        (edition_id, p.player_id)).fetchone()[0]
+    if used:
+        raise EditError("This competition has edited or rolled matches in it. Revert them first, then remove him.")
+    conn.execute("DELETE FROM player_roles WHERE fixture_id IN (SELECT fixture_id FROM fixtures WHERE edition_id = ?) "
+                 "AND branch_id IN (SELECT branch_id FROM branches WHERE created_player_id = ?)", (edition_id, p.player_id))
+    conn.execute("DELETE FROM squad_overrides WHERE edition_id = ? AND team_id = ? AND player_id IN (?, ?) AND "
+                 "branch_id IN (SELECT branch_id FROM branches WHERE created_player_id = ?)",
+                 (edition_id, p.team_id, p.player_id, p.replaces, p.player_id))
+    conn.execute("DELETE FROM player_placements WHERE branch_id = ? AND edition_id = ?", (owner, edition_id))
+    conn.commit()
 
 
 def create(conn, branch_id: int, *, full_name: str, known_as: str | None, birth_date: str, team_id: str,
@@ -138,10 +235,14 @@ def _clean_roles(roles, position):
 
 
 def update(conn, branch_id: int, *, full_name=None, known_as=None, birth_date=None, position=None,
-           detail_position=None, tier=None, overall=None, replaces_player_id=None, roles=None) -> Profile:
+           detail_position=None, tier=None, overall=None, replaces_player_id=None, roles=None,
+           edition_id=None) -> Profile:
     """Edit the created player. Everything except his national team can change at any time."""
     from footsim.api import EditError
-    p = profile(conn, branch_id)
+    p = profile(conn, branch_id, edition_id)
+    if p is None:
+        p = profile(conn, branch_id)
+        replaces_player_id = None            # he isn't in that competition: only the shared details can change
     owner = _root_branch_with_player(conn, branch_id)
     if owner != branch_id:
         raise EditError("This player was created in a parent branch; edit him there (forks share him)")
@@ -187,8 +288,12 @@ def update(conn, branch_id: int, *, full_name=None, known_as=None, birth_date=No
             seq = conn.execute("SELECT COALESCE(MAX(seq),0) FROM squad_overrides WHERE branch_id = ?", (b,)).fetchone()[0]
             conn.execute("INSERT OR REPLACE INTO squad_overrides VALUES (?,?,?,?, 'remove', ?)",
                          (b, p.edition_id, p.team_id, replaces_player_id, seq + 1))
-        conn.execute("UPDATE created_players SET replaces_player_id = ? WHERE branch_id = ?",
-                     (replaces_player_id, owner))
+        if p.edition_id == profile(conn, branch_id).edition_id:
+            conn.execute("UPDATE created_players SET replaces_player_id = ? WHERE branch_id = ?",
+                         (replaces_player_id, owner))
+        else:
+            conn.execute("UPDATE player_placements SET replaces_player_id = ? WHERE branch_id = ? AND edition_id = ?",
+                         (replaces_player_id, owner, p.edition_id))
         conn.execute("DELETE FROM player_roles WHERE target_player_id = ?", (replaces_player_id,))
     conn.commit()
     return profile(conn, branch_id)
@@ -231,9 +336,10 @@ def set_role(conn, branch_id: int, fixture_id: str, role: str, target: str | Non
     from footsim.api import EditError
     if role not in ROLES:
         raise EditError(f"Role must be one of {ROLES}")
-    p = profile(conn, branch_id)
+    fe = conn.execute("SELECT edition_id FROM fixtures WHERE fixture_id = ?", (fixture_id,)).fetchone()
+    p = profile(conn, branch_id, fe[0] if fe else None)
     if p is None:
-        raise EditError("This branch has no created player")
+        raise EditError("This branch has no created player in that competition")
     if role == "sub" and (minute is None or not 1 <= int(minute) <= 119):
         raise EditError("Pick the minute he comes on (1-119)")
     from footsim import timeline
@@ -365,8 +471,8 @@ def strip(lineup: list, events: list, p: Profile, squad_ids: list, info: dict) -
 
 def transform_fixtures(conn, edition_id: str, branch_id: int, fixtures: dict) -> None:
     """Called by timeline.active_fixtures: place the player in real-result matches."""
-    p = profile(conn, branch_id)
-    if p is None or p.edition_id != edition_id:
+    p = profile(conn, branch_id, edition_id)
+    if p is None:
         return
     from footsim.api import squad
     from footsim.roller import _player_info
