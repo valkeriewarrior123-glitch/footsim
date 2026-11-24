@@ -35,11 +35,7 @@ class Clubs(unittest.TestCase):
         return api.place_player(self.conn, UCL, self.b, dict(team_id=team, replaces_player_id=fw(self.conn, UCL, team)["player_id"]))
 
     def test_same_club_in_both_competitions(self):
-        self.assertIsNone(player.profile(self.conn, self.b, UCL))
-        self.assertIn("elsewhere", api.player_view(self.conn, UCL, self.b))
-        r = self.place_ucl()
-        self.assertTrue(r["ok"])
-        me = player.profile(self.conn, self.b, UCL)
+        me = player.profile(self.conn, self.b, UCL)               # added automatically when he was created at Juventus
         self.assertEqual(me.team_id, JUVE)
         v = api.player_view(self.conn, UCL, self.b)
         self.assertEqual(len(v["placements"]), 2)
@@ -50,7 +46,30 @@ class Clubs(unittest.TestCase):
         st = stats.edition_stats(self.conn, UCL, self.b)
         self.assertGreater(st.players[self.pid].minutes, 0)
 
+    def test_creating_him_at_a_club_adds_him_to_the_whole_season(self):
+        b2 = api.create_branch(self.conn, "auto")["branch_id"]
+        rep = fw(self.conn, SA, JUVE)
+        r = api.create_player(self.conn, SA, b2, dict(full_name="Auto Guy", birth_date="2000-01-01", team_id=JUVE,
+                                                      position="FW", replaces_player_id=rep["player_id"], tier="star"))
+        self.assertEqual({x["edition_id"] for x in player.placements(self.conn, b2)}, {SA, UCL})
+        self.assertTrue(r["notes"] and "Champions League" in r["notes"][0])
+        # a club that isn't in the Champions League: only the league
+        b3 = api.create_branch(self.conn, "auto2")["branch_id"]
+        api.create_player(self.conn, SA, b3, dict(full_name="Other Guy", birth_date="2000-01-01", team_id="c_ascoli", position="FW",
+                                                  replaces_player_id=api.squad(self.conn, SA, "c_ascoli", None)[0]["player_id"], tier="star")) \
+            if any(t["team_id"] == "c_ascoli" for t in self.conn.execute("SELECT team_id FROM squads WHERE edition_id = ?", (SA,)).fetchall()) else None
+
+    def test_calendar_and_injuries_are_per_season(self):
+        api.place_player(self.conn, WC, self.b, dict(team_id="ARG", replaces_player_id=next(
+            s for s in api.squad(self.conn, WC, "ARG", None) if s["position"] == "FW")["player_id"]))
+        wc = api.player_view(self.conn, WC, self.b)
+        sa = api.player_view(self.conn, SA, self.b)
+        self.assertTrue(all(c["date"].startswith("2022") for c in wc["calendar"] if c.get("source") == "yours"))
+        self.assertTrue(all(c["date"][:4] in ("2012", "2013") for c in sa["calendar"] if c.get("source") == "yours"))
+        self.assertTrue(sa["window"]["start"].startswith("2012"))
+
     def test_one_club_per_season(self):
+        api.unplace_player(self.conn, UCL, self.b)
         with self.assertRaises(api.EditError) as cm:
             self.place_ucl("c_fcbarcelona")
         self.assertIn("same season", str(cm.exception))
@@ -64,7 +83,6 @@ class Clubs(unittest.TestCase):
         self.assertEqual(player.profile(self.conn, self.b, SA).team_id, JUVE)
 
     def test_unplace(self):
-        self.place_ucl()
         api.unplace_player(self.conn, UCL, self.b)
         self.assertIsNone(player.profile(self.conn, self.b, UCL))
         with self.assertRaises(api.EditError):
@@ -114,25 +132,23 @@ class Clubs(unittest.TestCase):
                                                   replaces_player_id=fw(self.conn, SA, JUVE)["player_id"], tier="star",
                                                   profile_id=p))
         self.assertEqual([(e["season"], e["team_id"]) for e in library.career(self.conn, p)], [("2012/13", JUVE)])
-        api.place_player(self.conn, UCL, b2, dict(team_id=JUVE, replaces_player_id=fw(self.conn, UCL, JUVE)["player_id"]))
         self.assertEqual(len(library.career(self.conn, p)), 1)                                # same season: no duplicate
 
     def test_delete_branch_removes_placements(self):
-        self.place_ucl()
         api.delete_branch(self.conn, self.b)
         self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM player_placements").fetchone()[0], 0)
 
     def test_player_home(self):
         h = api.player_home(self.conn, self.b)
         self.assertEqual(h["player"]["name"], "Test Star")
-        self.assertEqual([c["edition_id"] for c in h["competitions"]], [SA])
+        self.assertEqual({c["edition_id"] for c in h["competitions"]}, {SA, UCL})
         self.assertEqual(h["competitions"][0]["team_id"], JUVE)
         add = {a["edition_id"]: a for a in h["addable"]}
-        self.assertTrue(add[UCL]["possible"])                                  # same club, other competition
+        self.assertNotIn(UCL, add)
         self.assertNotIn(SA, add)
-        self.place_ucl()
-        h = api.player_home(self.conn, self.b)
-        self.assertEqual({c["edition_id"] for c in h["competitions"]}, {SA, UCL})
+        api.unplace_player(self.conn, UCL, self.b)
+        add = {a["edition_id"]: a for a in api.player_home(self.conn, self.b)["addable"]}
+        self.assertTrue(add[UCL]["possible"])                                  # same club, other competition
 
     def test_player_home_without_player(self):
         b2 = api.create_branch(self.conn, "empty")["branch_id"]

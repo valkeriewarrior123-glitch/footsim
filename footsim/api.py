@@ -646,7 +646,59 @@ def create_player(conn, edition_id: str, branch_id: int, body: dict) -> dict:
         conn.execute("UPDATE created_players SET profile_id = ? WHERE branch_id = ?", (int(body["profile_id"]), branch_id))
         conn.commit()
     library.note_season(conn, branch_id, edition_id, p.team_id)
-    return {"ok": True, "player_id": p.player_id}
+    notes = auto_place_season(conn, branch_id, edition_id, p.team_id, body.get("replaces_player_id"))
+    return {"ok": True, "player_id": p.player_id, "notes": notes}
+
+
+def _norm(n: str) -> str:
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFKD", n or "") if not unicodedata.combining(c)).casefold().strip()
+
+
+def auto_place_season(conn, branch_id: int, edition_id: str, team_id: str, replaces_id: str) -> list:
+    """He's at a club for a season: put him in every other competition that club plays that season, in place of the
+    same real player (matched by name; if the name isn't in that squad, the team's busiest player in his position).
+    Returns plain-language notes."""
+    season, kind = player._season_kind(conn, edition_id)
+    if kind != "club" or not season:
+        return []
+    names = names_map(conn)
+    want = _norm(names.get(replaces_id, ""))
+    me = player.profile(conn, branch_id, edition_id)
+    notes = []
+    for r in conn.execute("SELECT e.edition_id FROM editions e JOIN competitions c USING(competition_id) "
+                          "WHERE e.season = ? AND c.kind = 'club' AND e.edition_id != ?", (season, edition_id)).fetchall():
+        ed = r["edition_id"]
+        if any(x["edition_id"] == ed for x in player.placements(conn, branch_id)):
+            continue
+        if conn.execute("SELECT 1 FROM fixtures WHERE edition_id = ? AND (home_team_id = ? OR away_team_id = ?) LIMIT 1",
+                        (ed, team_id, team_id)).fetchone() is None:
+            continue                                                   # his club isn't in that competition
+        sq = squad(conn, ed, team_id, None)
+        pick = next((s for s in sq if _norm(s["name"]) == want), None)
+        how = ""
+        if pick is None:
+            same = [s for s in sq if s["position"] == (me.position if me else None) and s["minutes"]] or [s for s in sq if s["position"] != "GK" and s["minutes"]]
+            pick = max(same, key=lambda s: s["minutes"]) if same else (sq[0] if sq else None)
+            how = f" ({names.get(replaces_id, 'the same player')} isn't in that squad)"
+        if pick is None:
+            continue
+        try:
+            player.place(conn, branch_id, ed, team_id, pick["player_id"])
+            library.note_season(conn, branch_id, ed, team_id)
+            engine.apply_cascade(conn, ed, branch_id)
+            notes.append(f"Also added to {_edition_name(conn, ed)} in place of {pick['name']}{how}.")
+        except EditError as e:
+            notes.append(f"Couldn't add him to {_edition_name(conn, ed)}: {e}")
+    return notes
+
+
+def _edition_name(conn, ed: str) -> str:
+    return next((e["name"] for e in editions(conn) if e["edition_id"] == ed), ed)
+
+
+def names_map(conn) -> dict:
+    return names(conn)
 
 
 def place_player(conn, edition_id: str, branch_id: int, body: dict) -> dict:
@@ -657,7 +709,8 @@ def place_player(conn, edition_id: str, branch_id: int, body: dict) -> dict:
     player.place(conn, branch_id, edition_id, body.get("team_id"), body.get("replaces_player_id"))
     library.note_season(conn, branch_id, edition_id, body.get("team_id"))
     fixes = engine.apply_cascade(conn, edition_id, branch_id).fixes
-    return {"ok": True, "diff": diff(conn, before, snapshot(conn, edition_id, branch_id), fixes)}
+    notes = auto_place_season(conn, branch_id, edition_id, body.get("team_id"), body.get("replaces_player_id"))
+    return {"ok": True, "notes": notes, "diff": diff(conn, before, snapshot(conn, edition_id, branch_id), fixes)}
 
 
 def unplace_player(conn, edition_id: str, branch_id: int) -> dict:
@@ -802,7 +855,9 @@ def player_view(conn, edition_id: str, branch_id: int | None) -> dict:
         "unset": sum(1 for m in matches if m["role"]["role"] == "auto"),
         "injuries": [dict(r) for r in conn.execute(
             "SELECT injury_id, start_date, end_date, description FROM injuries WHERE branch_id = ? AND player_id = ? "
-            "ORDER BY start_date", (branch_id, me.player_id))],
+            "AND start_date BETWEEN ? AND ? ORDER BY start_date", (branch_id, me.player_id, *edition_window(conn, edition_id)))],
+        "window": dict(zip(("from", "to"), edition_window(conn, edition_id)),
+                       start=conn.execute("SELECT start_date FROM editions WHERE edition_id = ?", (edition_id,)).fetchone()[0]),
         "calendar": calendar(conn, edition_id, branch_id, me),
         "library": library.branch_link(conn, branch_id),
         "placements": _placements(conn, branch_id, edition_id),
@@ -891,18 +946,30 @@ def _elsewhere(conn, edition_id: str, branch_id: int, home) -> dict:
             "can_add": player._root_branch_with_player(conn, branch_id) == branch_id}
 
 
+def edition_window(conn, edition_id: str) -> tuple:
+    """The dates a competition's page cares about: its own span plus a run-up before it and a little after."""
+    import datetime as _d
+    r = conn.execute("SELECT start_date, end_date FROM editions WHERE edition_id = ?", (edition_id,)).fetchone()
+    if r is None:
+        return "0000-01-01", "9999-12-31"
+    lo = (_d.date.fromisoformat(r["start_date"]) - _d.timedelta(days=150)).isoformat()
+    hi = (_d.date.fromisoformat(r["end_date"]) + _d.timedelta(days=60)).isoformat()
+    return lo, hi
+
+
 def calendar(conn, edition_id: str, branch_id: int, me) -> list:
+    lo, hi = edition_window(conn, edition_id)
     items = [{"date": r["date"], "kind": r["event_type"], "notes": r["notes"], "source": "real"}
              for r in conn.execute("SELECT * FROM calendar_events WHERE edition_id = ? AND "
                                    "(team_id IS NULL OR team_id = ?)", (edition_id, me.team_id))]
     items += [{"date": r["date"], "kind": r["event_type"], "notes": r["notes"], "source": "yours",
                "id": r["career_event_id"]}
-              for r in conn.execute("SELECT * FROM player_career_events WHERE branch_id = ? AND player_id = ?",
-                                    (branch_id, me.player_id))]
+              for r in conn.execute("SELECT * FROM player_career_events WHERE branch_id = ? AND player_id = ? "
+                                    "AND date BETWEEN ? AND ?", (branch_id, me.player_id, lo, hi))]
     items += [{"date": r["start_date"], "kind": "injury",
                "notes": f"{r['description'] or 'Injury'} (out until {r['end_date'] or 'unknown'})", "source": "yours"}
-              for r in conn.execute("SELECT * FROM injuries WHERE branch_id = ? AND player_id = ?",
-                                    (branch_id, me.player_id))]
+              for r in conn.execute("SELECT * FROM injuries WHERE branch_id = ? AND player_id = ? "
+                                    "AND start_date BETWEEN ? AND ?", (branch_id, me.player_id, lo, hi))]
     return sorted(items, key=lambda x: x["date"])
 
 

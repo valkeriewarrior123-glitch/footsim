@@ -61,6 +61,8 @@ body.side-collapsed #side { display: none; }
 #menuBtn { padding: 4px 10px; font-size: 16px; line-height: 1; }
 #chead { padding: 12px 20px 0; }
 #chead .summary { margin: 0; }
+.toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; background: var(--ink); color: var(--bg); padding: 10px 16px;
+         border-radius: 8px; max-width: min(92vw, 560px); font-size: 14px; box-shadow: 0 4px 18px rgba(0,0,0,.25); }
 .me-dot { color: var(--pitch); font-size: 10px; vertical-align: 1px; margin-left: 3px; }
 .crumb { color: var(--pitch); }
 nav { display: flex; gap: 4px; padding: 12px 20px 0; }
@@ -409,9 +411,9 @@ details.tour .body { padding: 0 14px 14px; }
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=c0a1c8c185", "seed": "footsim-seed.db?v=c0a1c8c185", "worker": "engine-worker.js?v=c0a1c8c185", "version": "c0a1c8c185", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
-<script src="cloud.js?v=c0a1c8c185"></script>
-<script src="engine.js?v=c0a1c8c185"></script>
+<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=8e16e931f6", "seed": "footsim-seed.db?v=8e16e931f6", "worker": "engine-worker.js?v=8e16e931f6", "version": "8e16e931f6", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
+<script src="cloud.js?v=8e16e931f6"></script>
+<script src="engine.js?v=8e16e931f6"></script>
 <script>
 let ED = (() => { try { return localStorage.getItem("footsim.edition") || "WC2022"; } catch (e) { return "WC2022"; } })();
 let state_editions = [];
@@ -422,6 +424,12 @@ const EVLABEL = { goal: "Goal", pen_goal: "Penalty goal", own_goal: "Own goal", 
 const state = { branch: null, tab: "groups", view: null, branches: [], editing: null };
 
 const $ = s => document.querySelector(s);
+function toast(msg) {
+  if (!msg) return;
+  let t = $("#toast"); if (!t) { t = document.createElement("div"); t.id = "toast"; t.className = "toast"; document.body.appendChild(t); }
+  t.textContent = msg; t.style.display = "";
+  clearTimeout(toast.h); toast.h = setTimeout(() => { t.style.display = "none"; }, 9000);
+}
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const q = () => state.branch ? `?branch=${state.branch}` : "";
 const fmtDate = d => d && d !== "TBD" ? new Date(d + "T12:00").toLocaleDateString(undefined, { day: "numeric", month: "short" }) : "TBD";
@@ -491,7 +499,8 @@ async function loadHome() { state.home = state.branch ? await api("GET", `/api/p
 
 function renderSide() {
   const el = $("#side"), h = state.home, item = (attr, label, cls = "") => `<a href="#" class="si ${cls}" ${attr}>${label}</a>`;
-  const open = state.level === "season" ? state.season : state.level === "tournament" ? seasonOfEd(ED) : state.lastSeason;
+  const gs = seasonGroups();
+  const open = state.level === "season" ? state.season : state.level === "tournament" ? seasonOfEd(ED) : (state.lastSeason || (gs.length === 1 ? gs[0].season : null));
   if (open) state.lastSeason = open;
   let html = "";
   if (state.branch) {
@@ -500,11 +509,12 @@ function renderSide() {
       html += `<div class="sh">Seasons</div>`;
       for (const g of seasonGroups()) {
         html += item(`data-go="season" data-season="${esc(g.season)}"`, `${esc(seasonLabel(g.season))} · ${esc(g.team)}`, "season" + (state.level === "season" && state.season === g.season ? " on" : ""));
-        if (g.season === open) html += g.comps.map(c => item(`data-ed="${c.edition_id}"`, esc(shortName(edName(c.edition_id))), "kid" + (state.level === "tournament" && ED === c.edition_id ? " on" : ""))).join("");
+        if (g.season === open) html += g.comps.map(c => item(`data-ed="${c.edition_id}"`, esc(shortName(edName(c.edition_id))), "kid" + (state.level === "tournament" && ED === c.edition_id ? " on" : ""))).join("")
+          + item(`data-go="changes" data-season="${esc(g.season)}"`, "Changes", "kid" + (state.level === "changes" && state.season === g.season ? " on" : ""));
       }
     }
     html += `<div class="sh">More</div>` + item('data-go="all"', "All tournaments", state.level === "all" ? "on" : "")
-      + item('data-go="library"', "Library", state.level === "library" ? "on" : "") + item('data-go="changes"', "Changes", state.level === "changes" ? "on" : "");
+      + item('data-go="library"', "Library", state.level === "library" ? "on" : "") + item('data-go="changes"', "All changes", state.level === "changes" && !state.season ? "on" : "");
   } else {
     html += `<div class="sh">Tournaments (real history)</div>` + state_editions.map(e => item(`data-ed="${e.edition_id}"`, esc(e.name), state.level === "tournament" && ED === e.edition_id ? "on" : "")).join("")
       + `<div class="sh">More</div>` + item('data-go="library"', "Library", state.level === "library" ? "on" : "");
@@ -515,7 +525,7 @@ $("#side").onclick = e => {
   const a = e.target.closest("a.si"); if (!a) return;
   e.preventDefault();
   if (a.dataset.ed) return openTournament(a.dataset.ed, state.tab === "bracket" && isLeagueEd(a.dataset.ed) ? "groups" : (state.level === "tournament" ? state.tab : "groups"));
-  setLevel(a.dataset.go, a.dataset.season);
+  setLevel(a.dataset.go, a.dataset.season ?? null);
 };
 $("#menuBtn").onclick = () => {
   if (window.innerWidth <= 800) document.body.classList.toggle("side-open");
@@ -792,10 +802,12 @@ async function renderChanges() {
   if (!state.branch) return `<div class="empty">Pick a branch to see how it differs from real history.</div>`;
   const w = await api("GET", `/api/world_diff${q()}`);
   const sm = w.summary;
-  const head = `<section class="card" style="margin-bottom:14px"><h3>Across the world</h3>
+  const head = `<section class="card" style="margin-bottom:14px"><h3>${state.season ? "Changes in " + esc(seasonLabel(state.season)) : "Across the world"}</h3>
     <p style="margin:0">${sm.changed ? `<b>${sm.changed}</b> of ${sm.tournaments} tournament${sm.tournaments > 1 ? "s" : ""} ${sm.changed === 1 ? "differs" : "differ"} from real history.` : "Nothing differs from real history yet."}
     ${sm.champions.length ? `<br>Different podium in: ${sm.champions.map(c => esc(c.name)).join(", ")}.` : ""}</p></section>`;
-  const sections = w.sections.map(x => `<details class="tour" ${state.openTours?.has(x.edition_id) ? "open" : ""} data-tour="${x.edition_id}">
+  const edSeason = id => state_editions.find(e => e.edition_id === id)?.season;
+  const shown = w.sections.filter(x => !state.season || edSeason(x.edition_id) === state.season);
+  const sections = shown.map(x => `<details class="tour" ${state.openTours?.has(x.edition_id) ? "open" : ""} data-tour="${x.edition_id}">
     <summary>${esc(x.name)} <span style="font-weight:400;color:var(--muted);font-size:13px">${x.changed ? `${x.match_count} match${x.match_count === 1 ? "" : "es"} changed` : "unchanged"}</span></summary>
     <div class="body">
       ${x.rocks.length ? `<ul class="rocks">${x.rocks.map(r => `<li>${esc(r.text)} <span style="color:var(--muted)">(really ${esc(r.real)})</span></li>`).join("")}</ul>` : `<p style="color:var(--muted)">No big changes.</p>`}
@@ -1250,13 +1262,13 @@ async function renderPlayerTab() {
     <div style="display:grid;gap:14px">
       <section class="card"><h3>Injuries</h3>
         ${v.injuries.length ? `<ul class="tl">${v.injuries.map(i => `<li><span>${fmtDate(i.start_date)}</span><span class="k">to ${i.end_date ? fmtDate(i.end_date) : "unknown"}</span><span>${esc(i.description)}</span><button class="link" data-delinj="${i.injury_id}" title="Remove">✕</button></li>`).join("")}</ul>` : `<p style="color:var(--muted)">None. He's fit.</p>`}
-        <div class="inline"><input type="date" id="injFrom" value="2022-11-20"><input type="date" id="injTo"><input id="injWhat" placeholder="e.g. Hamstring" style="width:120px"><button id="injAdd">Add injury</button></div>
+        <div class="inline"><input type="date" id="injFrom" value="${v.window?.start || ""}"><input type="date" id="injTo"><input id="injWhat" placeholder="e.g. Hamstring" style="width:120px"><button id="injAdd">Add injury</button></div>
         <p style="color:var(--muted);font-size:12px;margin:6px 0 0">While injured he can't be picked, and he's left out of rolled matches.</p>
       </section>
       <section class="card"><h3>Calendar</h3>
         <ul class="tl">${v.calendar.map(c => `<li><span>${fmtDate(c.date)}</span><span class="k">${esc(c.kind.replace(/_/g, " "))}</span><span>${esc(c.notes || "")}</span>
           ${c.id ? `<button class="link" data-delcal="${c.id}" title="Remove">✕</button>` : "<span></span>"}</li>`).join("")}</ul>
-        <div class="inline"><input type="date" id="calDate" value="2022-11-14"><select id="calKind"><option value="camp">Camp</option><option value="friendly">Friendly</option><option value="call_up">Call-up</option><option value="note">Note</option></select>
+        <div class="inline"><input type="date" id="calDate" value="${v.window?.start || ""}"><select id="calKind"><option value="camp">Camp</option><option value="friendly">Friendly</option><option value="call_up">Call-up</option><option value="note">Note</option></select>
           <input id="calNote" placeholder="What happened" style="flex:1;min-width:120px"><button id="calAdd">Add</button></div>
       </section>
     </div></div>`;
@@ -1540,7 +1552,7 @@ async function renderPlayerHome() {
       <div><b>${esc(seasonLabel(g.season))} · ${esc(g.team)}</b> <span style="color:var(--muted)">· ${g.comps.map(c => esc(shortName(edName(c.edition_id)))).join(", ")}</span></div>
       <div class="stats-row" style="margin:2px 0">${stat(g.comps.reduce((a, c) => a + (c.apps || 0), 0), "apps")}${stat(g.comps.reduce((a, c) => a + (c.goals || 0), 0), "goals")}${stat(g.comps.reduce((a, c) => a + (c.assists || 0), 0), "assists")}</div>
       <div class="row"><button class="primary" data-season="${esc(g.season)}">Open season</button></div></div>`).join("")}</section>
-    ${h.addable.length ? `<section class="card"><h3>Add him to another competition</h3>
+    ${h.addable.length ? `<section class="card"><h3>Add another season or tournament</h3>
       <p style="color:var(--muted);margin:0 0 4px;font-size:13px">One club per season: in a season where he's at a club, he plays that club's other competitions only.</p>
       ${h.addable.map(add).join("")}</section>` : ""}
   </div><div style="display:grid;gap:14px">
@@ -1617,7 +1629,7 @@ async function renderAddToEdition(el) {
   $("#apTeam").onchange = load; await load();
   $("#apGo").onclick = async () => {
     try { const r = await api("POST", `/api/player_place/${ED}${q()}`, { team_id: $("#apTeam").value, replaces_player_id: $("#apRep").value });
-      await refresh(); if (r.diff && !r.diff.empty) showDiff(r.diff); } catch (e) { $("#apErr").innerHTML = `<div class="msg err" style="margin-top:12px">${esc(e.message)}</div>`; }
+      await refresh(); toast((r.notes || []).join(" ")); if (r.diff && !r.diff.empty) showDiff(r.diff); } catch (e) { $("#apErr").innerHTML = `<div class="msg err" style="margin-top:12px">${esc(e.message)}</div>`; }
   };
 }
 
@@ -1705,7 +1717,7 @@ async function renderCreateForm(cur, fromProfile) {
       overall: +$("#cpOvr").value, replaces_player_id: $("#cpRep").value };
     try {
       if (edit) { const r = await api("POST", `/api/player_update${q()}`, { ...body, edition_id: ED }); await refresh(); if (r.diff && !r.diff.empty) showDiff(r.diff); }
-      else { await api("POST", `/api/player/${ED}${q()}`, { ...body, team_id: $("#cpTeam").value, profile_id: fromProfile?.profile_id }); await refresh(); }
+      else { const r = await api("POST", `/api/player/${ED}${q()}`, { ...body, team_id: $("#cpTeam").value, profile_id: fromProfile?.profile_id }); await refresh(); toast((r.notes || []).join(" ")); }
     } catch (e) { $("#cpErr").innerHTML = `<div class="msg err" style="margin-top:12px">${esc(e.message)}</div>`; }
   };
 }

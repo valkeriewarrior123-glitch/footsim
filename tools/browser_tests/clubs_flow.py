@@ -39,12 +39,12 @@ with sync_playwright() as p:
         pg.click("#cpCreate"); pg.wait_for_selector("text=His seasons", timeout=60000)
         assert "2012/13" in pg.inner_text("#main")
     step("create him on the Player page (first competition Serie A)", create_serie_a)
-    def add_ucl():
-        card = pg.locator(".libcard:has-text('Champions League 2012/13')")
-        card.locator("[data-add]").click(); pg.wait_for_selector("text=isn't in this competition yet")
-        pg.wait_for_selector("#apRep option", state="attached")
-        pg.click("#apGo"); pg.wait_for_selector("text=Plays in", timeout=60000); pg.screenshot(path="/tmp/shot_clubs_ucl.png")
-    step("add him to the Champions League (opens that tournament)", add_ucl)
+    def auto_ucl():
+        pg.wait_for_selector("#main :text('Champions League')", timeout=30000)
+        assert "Also added to Champions League" in pg.inner_text("#toast"), pg.inner_text("#toast")
+        assert "add another season or tournament" in pg.inner_text("#main").lower()
+        pg.screenshot(path="/tmp/shot_clubs_ucl.png")
+    step("creating him at Juventus also adds him to the Champions League (once per season)", auto_ucl)
     def back_home():
         close_modal(); side("#side [data-go=home]"); pg.wait_for_selector("text=His seasons")
         assert "Champions League" in pg.inner_text("#side") and "Serie A" in pg.inner_text("#side"), pg.inner_text("#side")
