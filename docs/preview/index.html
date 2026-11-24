@@ -151,6 +151,7 @@ details.tour .body { padding: 0 14px 14px; }
           box-shadow: -8px 0 30px rgba(0,0,0,.12); transform: translateX(100%); transition: transform .2s; z-index: 20;
           display: flex; flex-direction: column; }
 .drawer.open { transform: none; }
+@media (min-width: 1100px) { body { transition: padding-right .2s; } body.dr-open { padding-right: min(880px, 100%); } }
 .drawer .hd { padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
 .drawer .hd h2 { margin: 0; font-size: 16px; flex: 1; }
 .drawer .bd { padding: 14px 18px; overflow-y: auto; flex: 1; }
@@ -192,6 +193,8 @@ details.tour .body { padding: 0 14px 14px; }
 .tl-ball.g::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
 .tl-pb { position: relative; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--c); background: #fff; box-sizing: border-box; display: grid; place-items: center; --c: #2e8b1f; }
 .tl-pb.x { --c: #d63b3b; }
+.tl-pb.og { --c: #BA7517; }
+.tl-pb.og b { font-size: 7.5px; letter-spacing: -.4px; -webkit-text-stroke: 2.5px #fff; }
 .tl-pb u { text-decoration: none; font-size: 14px; line-height: 1; filter: opacity(.8); }
 .tl-pb b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-weight: 900; line-height: 1; color: var(--c); -webkit-text-stroke: 3px #fff; paint-order: stroke fill; }
 .tl-ball.og { width: 20px; height: 20px; border-color: #BA7517; color: #BA7517; background: rgba(186,117,23,.16); }
@@ -769,6 +772,7 @@ async function openFixture(fid) {
   state.unlock = null;
   renderReadOnly(f, false, true);
 }
+new MutationObserver(() => document.body.classList.toggle("dr-open", $("#drawer").classList.contains("open"))).observe($("#drawer"), { attributes: true, attributeFilter: ["class"] });
 $("#dClose").onclick = () => $("#drawer").classList.remove("open");
 document.addEventListener("keydown", e => { if (e.key === "Escape") { $("#drawer").classList.remove("open"); $("#modal").classList.remove("open"); } });
 
@@ -813,7 +817,7 @@ function matchTimeline(f) {
       const x = pos(i.minute); let r = rows.findIndex(last => x - last >= 4.2);
       if (r < 0) { r = rows.length; rows.push(-99); } rows[r] = x;
       const icon = i.kind === "goal" ? `<span class="tl-emoji">⚽</span>` : i.kind === "pen_goal" ? `<span class="tl-pb"><u>⚽</u><b>P</b></span>`
-        : i.kind === "own_goal" ? `<span class="tl-ball og">OG</span>` : i.kind === "pen_miss" ? `<span class="tl-pb x"><u>⚽</u><b>P</b></span>`
+        : i.kind === "own_goal" ? `<span class="tl-pb og"><u>⚽</u><b>OG</b></span>` : i.kind === "pen_miss" ? `<span class="tl-pb x"><u>⚽</u><b>P</b></span>`
         : i.kind === "yellow" ? `<span class="tl-card y"></span>` : i.kind === "red" ? `<span class="tl-card r"></span>`
         : i.kind === "second_yellow" ? `<span class="tl-card2"><i class="y"></i><i class="r"></i></span>` : `<span class="tl-sub">⇄</span>`;
       const edge = x < 14 ? " l" : x > 86 ? " r" : "";
