@@ -187,7 +187,6 @@ details.tour .body { padding: 0 14px 14px; }
 
 /* match timeline */
 .tl { margin: 4px 0 6px; } .tl-main { position: relative; }
-.tl-et { position: absolute; top: 0; bottom: 0; left: calc(10px + (100% - 20px) * .75); width: calc((100% - 20px) * .25); background: var(--bg); border-radius: 4px; }
 .tl-lane, .tl-axis, .tl-ticks, .tl-name { position: relative; }
 .tl-ball { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--muted); background: var(--panel, #fff); display: grid; place-items: center; font-size: 9px; font-weight: 700; color: var(--muted); box-sizing: border-box; line-height: 1; }
 .tl-ball.g::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
@@ -219,7 +218,9 @@ details.tour .body { padding: 0 14px 14px; }
 .tl-m .tip b { font-family: var(--mono); font-weight: 600; margin-right: 5px; opacity: .8; }
 .tl-card { width: 9px; height: 12px; border-radius: 2px; display: block; }
 .tl-card.y { background: #f2c230; } .tl-card.r { background: #d63b3b; }
-.tl-card.yy { background: #f2c230; box-shadow: 3px 2px 0 -1px #d63b3b; }
+.tl-card2 { position: relative; width: 19px; height: 15px; display: block; }
+.tl-card2 i { position: absolute; top: 0; width: 9px; height: 13px; border-radius: 2px; }
+.tl-card2 .y { left: 0; background: #f2c230; } .tl-card2 .r { left: 9px; top: 2px; background: #d63b3b; box-shadow: -1.5px 0 0 var(--panel); }
 .tl-sub { font-size: 12px; color: var(--muted); font-weight: 700; }
 .tl-name { font-size: 11px; font-weight: 600; margin: 2px 10px 0; line-height: 1.2; } .tl-name.h { color: #2f6fd6; } .tl-name.a { color: #e07a1f; }
 .tl-axis.h { background: #2f6fd6; } .tl-axis.a { background: #e07a1f; }
@@ -762,11 +763,14 @@ async function openFixture(fid) {
   $("#drawer").classList.add("open");
   if (!state.branch) return renderReadOnly(f);
   if (!f.editable) return renderReadOnly(f, true);
-  renderEditor(f);
+  if (f.status === "pending" || state.unlock === fid) return renderEditor(f);    // nothing to show yet, or already unlocked
+  state.unlock = null;
+  renderReadOnly(f, false, true);
 }
 $("#dClose").onclick = () => $("#drawer").classList.remove("open");
 document.addEventListener("keydown", e => { if (e.key === "Escape") { $("#drawer").classList.remove("open"); $("#modal").classList.remove("open"); } });
 
+const BALL_IMG = `<svg class="tl-bimg" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#fff" stroke="#2b2f36" stroke-width="1.3"/><polygon points="10,6 13.8,8.8 12.4,13.2 7.6,13.2 6.2,8.8" fill="#2b2f36"/><path d="M10 6V1.6M13.8 8.8l4.2-1.4M12.4 13.2l2.6 3.6M7.6 13.2L5 16.8M6.2 8.8L2 7.4" stroke="#2b2f36" stroke-width="1.2" fill="none"/></svg>`;
 // A strip for the match: home events above the line, away events below, a minute marker every 15'. Hover or tap a marker for who and when.
 function matchTimeline(f) {
   const et = f.extra_time, end = et ? 120 : 90;
@@ -785,7 +789,7 @@ function matchTimeline(f) {
   const mins = m => m > 90 && !et ? `90+${m - 90}` : String(m);
   const items = [...f.events.filter(e => ["goal", "pen_goal", "own_goal", "pen_miss", "yellow", "second_yellow", "red"].includes(e.event_type)).map(e => ({
     minute: e.minute, team_id: e.team_id, kind: e.event_type,
-    text: ({ goal: "Goal", pen_goal: "Penalty goal", own_goal: "Own goal", pen_miss: "Penalty missed", yellow: "Yellow card", second_yellow: "Second yellow", red: "Red card" })[e.event_type]
+    text: ({ goal: "Goal", pen_goal: "Penalty goal", own_goal: "Own goal", pen_miss: "Penalty missed", yellow: "Yellow card", second_yellow: "Second yellow, sent off", red: "Red card" })[e.event_type]
       + (e.player_name ? " — " + e.player_name : "") + (e.assist_name ? ` (assist ${e.assist_name})` : "") })),
     ...sub.map(x => ({ minute: x.minute, team_id: x.team_id, kind: "sub", text: `Substitution — ${x.on || "?"} on${x.off ? ", " + x.off + " off" : ""}` }))];
   const kicks = f.events.filter(e => /^shootout_/.test(e.event_type)).sort((a, b) => a.minute - b.minute);
@@ -807,10 +811,10 @@ function matchTimeline(f) {
     const html = mine.map(i => {
       const x = pos(i.minute); let r = rows.findIndex(last => x - last >= 4.2);
       if (r < 0) { r = rows.length; rows.push(-99); } rows[r] = x;
-      const icon = i.kind === "goal" ? `<span class="tl-ball g"></span>` : i.kind === "pen_goal" ? `<span class="tl-ball p">P</span>`
+      const icon = i.kind === "goal" ? BALL_IMG : i.kind === "pen_goal" ? `<span class="tl-ball p">P</span>`
         : i.kind === "own_goal" ? `<span class="tl-ball og">OG</span>` : i.kind === "pen_miss" ? `<span class="tl-ball x">P</span>`
         : i.kind === "yellow" ? `<span class="tl-card y"></span>` : i.kind === "red" ? `<span class="tl-card r"></span>`
-        : i.kind === "second_yellow" ? `<span class="tl-card yy"></span>` : `<span class="tl-sub">⇄</span>`;
+        : i.kind === "second_yellow" ? `<span class="tl-card2"><i class="y"></i><i class="r"></i></span>` : `<span class="tl-sub">⇄</span>`;
       const edge = x < 14 ? " l" : x > 86 ? " r" : "";
       const label = icon;
       return `<span class="tl-m${edge}" tabindex="0" style="left:${x}%;${cls === "top" ? "bottom" : "top"}:${r * 22}px" title="${esc(mins(i.minute) + "' " + i.text)}">${label}<span class="tip"><b>${mins(i.minute)}'</b>${esc(i.text)}</span></span>`;
@@ -821,7 +825,6 @@ function matchTimeline(f) {
   const tick = `<div class="tl-ticks">${ticks.map(m => `<span style="left:${pos(m)}%">${m}'</span>`).join("")}</div>`;
   const ln = c => `<div class="tl-axis ${c}">${ticks.map(m => `<i class="${m === 45 ? "ht" : ""}" style="left:${pos(m)}%"></i>`).join("")}</div>`;
   return `<div class="tl"><div class="tl-main">
-    ${et ? `<div class="tl-et" title="Extra time"></div>` : ""}
     ${lane(f.home, "top")}
     <div class="tl-name h">${esc(tname(f.home))}</div>
     ${ln("h")}
@@ -859,7 +862,7 @@ function tieBlock(f, ts, as_) {
 
 function stageLine(f) { return `${STAGE[f.stage]}${f.group ? " " + f.group : ""}${f.leg ? " · " + f.leg + (f.leg === 1 ? "st" : "nd") + " leg" : f.match_no ? " · Match " + f.match_no : ""} · ${fmtDate(f.date)}`; }
 
-function renderReadOnly(f, ripple) {
+function renderReadOnly(f, ripple, canEdit) {
   $("#dBody").innerHTML = `<div class="ro">
     <div class="msg info">${stageLine(f)}</div>
     ${f.home_score == null ? `<p>No result yet.</p>` : `<div class="scoreline"><div class="tn r">${esc(tname(f.home))}</div>
@@ -880,6 +883,13 @@ function renderReadOnly(f, ripple) {
       try { const r = await api("POST", `/api/roll_save/${ED}/${f.fixture_id}${q()}`); $("#drawer").classList.remove("open"); await refresh(); showDiff(r.diff); }
       catch (e) { alert(e.message); }
     };
+    return;
+  }
+  if (canEdit) {                                       // a match you can change: shown clean, locked until you unlock it
+    $("#dFoot").innerHTML = `${f.origin === "user_edit" || f.status === "generated" ? `<button class="danger" id="revert">Revert to history</button>` : ""}
+      <span style="flex:1"></span><button class="primary" id="unlock">🔓 Unlock to edit</button>`;
+    $("#unlock").onclick = () => { state.unlock = f.fixture_id; renderEditor(f); };
+    if ($("#revert")) $("#revert").onclick = () => revertFixture(f);
     return;
   }
   $("#dFoot").innerHTML = `<span style="color:var(--muted)">Real history is read-only.</span><span style="flex:1"></span><button class="primary" id="mkBranch">Create a branch to edit</button>`;
@@ -1053,7 +1063,11 @@ function renderEditor(f, error) {
       sync(); draft.events.splice(+e.target.dataset.del, 1); renderEditor(f);
     }
   };
-  $("#cancel").onclick = () => { state.draft = null; state.outcomeOpen = false; $("#drawer").classList.remove("open"); };
+  $("#cancel").onclick = () => {
+    state.draft = null; state.outcomeOpen = false;
+    if (f.status === "pending") { $("#drawer").classList.remove("open"); return; }
+    state.unlock = null; renderReadOnly(f, false, true);                      // lock it again without saving
+  };
   $("#save").onclick = async () => {
     sync();
     const body = { ...draft, events: draft.events.map(({ locked, ...e }) => e) };
@@ -1065,18 +1079,21 @@ function renderEditor(f, error) {
     else if (tsv && tsv.needEt) body.extra_time = true;
     try {
       const r = await api("POST", `/api/fixture/${ED}/${f.fixture_id}${q()}`, body);
-      state.draft = null; $("#drawer").classList.remove("open");
-      await refresh(); showDiff(r.diff);
+      state.draft = null; state.unlock = null;
+      await refresh();
+      const nf = await api("GET", `/api/fixture/${ED}/${f.fixture_id}${q()}`);   // saved: show it clean and locked
+      state.editing = nf; renderReadOnly(nf, !nf.editable, nf.editable); showDiff(r.diff);
     } catch (err) { renderEditor(f, err.message); }
   };
-  if ($("#revert")) $("#revert").onclick = async () => {
-    if (!confirm("Put this match back to what really happened?")) return;
-    try {
-      const r = await api("DELETE", `/api/fixture/${ED}/${f.fixture_id}${q()}`);
-      state.draft = null; $("#drawer").classList.remove("open");
-      await refresh(); showDiff(r.diff);
-    } catch (err) { renderEditor(f, err.message); }
-  };
+  if ($("#revert")) $("#revert").onclick = () => revertFixture(f);
+}
+async function revertFixture(f) {
+  if (!confirm("Put this match back to what really happened?")) return;
+  try {
+    const r = await api("DELETE", `/api/fixture/${ED}/${f.fixture_id}${q()}`);
+    state.draft = null; state.unlock = null; $("#drawer").classList.remove("open");
+    await refresh(); showDiff(r.diff);
+  } catch (err) { alert(err.message); }
 }
 
 // ---------------------------------------------------------------- my player
