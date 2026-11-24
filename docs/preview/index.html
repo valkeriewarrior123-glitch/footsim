@@ -184,6 +184,29 @@ details.tour .body { padding: 0 14px 14px; }
 .ro .evline { padding: 3px 0; border-bottom: 1px dashed var(--line); display: flex; gap: 8px; }
 .ro .evline .mn { width: 34px; color: var(--muted); font-family: var(--mono); }
 
+
+/* match timeline */
+.tl { margin: 4px 0 6px; }
+.tl-lane { position: relative; margin: 0 10px; }
+.tl-axis { position: relative; height: 2px; background: var(--line); margin: 6px 10px; border-radius: 1px; }
+.tl-axis i { position: absolute; top: -3px; width: 1px; height: 8px; background: var(--line); }
+.tl-axis i.ht { top: -5px; height: 12px; background: var(--muted); opacity: .5; }
+.tl-ticks { position: relative; height: 14px; margin: 0 10px; font-size: 10px; color: var(--muted); font-family: var(--mono); }
+.tl-ticks span { position: absolute; transform: translateX(-50%); }
+.tl-ticks span:first-child { transform: none; } .tl-ticks span:last-child { transform: translateX(-100%); }
+.tl-m { position: absolute; transform: translateX(-50%); width: 18px; height: 18px; display: grid; place-items: center; font-size: 13px; line-height: 1; cursor: default; outline: none; }
+.tl-m .tip { display: none; position: absolute; z-index: 5; left: 50%; transform: translateX(-50%); white-space: nowrap; background: #1f2430; color: #fff; font-size: 12px; padding: 5px 8px; border-radius: 6px; pointer-events: none; font-family: inherit; }
+.tl-lane.top .tip { bottom: 22px; } .tl-lane.bot .tip { top: 22px; }
+.tl-m.l .tip { left: 0; transform: none; } .tl-m.r .tip { left: auto; right: 0; transform: none; }
+.tl-m:hover, .tl-m:focus { z-index: 6; } .tl-m:hover .tip, .tl-m:focus .tip { display: block; }
+.tl-m .tip b { font-family: var(--mono); font-weight: 600; margin-right: 5px; opacity: .8; }
+.tl-card { width: 9px; height: 12px; border-radius: 2px; display: block; }
+.tl-card.y { background: #f2c230; } .tl-card.r { background: #d63b3b; }
+.tl-card.yy { background: #f2c230; box-shadow: 3px 2px 0 -1px #d63b3b; }
+.tl-sub { font-size: 12px; color: var(--muted); font-weight: 700; }
+.tl-teams { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin: 0 10px; }
+.tl-legend { font-size: 11px; color: var(--muted); text-align: center; margin-top: 2px; }
+
 /* what changed */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; place-items: center; z-index: 30; padding: 16px; }
 .modal.open { display: grid; }
@@ -726,6 +749,55 @@ async function openFixture(fid) {
 $("#dClose").onclick = () => $("#drawer").classList.remove("open");
 document.addEventListener("keydown", e => { if (e.key === "Escape") { $("#drawer").classList.remove("open"); $("#modal").classList.remove("open"); } });
 
+// A strip for the match: home events above the line, away events below, a minute marker every 15'. Hover or tap a marker for who and when.
+function matchTimeline(f) {
+  const et = f.extra_time, end = et ? 120 : 90;
+  const sub = [];                                   // substitutions, paired from the line-ups: a player on at minute m, a player off at m
+  const lu = (f.lineup || []);
+  const redOff = new Set(f.events.filter(e => e.event_type === "red" || e.event_type === "second_yellow").map(e => e.player_id));
+  for (const team of [f.home, f.away]) {
+    const on = lu.filter(l => l.team_id === team && !l.started && l.minute_on > 0);
+    const off = lu.filter(l => l.team_id === team && l.minute_off != null && !redOff.has(l.player_id));
+    for (const o of on) {
+      const j = off.findIndex(x => x.minute_off === o.minute_on);
+      const out = j >= 0 ? off.splice(j, 1)[0] : null;
+      sub.push({ minute: o.minute_on, team_id: team, kind: "sub", on: o.name, off: out && out.name });
+    }
+  }
+  const mins = m => m > 90 && !et ? `90+${m - 90}` : String(m);
+  const items = [...f.events.filter(e => ["goal", "pen_goal", "own_goal", "pen_miss", "yellow", "second_yellow", "red"].includes(e.event_type)).map(e => ({
+    minute: e.minute, team_id: e.team_id, kind: e.event_type,
+    text: ({ goal: "Goal", pen_goal: "Penalty goal", own_goal: "Own goal", pen_miss: "Penalty missed", yellow: "Yellow card", second_yellow: "Second yellow", red: "Red card" })[e.event_type]
+      + (e.player_name ? " — " + e.player_name : "") + (e.assist_name ? ` (assist ${e.assist_name})` : "") })),
+    ...sub.map(x => ({ minute: x.minute, team_id: x.team_id, kind: "sub", text: `Substitution — ${x.on || "?"} on${x.off ? ", " + x.off + " off" : ""}` }))];
+  if (!items.length) return "";
+  const pos = m => Math.min(100, Math.max(0, m / end * 100));
+  const lane = (team, cls) => {
+    const mine = items.filter(i => i.team_id === team).sort((a, b) => a.minute - b.minute);
+    const rows = [];                               // stack markers that would overlap
+    const html = mine.map(i => {
+      const x = pos(i.minute); let r = rows.findIndex(last => x - last >= 4.2);
+      if (r < 0) { r = rows.length; rows.push(-99); } rows[r] = x;
+      const icon = i.kind === "goal" || i.kind === "pen_goal" ? "⚽" : i.kind === "own_goal" ? "⚽" : i.kind === "pen_miss" ? "✕"
+        : i.kind === "yellow" ? `<span class="tl-card y"></span>` : i.kind === "red" ? `<span class="tl-card r"></span>`
+        : i.kind === "second_yellow" ? `<span class="tl-card yy"></span>` : `<span class="tl-sub">⇄</span>`;
+      const edge = x < 14 ? " l" : x > 86 ? " r" : "";
+      const label = i.kind === "own_goal" ? `<span style="filter:hue-rotate(150deg)">⚽</span>` : icon;
+      return `<span class="tl-m${edge}" tabindex="0" style="left:${x}%;${cls === "top" ? "bottom" : "top"}:${r * 19}px" title="${esc(mins(i.minute) + "' " + i.text)}">${label}<span class="tip"><b>${mins(i.minute)}'</b>${esc(i.text)}</span></span>`;
+    }).join("");
+    return `<div class="tl-lane ${cls}" style="height:${Math.max(1, rows.length) * 19 + 2}px">${html}</div>`;
+  };
+  const ticks = []; for (let m = 0; m <= end; m += 15) ticks.push(m);
+  return `<div class="tl">
+    <div class="tl-teams"><span>${esc(tname(f.home))}</span><span>${esc(tname(f.away))}</span></div>
+    ${lane(f.home, "top")}
+    <div class="tl-axis">${ticks.map(m => `<i class="${m === 45 ? "ht" : ""}" style="left:${pos(m)}%"></i>`).join("")}</div>
+    <div class="tl-ticks">${ticks.map(m => `<span style="left:${pos(m)}%">${m}'</span>`).join("")}</div>
+    ${lane(f.away, "bot")}
+    <div class="tl-legend">⚽ goal · <span class="tl-card y" style="display:inline-block;vertical-align:-1px"></span> yellow · <span class="tl-card r" style="display:inline-block;vertical-align:-1px"></span> red · ⇄ substitution · hover or tap for details</div>
+  </div>`;
+}
+
 function stageLine(f) { return `${STAGE[f.stage]}${f.group ? " " + f.group : ""}${f.leg ? " · " + f.leg + (f.leg === 1 ? "st" : "nd") + " leg" : f.match_no ? " · Match " + f.match_no : ""} · ${fmtDate(f.date)}`; }
 
 function renderReadOnly(f, ripple) {
@@ -734,6 +806,7 @@ function renderReadOnly(f, ripple) {
     ${f.home_score == null ? `<p>No result yet.</p>` : `<div class="scoreline"><div class="tn r">${esc(tname(f.home))}</div>
       <input value="${f.home_score}" disabled><span>–</span><input value="${f.away_score}" disabled><div class="tn">${esc(tname(f.away))}</div></div>
       ${f.pen_home != null ? `<p>Penalties ${f.pen_home}–${f.pen_away}</p>` : ""}`}
+    ${f.home_score == null ? "" : matchTimeline(f)}
     <div class="sec">Events</div>
     ${f.events.map(e => `<div class="evline"><span class="mn">${e.minute}'</span><span>${EVLABEL[e.event_type]}</span><span>${e.player_name ? esc(e.player_name) : (/goal/.test(e.event_type) ? `<i style="color:var(--muted)">scorer unknown</i>` : "")}</span>
       <span style="color:var(--muted)">${esc(tname(e.team_id))}${e.assist_name ? " · assist " + esc(e.assist_name) : ""}</span></div>`).join("") || "<p>None.</p>"}
