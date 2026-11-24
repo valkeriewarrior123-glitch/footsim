@@ -809,6 +809,58 @@ def player_view(conn, edition_id: str, branch_id: int | None) -> dict:
     }
 
 
+def player_home(conn, branch_id: int | None) -> dict:
+    """The player's own page: who he is, every competition he's in (with his numbers there), the competitions
+    he could still be added to, and his career history from the library."""
+    me = player.profile(conn, branch_id) if branch_id is not None else None
+    if me is None:
+        return {"player": None, "branch": branch_id}
+    tn = team_names(conn)
+    eds = [{"edition_id": r["edition_id"], "name": r["name"], "season": r["season"], "kind": r["kind"]}
+           for r in conn.execute("SELECT e.edition_id, c.name, e.season, c.kind FROM editions e "
+                                 "JOIN competitions c USING(competition_id) JOIN rulesets USING(edition_id) "
+                                 "ORDER BY e.start_date DESC")]
+    ename = {e["edition_id"]: e for e in eds}
+    placed = player.placements(conn, branch_id)
+    comps = []
+    for x in placed:
+        st = stats.edition_stats(conn, x["edition_id"], branch_id)
+        line = st.players.get(me.player_id)
+        comps.append({"edition_id": x["edition_id"], "edition": ename.get(x["edition_id"], {}).get("name"),
+                      "season": ename.get(x["edition_id"], {}).get("season"), "team_id": x["team_id"],
+                      "team": tn.get(x["team_id"]), "home": x["home"],
+                      "apps": line.apps if line else 0, "goals": line.goals if line else 0,
+                      "assists": line.assists if line else 0, "minutes": line.minutes if line else 0})
+    here = {c["edition_id"] for c in comps}
+    can_add = player._root_branch_with_player(conn, branch_id) == branch_id
+    addable = []
+    for e in eds:
+        if e["edition_id"] in here:
+            continue
+        fixed = None
+        if e["kind"] == "club":
+            for c in comps:
+                ce = ename.get(c["edition_id"], {})
+                if ce.get("kind") == "club" and ce.get("season") == e["season"]:
+                    fixed = {"team": c["team"], "team_id": c["team_id"]}
+        in_comp = (fixed is None) or bool(conn.execute(
+            "SELECT 1 FROM squads WHERE edition_id = ? AND team_id = ? LIMIT 1",
+            (e["edition_id"], fixed["team_id"])).fetchone())
+        addable.append({**e, "fixed": fixed, "possible": in_comp and can_add,
+                        "why_not": None if in_comp else f"{fixed['team']} aren't in it this season"})
+    link = library.branch_link(conn, branch_id)
+    prof = None
+    if link and link.get("profile_id"):
+        prof = {"profile_id": link["profile_id"], "career": library.career(conn, link["profile_id"])}
+    ci = conn.execute("SELECT p.full_name, p.known_as, p.birth_date, c.detail_position, c.edition_id "
+                      "FROM players p JOIN created_players c USING(player_id) WHERE p.player_id = ?",
+                      (me.player_id,)).fetchone()
+    return {"player": {"player_id": me.player_id, "name": me.name, "position": me.position, "roles": list(me.roles),
+                       "tier": me.tier, "tier_label": player.TIER_LABEL[me.tier], "overall": me.overall,
+                       "birth_date": me.birth_date, "home_edition": ci["edition_id"]},
+            "competitions": comps, "addable": addable, "library": link, "profile": prof, "branch": branch_id}
+
+
 def _placements(conn, branch_id: int, current: str) -> list:
     tn = team_names(conn)
     ed = {r["edition_id"]: f"{r['name']} {r['season']}" for r in conn.execute(

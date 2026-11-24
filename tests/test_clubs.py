@@ -122,6 +122,22 @@ class Clubs(unittest.TestCase):
         api.delete_branch(self.conn, self.b)
         self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM player_placements").fetchone()[0], 0)
 
+    def test_player_home(self):
+        h = api.player_home(self.conn, self.b)
+        self.assertEqual(h["player"]["name"], "Test Star")
+        self.assertEqual([c["edition_id"] for c in h["competitions"]], [SA])
+        self.assertEqual(h["competitions"][0]["team_id"], JUVE)
+        add = {a["edition_id"]: a for a in h["addable"]}
+        self.assertTrue(add[UCL]["possible"])                                  # same club, other competition
+        self.assertNotIn(SA, add)
+        self.place_ucl()
+        h = api.player_home(self.conn, self.b)
+        self.assertEqual({c["edition_id"] for c in h["competitions"]}, {SA, UCL})
+
+    def test_player_home_without_player(self):
+        b2 = api.create_branch(self.conn, "empty")["branch_id"]
+        self.assertIsNone(api.player_home(self.conn, b2)["player"])
+
 
 if __name__ == "__main__":
     unittest.main()

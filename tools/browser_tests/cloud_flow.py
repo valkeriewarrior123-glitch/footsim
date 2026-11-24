@@ -33,7 +33,7 @@ with sync_playwright() as p:
     pg.wait_for_selector("text=No save file on OneDrive yet")
     check("redirect round trip signs in (token request made)", state()["tokens"] == 1)
     check("url cleaned of ?code", "code=" not in pg.url, pg.url)
-    pg.click("text=Start fresh"); pg.wait_for_selector(".groups", timeout=180000)
+    pg.click("text=Start fresh"); pg.wait_for_selector("#main .card", timeout=180000)
     wait_status("Saved")
     s = state(); check("first save uploaded the seed", s["puts"] == 1 and s["size"] > 1_000_000, str(s["size"]))
     pg.screenshot(path="/tmp/shot_bar.png")
@@ -46,7 +46,7 @@ with sync_playwright() as p:
     check("uploaded file has the new branch", "Cloud test one" in branches_in(mock("/_data")))
 
     # 3. reload: comes back from OneDrive with the branch, no sign-in prompt
-    pg.reload(); pg.wait_for_selector(".groups", timeout=180000)
+    pg.reload(); pg.wait_for_selector("#main .card", timeout=180000)
     check("reload loads the branch from OneDrive", "Cloud test one" in pg.inner_text("#branch") or pg.evaluate("document.querySelector('#branch').innerHTML.includes('Cloud test one')"))
     check("no re-sign-in needed after reload", state()["tokens"] == 1 or state()["refreshes"] >= 0)
     check("status after load", "Loaded from OneDrive" in status(), status())
@@ -77,7 +77,7 @@ with sync_playwright() as p:
 
     # 7. access token expires -> refreshed silently
     pg.evaluate("(() => { const t = JSON.parse(localStorage['footsim.auth.v1']); t.exp = 0; localStorage['footsim.auth.v1'] = JSON.stringify(t); })()")
-    pg.reload(); pg.wait_for_selector(".groups", timeout=180000)
+    pg.reload(); pg.wait_for_selector("#main .card", timeout=180000)
     check("expired access token refreshed silently", state()["refreshes"] >= 1, str(state()["refreshes"]))
 
     # 8. refresh token expired -> asked to sign in again, edits stay in the tab
@@ -102,7 +102,7 @@ with sync_playwright() as p:
     b = p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--no-sandbox"])
     ctx = b.new_context(viewport={"width": 390, "height": 844}); pg = ctx.new_page()
     pg.goto(URL); pg.wait_for_selector("text=Sign in with Microsoft")
-    pg.click("text=Look around without saving"); pg.wait_for_selector(".groups", timeout=180000)
+    pg.click("text=Look around without saving"); pg.wait_for_selector("#main .card", timeout=180000)
     check("local mode says not saved", "Not saved" in pg.inner_text(".fsStatus"), pg.inner_text(".fsStatus"))
     check("local mode button offers sign-in", pg.inner_text(".fsSave") == "Sign in")
     b.close()

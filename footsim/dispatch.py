@@ -50,6 +50,7 @@ ROUTES = [
     ("DELETE", r"/api/library/(\d+)", lambda c, q, b, pid: library.delete_profile(c, int(pid))),
     ("POST", r"/api/library/(\d+)/apply", lambda c, q, b, pid: library.apply_to_branches(c, int(pid), b.get("branch_ids"))),
     ("POST", r"/api/player_update", lambda c, q, b: api.update_player(c, q, b, b.get("edition_id") or "WC2022")),
+    ("GET", r"/api/player_home", lambda c, q, b: api.player_home(c, q)),
     ("POST", r"/api/player_place/(\w+)", lambda c, q, b, ed: api.place_player(c, ed, q, b)),
     ("POST", r"/api/player_unplace/(\w+)", lambda c, q, b, ed: api.unplace_player(c, ed, q)),
     ("POST", r"/api/role/(\w+)/([\w-]+)", lambda c, q, b, ed, f: api.set_role(c, ed, q, f, b)),
