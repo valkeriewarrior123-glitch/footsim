@@ -122,6 +122,36 @@ def _fixture_json(f: Fixture, nm: dict) -> dict:
     }
 
 
+def _ord(n: int) -> str:
+    return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+
+def zone_for(zones: list, team: str, pos: int):
+    return (next((z for z in zones if team in (z.get("teams") or [])), None)
+            or next((z for z in zones if not z.get("teams") and pos in (z.get("positions") or [])), None))
+
+
+def zone_moves(conn, edition_id: str, branch_id: int | None) -> list:
+    """League teams whose zone (title, European place, relegation) differs from real history, with both positions."""
+    from footsim import db as _db
+    rules = _db.get_ruleset(conn, edition_id)
+    if rules.get("format") != "league" or branch_id is None:
+        return []
+    zones, tn = rules.get("zones") or [], team_names(conn)
+    real = [r.team for r in engine.resolve(conn, edition_id, None).tables.get("A", [])]
+    now = [r.team for r in engine.resolve(conn, edition_id, branch_id).tables.get("A", [])]
+    out = []
+    for t in now:
+        rp, np_ = real.index(t) + 1, now.index(t) + 1
+        zr, zn = zone_for(zones, t, rp), zone_for(zones, t, np_)
+        lr, ln = (zr or {}).get("label"), (zn or {}).get("label")
+        if lr != ln:
+            out.append({"team": t, "name": tn.get(t, t), "real_pos": rp, "now_pos": np_,
+                        "real_zone": lr or "Mid-table", "now_zone": ln or "Mid-table",
+                        "real_kind": (zr or {}).get("kind"), "now_kind": (zn or {}).get("kind")})
+    return out
+
+
 def edition_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
     nm, tn = names(conn), team_names(conn)
     res = engine.resolve(conn, edition_id, branch_id)
@@ -185,6 +215,9 @@ def edition_view(conn, edition_id: str, branch_id: int | None = None) -> dict:
             "kind": kind, "season": season, "format": rules.get("format", "groups_then_knockout"), "club_focus": rules.get("focus_team"), "zones": rules.get("zones") or ([] if league else [
                 {"positions": [1, 2], "kind": "adv", "label": "Advance to the knockout round"},
                 {"positions": [3, 4], "kind": "out", "label": "Eliminated"}]),
+            "promoted": rules.get("promoted") or [], "relegated_previous": rules.get("relegated_previous") or [],
+            "real_pos": ({r.team: i + 1 for i, r in enumerate(engine.resolve(conn, edition_id, None).tables.get("A", []))}
+                         if league and branch_id is not None else {}),
             "adjust_notes": {t: a.get("reason", "") for t, a in (rules.get("group_stage", {}).get("point_adjustments") or {}).items()},
             "classification": rules.get("classification_note", ""),
             "focus_team": me.team_id if me else None, "player_name": me.name if me else None,
@@ -1202,6 +1235,9 @@ def world_diff(conn, branch_id: int | None) -> dict:
             if a != b:
                 rocks.append({"kind": award, "text": f"{label}: {nm.get(a[0], '—') if a else 'undecided until the final'}",
                               "real": nm.get(b[0], "—") if b else "—"})
+        for m in zone_moves(conn, ed, branch_id):
+            rocks.append({"kind": "zone", "text": f"{m['name']}: {m['now_zone']} (finishes {_ord(m['now_pos'])})",
+                          "real": f"{m['real_zone']} (really {_ord(m['real_pos'])})"})
         if d["displacements"]:
             rocks.append({"kind": "advanced", "text": f"{len(d['displacements'])} team(s) got out of the group instead "
                           "of the real qualifiers", "real": ", ".join(x["was"] for x in d["displacements"])})

@@ -155,5 +155,32 @@ class Clubs(unittest.TestCase):
         self.assertIsNone(api.player_home(self.conn, b2)["player"])
 
 
+@unittest.skipUnless(REAL_DB.exists(), "run the importer and ratings loader first")
+class LeagueMovesTests(unittest.TestCase):
+    def setUp(self):
+        self.outcomes = outcomes
+        d = Path(tempfile.mkdtemp()) / "t.db"; shutil.copy(REAL_DB, d)
+        self.conn = db.init_db(d)
+        self.b = api.create_branch(self.conn, "zones")["branch_id"]
+
+    def test_promoted_and_relegated_are_in_the_view(self):
+        v = api.edition_view(self.conn, SA, None)
+        self.assertEqual(set(v["promoted"]), {"c_pescara", "c_torino", "c_sampdoria"})
+        self.assertEqual(v["relegated_previous"], ["Lecce", "Cesena", "Novara"])
+        self.assertEqual(v["real_pos"], {})                         # real history: nothing to compare with
+
+    def test_zone_moves_are_listed_when_a_team_crosses_a_line(self):
+        self.assertEqual(api.zone_moves(self.conn, SA, self.b), [])
+        self.outcomes.add_lock(self.conn, SA, self.b, "league_position", {"team": "c_fiorentina", "min": 1, "max": 1})
+        self.outcomes.run(self.conn, SA, self.b, apply=True, seed=4)
+        v = api.edition_view(self.conn, SA, self.b)
+        self.assertEqual(v["real_pos"]["c_fiorentina"], 4)
+        moves = {m["team"]: m for m in api.zone_moves(self.conn, SA, self.b)}
+        self.assertIn("c_fiorentina", moves)
+        self.assertNotEqual(moves["c_fiorentina"]["real_zone"], moves["c_fiorentina"]["now_zone"])
+        rocks = [r for sec in api.world_diff(self.conn, self.b)["sections"] if sec["edition_id"] == SA for r in sec["rocks"] if r["kind"] == "zone"]
+        self.assertTrue(rocks and "Fiorentina" in rocks[0]["text"])
+
+
 if __name__ == "__main__":
     unittest.main()

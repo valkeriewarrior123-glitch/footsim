@@ -134,7 +134,7 @@ class ClubPack(unittest.TestCase):
         n = c.execute("SELECT COUNT(*) FROM match_events WHERE fixture_id LIKE 'UCL1213%' AND player_id IS NOT NULL").fetchone()[0]
         self.assertGreater(n, 300)
         self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='UCL1213'").fetchone()[0], 4)
-        self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='SERIEA1213'").fetchone()[0], 2)
+        self.assertEqual(c.execute("SELECT data_version FROM pack_versions WHERE edition_id='SERIEA1213'").fetchone()[0], 3)
         self.assertEqual(validate.check_edition(c, "UCL1213"), [])
 
 

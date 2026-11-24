@@ -89,6 +89,11 @@ tr.z-cl td { background: rgba(46,158,91,.17); } tr.z-cl2 td { background: rgba(4
 tr.z-el td { background: rgba(59,143,217,.17); } tr.z-el2 td { background: rgba(59,143,217,.11); }
 tr.z-el3 td { background: rgba(59,143,217,.06); } tr.z-rel td { background: rgba(217,83,79,.15); }
 .lgrid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.up { color: #3b6d11; font-size: 11px; margin-left: 4px; cursor: help; }
+.dlt { font-size: 11.5px; white-space: nowrap; } .dlt.p { color: #3b6d11; } .dlt.n { color: #a32d2d; }
+.lgrid section:first-child { overflow-x: auto; }
+.zmove { font-size: 10px; margin-left: 4px; padding: 0 5px; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); white-space: nowrap; }
+.lmoves { margin-top: 10px; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
 .lgrid table td { padding: 5px 6px; } .lgrid table th { padding: 4px 6px; }
 .lgrid .mlist { max-height: calc(100vh - 170px); overflow-y: auto; }
 .lstats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 16px; align-items: start; }
@@ -655,7 +660,15 @@ function zoneLegend(v) {
     ${v.classification ? `<div class="zl">${esc(v.classification)}</div>` : ""}`;
 }
 
+const ZSHORT = { cl: "Champions League", cl2: "Champions League", el: "Europa League", el2: "Europa League", el3: "Europa League", rel: "relegated", title: "title" };
+function leagueMoves(v) {
+  const rel = v.relegated_previous || [], pro = (v.promoted || []).map(t => v.teams[t] || t);
+  if (!rel.length && !pro.length) return "";
+  return `<div class="lmoves">${pro.length ? `<div><span class="up" style="margin:0">▲</span> Promoted from Serie B last season: ${pro.map(esc).join(" · ")}</div>` : ""}
+    ${rel.length ? `<div>Relegated from this league the season before (not in the table): ${rel.map(esc).join(" · ")}</div>` : ""}</div>`;
+}
 function renderLeague(v) {
+  const hasReal = !!Object.keys(v.real_pos || {}).length;
   const d = v.groups.A, focus = leagueTeam === "all" ? "" : (leagueTeam || v.club_focus || "");
   const fx = d.fixtures.filter(f => !focus || f.home === focus || f.away === focus);
   const pick = `<select id="leagueTeam">
@@ -663,11 +676,13 @@ function renderLeague(v) {
     ${d.table.map(r => `<option value="${r.team}"${r.team === focus ? " selected" : ""}>${esc(r.name)} matches</option>`).join("")}</select>`;
   return `<div class="lgrid">
     <section class="card"><h3>${esc(state_editions.find(e => e.edition_id === ED)?.name || "League")}</h3>
-      <table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>
+      <table><thead><tr><th>#</th><th>Team</th>${hasReal ? `<th title="Places moved compared with real history">Real</th>` : ""}<th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>
       ${d.table.map((r, i) => { const z = zoneOf(v, r.team, i + 1);
-        return `<tr class="${z ? "z-" + z.kind : ""}" ${r.team === v.club_focus ? 'style="font-weight:600"' : ""}><td>${i + 1}</td><td>${esc(r.name)}${meDot(r.team)}${i === 0 && v.champion === r.team ? " (C)" : ""}${z?.kind === "rel" ? " (R)" : ""}${r.adj ? ` <span class="lots" title="${esc(v.adjust_notes?.[r.team] || "")}">${r.adj > 0 ? "+" : ""}${r.adj}</span>` : ""}</td>
-        <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><b>${r.pts}</b></td></tr>`; }).join("")}
-      </tbody></table>${zoneLegend(v)}</section>
+        const rp = v.real_pos?.[r.team], zr = rp ? zoneOf(v, r.team, rp) : null, dl = rp ? rp - (i + 1) : 0;
+        const zm = rp && (zr?.label || "") !== (z?.label || "") ? `<span class="zmove" title="Really: ${esc(zr?.label || "mid-table")}">${esc(ZSHORT[z?.kind] || "mid-table")}</span>` : "";
+        return `<tr class="${z ? "z-" + z.kind : ""}" ${r.team === v.club_focus ? 'style="font-weight:600"' : ""}><td>${i + 1}</td><td>${esc(r.name)}${(v.promoted || []).includes(r.team) ? `<span class="up" title="Promoted from Serie B last season">▲</span>` : ""}${meDot(r.team)}${zm}${i === 0 && v.champion === r.team ? " (C)" : ""}${z?.kind === "rel" ? " (R)" : ""}${r.adj ? ` <span class="lots" title="${esc(v.adjust_notes?.[r.team] || "")}">${r.adj > 0 ? "+" : ""}${r.adj}</span>` : ""}</td>
+        ${hasReal ? `<td class="dlt ${dl > 0 ? "p" : dl < 0 ? "n" : ""}">${dl > 0 ? "+" + dl : dl < 0 ? "−" + (-dl) : ""}</td>` : ""}<td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><b>${r.pts}</b></td></tr>`; }).join("")}
+      </tbody></table>${zoneLegend(v)}${leagueMoves(v)}</section>
     <section class="card mlist"><h3>Matches ${pick}</h3>
       <ul class="fx">${fx.map(f => `
         <li data-fx="${f.fixture_id}" class="${f.status !== "historical" ? "edited" : ""}">
