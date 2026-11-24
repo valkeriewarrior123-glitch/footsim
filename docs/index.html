@@ -115,7 +115,8 @@ tr.z-el3 td:first-child { box-shadow: inset 4px 0 #b4d6f2; } tr.z-rel td:first-c
 .fx li.edited { background: var(--edit-soft); }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--edit); }
 
-.bracket { position: relative; display: grid; grid-template-columns: repeat(4, minmax(200px, 1fr)); gap: 16px 40px; overflow-x: auto; }
+.bracket { position: relative; display: grid; grid-template-columns: repeat(4, minmax(200px, 1fr)); gap: 16px 40px; overflow-x: auto; overflow-y: hidden; cursor: grab; }
+.bracket.grabbing { cursor: grabbing; user-select: none; }
 .bracket .lines { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
 .bracket .lines path { fill: none; stroke: var(--muted); stroke-width: 1.5; opacity: .55; }
 .bracket .lines path.dash { stroke-dasharray: 4 4; opacity: .35; }
@@ -146,6 +147,21 @@ details.tour .body { padding: 0 14px 14px; }
 .m .no { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
 .m .t { display: flex; justify-content: space-between; padding: 2px 0; }
 .m .t.w { font-weight: 700; font-size: 14.5px; }
+.tie2 { padding: 4px 8px; }
+.tie2 .t { display: grid; grid-template-columns: minmax(0, 1fr) 26px 26px 38px; gap: 0; align-items: stretch; padding: 0; border-top: 1px solid var(--line); }
+.tie2 .t:first-of-type, .tie2 .hint + .t { border-top: 0; }
+.tie2 .t > span { padding: 3px 0; }
+.tie2 .t > span:first-child { padding-right: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tie2 .t .lg, .tie2 .t .sc { text-align: center; border-left: 1px solid var(--line); font-size: 12.5px; }
+.tie2 .t .lg { color: var(--muted); font-weight: 400; }
+.tie2 .t .sc { font-weight: 700; white-space: nowrap; }
+.tie2 .hint { font-size: 10.5px; color: var(--muted); display: flex; justify-content: flex-end; }
+.tie2 .hint .tag { white-space: nowrap; font-size: 10px; padding: 0 6px; }
+.tiedlg .leg { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 4px; border-top: 1px solid var(--line); cursor: pointer; }
+.tiedlg .leg:hover { background: var(--bg); }
+.tiedlg .when { font-size: 12px; color: var(--muted); }
+.tiedlg .res { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; text-align: center; }
+.tiedlg .res span:first-child { text-align: right; } .tiedlg .res span:last-child { text-align: left; }
 .tie .legs { margin-top: 6px; padding-top: 4px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
 .tie .leg { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; cursor: pointer; }
 .tie .leg:hover { color: var(--ink); }
@@ -172,6 +188,7 @@ details.tour .body { padding: 0 14px 14px; }
           box-shadow: -8px 0 30px rgba(0,0,0,.12); transform: translateX(100%); transition: transform .2s; z-index: 20;
           display: flex; flex-direction: column; }
 .drawer.open { transform: none; }
+@media (min-width: 900px) and (max-width: 1799px) { body.dr-open .lgrid, body.dr-open .lstats { grid-template-columns: minmax(0, 1fr); } body.dr-open .lgrid .mlist { max-height: none; } }
 /* match panel: 480px beside the page when wide; menu tucks away when medium; half-and-half (page on top, panel below) when small */
 .drawer { width: min(480px, 100%); }
 @media (min-width: 900px) { body { transition: padding-right .2s; } body.dr-open { padding-right: 480px; } }
@@ -335,7 +352,7 @@ details.tour .body { padding: 0 14px 14px; }
   .toolbar { gap: 8px; }
 
   /* bracket: swipe sideways, one round at a time */
-  .bracket { grid-template-columns: repeat(4, 76vw); gap: 16px 28px; scroll-snap-type: x proximity; padding-bottom: 8px; }
+  .bracket { grid-template-columns: repeat(4, min(76vw, 300px)); gap: 16px 28px; scroll-snap-type: x proximity; padding-bottom: 8px; }
   .bracket .round { scroll-snap-align: start; }
 
   /* forms */
@@ -692,11 +709,26 @@ function renderGroups(v) {
 function tieCard(s) {
   const f = s.fixture, legs = s.legs || [];
   const w = f.winner, how = s.decided_by && s.decided_by !== "aggregate" ? `<span class="tag pend" title="Level on aggregate">${esc(s.decided_by)}</span>` : "";
-  const row = (t, sc) => `<div class="t ${w === t ? "w" : ""}"><span>${esc(tname(t))}</span><span class="sc">${sc}</span></div>`;
-  return `<div class="m tie ${s.stage === "F" ? "final" : ""}" data-no="${s.match_no}"><div class="no"><span>Aggregate</span>${how}</div>
-    ${row(f.home, f.home_score)}${row(f.away, f.away_score)}
-    <div class="legs">${legs.map((l, i) => `<div class="leg" data-fx="${l.fixture_id}" title="Open this leg">
-      <span>${i + 1}${["st", "nd"][i]} leg · ${fmtDate(l.date)}</span><span>${esc(tname(l.home))} <b>${l.home_score}–${l.away_score}</b> ${esc(tname(l.away))}</span></div>`).join("")}</div></div>`;
+  const legScore = (t, l) => l ? (l.home === t ? l.home_score : l.away_score) : "";
+  const pens = f.pen_home != null;
+  const row = (t, pen) => `<div class="t ${w === t ? "w" : ""}"><span>${esc(tname(t))}</span><span class="lg">${legScore(t, legs[0])}</span><span class="lg">${legScore(t, legs[1])}</span>
+    <span class="sc">${t === f.home ? f.home_score : f.away_score}${pens ? ` <span style="font-weight:400">(${pen})</span>` : ""}</span></div>`;
+  return `<div class="m tie2 ${s.stage === "F" ? "final" : ""}" data-no="${s.match_no}" data-tie="${s.match_no}" title="Show both games">${how ? `<div class="hint">${how}</div>` : ""}
+    ${row(f.home, f.pen_home)}${row(f.away, f.pen_away)}</div>`;
+}
+
+function tieDialog(no) {
+  const s = state.view.slots.find(x => String(x.match_no) === String(no));
+  if (!s?.legs) return;
+  const f = s.fixture, ord = ["1st", "2nd"];
+  $("#modalBox").innerHTML = `<div class="tiedlg"><h2 style="margin:0 0 8px">Two-legged tie</h2>
+    ${s.legs.map((l, i) => `<div class="leg" data-leg="${l.fixture_id}"><div><div class="when">${ord[i]} leg · ${fmtDate(l.date)}</div>
+      <div class="res"><span>${esc(tname(l.home))}</span><b>${l.home_score}–${l.away_score}</b><span>${esc(tname(l.away))}</span></div></div><span style="color:var(--muted);align-self:center">›</span></div>`).join("")}
+    <p style="margin:10px 0 0;font-size:13px;color:var(--muted)">Aggregate ${esc(tname(f.home))} ${f.home_score}–${f.away_score} ${esc(tname(f.away))}${f.pen_home != null ? ` · penalties ${f.pen_home}–${f.pen_away}` : ""}${s.decided_by && s.decided_by !== "aggregate" ? ` · decided on ${esc(s.decided_by)}` : ""}</p>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button id="tdClose">Close</button></div></div>`;
+  $("#modal").classList.add("open");
+  $("#tdClose").onclick = () => $("#modal").classList.remove("open");
+  $("#modalBox").querySelectorAll("[data-leg]").forEach(el => el.onclick = () => { $("#modal").classList.remove("open"); openFixture(el.dataset.leg); });
 }
 
 function matchCard(s) {
@@ -765,6 +797,22 @@ function drawBracketLines() {
   svg.innerHTML = paths;
 }
 window.addEventListener("resize", () => { if (state.tab === "bracket") drawBracketLines(); });
+(function bracketDrag() {                         // drag the bracket sideways with the mouse (touch already scrolls)
+  let down = false, moved = false, sx = 0, sl = 0, box = null;
+  document.addEventListener("pointerdown", e => {
+    box = e.target.closest?.("#bracket");
+    if (!box || e.pointerType !== "mouse" || e.button !== 0 || e.target.closest("input,select,textarea,button")) { box = null; return; }
+    down = true; moved = false; sx = e.clientX; sl = box.scrollLeft;
+  });
+  document.addEventListener("pointermove", e => {
+    if (!down || !box) return;
+    const dx = e.clientX - sx;
+    if (!moved && Math.abs(dx) > 5) { moved = true; box.classList.add("grabbing"); }
+    if (moved) box.scrollLeft = sl - dx;
+  });
+  document.addEventListener("pointerup", () => { if (box) box.classList.remove("grabbing"); down = false; setTimeout(() => { moved = false; }, 0); });
+  document.addEventListener("click", e => { if (moved && e.target.closest?.("#bracket")) { e.stopPropagation(); e.preventDefault(); } }, true);
+})();
 
 function renderSeason(list) {
   if (!list?.length) return "";
@@ -871,6 +919,7 @@ function changesDetail(d) {
 
 function bindMatches() {
   document.querySelectorAll("[data-fx]").forEach(el => el.onclick = () => openFixture(el.dataset.fx));
+  document.querySelectorAll("[data-tie]").forEach(el => el.onclick = () => tieDialog(el.dataset.tie));
   if (state.pick) document.querySelectorAll("[data-pick]").forEach(el => el.onclick = async ev => {
     ev.stopPropagation();
     const [no, team] = el.dataset.pick.split("|");
