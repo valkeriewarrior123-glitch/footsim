@@ -335,3 +335,16 @@ CREATE TABLE IF NOT EXISTS player_profiles (
     created_at       TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+------------------------------------------------------------
+-- OUTCOME LOCKS (Phase 9 bulk roller): what a branch's tournament/season must end up as
+------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS outcome_locks (
+    lock_id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    branch_id        INTEGER NOT NULL REFERENCES branches(branch_id),
+    edition_id       TEXT NOT NULL,
+    kind             TEXT NOT NULL,          -- champion | runner_up | third | score | player_total | golden_boot | league_position
+    params           TEXT NOT NULL,          -- JSON
+    created_at       TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

@@ -181,6 +181,7 @@ details.tour .body { padding: 0 14px 14px; }
 .sec { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 8px; display: flex; justify-content: space-between; align-items: center; }
 .msg { padding: 8px 10px; border-radius: 6px; margin-bottom: 10px; font-size: 13px; }
 .msg.err { background: var(--bad-soft); color: var(--bad); }
+.msg.ok { background: #e3f4ea; color: #1d6b3d; }
 .msg.info { background: var(--bg); color: var(--muted); }
 .ro .evline { padding: 3px 0; border-bottom: 1px dashed var(--line); display: flex; gap: 8px; }
 .ro .evline .mn { width: 34px; color: var(--muted); font-family: var(--mono); }
@@ -370,6 +371,7 @@ details.tour .body { padding: 0 14px 14px; }
   <button data-tab="stats">Stats &amp; awards</button>
   <button data-tab="player">My player</button>
   <button data-tab="library">Library</button>
+  <button data-tab="outcomes">Outcomes</button>
   <button data-tab="changes">Changes</button>
 </nav>
 <main id="main"></main>
@@ -382,9 +384,9 @@ details.tour .body { padding: 0 14px 14px; }
 
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 
-<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=5c5b6f181d", "seed": "footsim-seed.db?v=5c5b6f181d", "worker": "engine-worker.js?v=5c5b6f181d", "version": "5c5b6f181d", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
-<script src="cloud.js?v=5c5b6f181d"></script>
-<script src="engine.js?v=5c5b6f181d"></script>
+<script>window.FOOTSIM_CONFIG={"pyodideBase": "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/", "bundle": "footsim-bundle.zip?v=434d45db68", "seed": "footsim-seed.db?v=434d45db68", "worker": "engine-worker.js?v=434d45db68", "version": "434d45db68", "cloud": {"clientId": "c4785402-31fb-4985-86e4-11ba90a5c9f0", "folder": "FootSim", "authority": "https://login.microsoftonline.com/common", "file": "footsim-preview.db", "label": "Preview", "copyFrom": "footsim.db"}};</script>
+<script src="cloud.js?v=434d45db68"></script>
+<script src="engine.js?v=434d45db68"></script>
 <script>
 let ED = (() => { try { return localStorage.getItem("footsim.edition") || "WC2022"; } catch (e) { return "WC2022"; } })();
 let state_editions = [];
@@ -500,6 +502,7 @@ async function render() {
   else if (state.tab === "changes") m.innerHTML = await renderChanges();
   else if (state.tab === "player") return renderPlayerTab();
   else if (state.tab === "library") return renderLibraryTab();
+  else if (state.tab === "outcomes") return renderOutcomesTab();
   bindMatches();
   if ($("#leagueTeam")) $("#leagueTeam").onchange = e => { leagueTeam = e.target.value; render(); };
 }
@@ -1223,6 +1226,67 @@ function libraryRow(l) {
 }
 
 const TIER_NOTE = "The tier sets a starting value; fine-tune the overall. 75 is a typical World Cup starter.";
+
+
+// ---------------------------------------------------------------- outcomes (bulk roller)
+let outSeed = null;
+async function renderOutcomesTab() {
+  const m = $("#main");
+  if (!state.branch) { m.innerHTML = `<section class="card" style="max-width:760px"><h3>Outcomes</h3><div class="empty">Pick or create a branch first. Locks belong to a branch, and the real history is read-only.</div></section>`; return; }
+  const v = await api("GET", `/api/outcomes/${ED}${q()}`);
+  const lg = v.format === "league";
+  m.innerHTML = `<section class="card" style="max-width:760px"><h3>Outcomes</h3>
+    <p style="color:var(--muted);margin-top:0;font-size:13px">Lock what must be true. Everything else is rolled (real results are kept where they still fit). Preview shows what would change and keeps nothing. If your locks clash, you get the reason and nothing changes.</p>
+    <div id="olist">${v.locks.length ? v.locks.map(l => `<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:6px 0;margin:0"><span>${esc(l.text)}</span><button class="link" data-rm="${l.lock_id}" style="color:var(--bad)">Remove</button></div>`).join("") : `<div class="empty">No locks yet.</div>`}</div>
+    <div class="row" style="margin-top:10px"><select id="oKind">
+      ${lg ? `<option value="league_position">League position</option>` : `<option value="champion">Champion</option><option value="runner_up">Runner-up</option><option value="third">Third place</option>`}
+      <option value="score">Exact score</option><option value="player_total">Player goals / assists</option><option value="golden_boot">${lg ? "Top scorer" : "Golden Boot"}</option></select></div>
+    <div id="oForm" class="row"></div><div id="oMsg"></div>
+    <div class="row" style="margin-top:12px"><button class="primary" id="oPrev" ${v.locks.length ? "" : "disabled"}>Preview</button>
+      <button id="oClear" ${v.locks.length ? "" : "disabled"}>Clear all</button></div><div id="oRes"></div></section>`;
+  const teamSel = id => `<select id="${id}"><option value="">— team —</option>${v.teams.map(t => `<option value="${t.team}">${esc(t.name)}</option>`).join("")}</select>`;
+  const form = () => {
+    const k = $("#oKind").value, f = $("#oForm");
+    if (["champion", "runner_up", "third"].includes(k)) f.innerHTML = teamSel("oTeam") + `<button id="oAdd">Add lock</button>`;
+    else if (k === "league_position") f.innerHTML = teamSel("oTeam") + `<label>from <input id="oMin" type="number" min="1" value="1" style="width:56px"></label><label>to <input id="oMax" type="number" min="1" value="1" style="width:56px"></label><button id="oAdd">Add lock</button>`;
+    else if (k === "score") f.innerHTML = `<select id="oFix" style="max-width:100%"><option value="">— match —</option>${v.matches.map(x => `<option value="${x.fixture_id}">${esc((x.stage || "") + " · " + x.label + (x.score ? " (" + x.score + ")" : ""))}</option>`).join("")}</select>
+      <input id="oH" type="number" min="0" placeholder="home" style="width:64px"> – <input id="oA" type="number" min="0" placeholder="away" style="width:64px">
+      <input id="oPH" type="number" min="0" placeholder="pens home" style="width:84px"> <input id="oPA" type="number" min="0" placeholder="pens away" style="width:84px"><button id="oAdd">Add lock</button>`;
+    else {
+      f.innerHTML = teamSel("oTeam") + `<select id="oPlayer"><option value="">— player —</option></select>` +
+        (k === "player_total" ? `<input id="oG" type="number" min="0" placeholder="goals" style="width:70px"><input id="oAs" type="number" min="0" placeholder="assists" style="width:76px">` : "") + `<button id="oAdd">Add lock</button>`;
+      $("#oTeam").onchange = async e => {
+        const sq = e.target.value ? await api("GET", `/api/squad/${ED}/${e.target.value}${q()}`) : [];
+        $("#oPlayer").innerHTML = `<option value="">— player —</option>` + sq.map(p => `<option value="${p.player_id}">${esc(p.name)}</option>`).join("");
+      };
+    }
+    $("#oAdd").onclick = async () => {
+      const g = id => $(id)?.value;
+      const params = k === "score" ? { fixture_id: g("#oFix"), home: g("#oH"), away: g("#oA"), pen_home: g("#oPH"), pen_away: g("#oPA") }
+        : k === "league_position" ? { team: g("#oTeam"), min: g("#oMin"), max: g("#oMax") }
+        : ["player_total", "golden_boot"].includes(k) ? { player_id: g("#oPlayer"), goals: g("#oG"), assists: g("#oAs") } : { team: g("#oTeam") };
+      try { await api("POST", `/api/outcomes/${ED}${q()}`, { kind: k, params }); renderOutcomesTab(); }
+      catch (e) { $("#oMsg").innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+    };
+  };
+  $("#oKind").onchange = form; form();
+  m.querySelectorAll("[data-rm]").forEach(b => b.onclick = async () => { await api("DELETE", `/api/outcome_lock/${b.dataset.rm}${q()}`); renderOutcomesTab(); });
+  $("#oClear").onclick = async () => { await api("DELETE", `/api/outcomes/${ED}/clear${q()}`); renderOutcomesTab(); };
+  const run = async apply => {
+    $("#oRes").innerHTML = `<div class="empty">${apply ? "Applying…" : "Working…"}</div>`;
+    try {
+      const r = await api("POST", `/api/outcomes/${ED}/run${q()}`, { apply, seed: outSeed });
+      outSeed = r.seed;
+      if (!r.ok) { $("#oRes").innerHTML = `<div class="msg err"><b>These locks can't all be true. Nothing was changed.</b><ul>${r.contradictions.map(c => `<li>${esc(c.message)}</li>`).join("")}</ul></div>`; return; }
+      if (apply) { outSeed = null; await refresh(); await new Promise(r => setTimeout(r, 400)); $("#oRes").innerHTML = `<div class="msg ok">Applied. Every lock is true in this branch.</div>`; showDiff(r.diff); return; }
+      $("#oRes").innerHTML = `<div class="msg ok">All locks can be met. Nothing is saved yet.</div>
+        <div class="row" style="margin-top:8px"><button class="primary" id="oApply">Apply</button><button id="oShow">What would change</button><button id="oAgain">Roll again</button></div>`;
+      $("#oApply").onclick = () => run(true); $("#oShow").onclick = () => showDiff(r.diff);
+      $("#oAgain").onclick = () => { outSeed = null; run(false); };
+    } catch (e) { $("#oRes").innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+  };
+  $("#oPrev").onclick = () => { outSeed = null; run(false); };
+}
 
 async function renderLibraryTab() {
   const m = $("#main");

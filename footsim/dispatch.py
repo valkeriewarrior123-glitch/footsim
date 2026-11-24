@@ -9,7 +9,7 @@ import traceback
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from footsim import api, db, library
+from footsim import api, db, library, outcomes
 
 ROUTES = [
     ("GET", r"/api/branches", lambda c, q, b: api.list_branches(c)),
@@ -35,6 +35,11 @@ ROUTES = [
                                                                              b.get("third") or None)),
     ("GET", r"/api/player/(\w+)", lambda c, q, b, ed: api.player_view(c, ed, q)),
     ("POST", r"/api/player/(\w+)", lambda c, q, b, ed: api.create_player(c, ed, q, b)),
+    ("GET", r"/api/outcomes/(\w+)", lambda c, q, b, ed: outcomes.view(c, ed, q)),
+    ("POST", r"/api/outcomes/(\w+)", lambda c, q, b, ed: outcomes.add_lock(c, ed, q, b.get("kind"), b.get("params") or {})),
+    ("POST", r"/api/outcomes/(\w+)/run", lambda c, q, b, ed: outcomes.run(c, ed, q, bool(b.get("apply")), b.get("seed"))),
+    ("DELETE", r"/api/outcomes/(\w+)/clear", lambda c, q, b, ed: outcomes.clear_locks(c, ed, q)),
+    ("DELETE", r"/api/outcome_lock/(\d+)", lambda c, q, b, i: outcomes.delete_lock(c, q, int(i))),
     ("GET", r"/api/library", lambda c, q, b: library.list_profiles(c)),
     ("POST", r"/api/library", lambda c, q, b: library.create_profile(c, b)),
     ("POST", r"/api/library/save_branch_player", lambda c, q, b: library.save_branch_player(c, q, b.get("name"))),

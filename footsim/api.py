@@ -587,7 +587,7 @@ def history_diff(conn, edition_id: str, branch_id: int | None) -> dict:
     pending = {s.match_no for s in res.slots if s.status == "pending"}
     label = {"user_edit": "edited by you", "rolled": "rolled", "second_order_generated": "rolled",
              "reused_historical": "real result from another meeting", "suspension_fix": "lineup fixed (suspension)",
-             "cascade": "needs a result"}
+             "cascade": "needs a result", "outcome": "set by an outcome lock", "picked": "picked"}
     matches = []
     for fid, f in now.items():
         r = real.get(fid)
@@ -887,15 +887,30 @@ def pick_winner(conn, edition_id: str, branch_id: int, match_no: int, team: str,
     return {"ok": True, "diff": diff(conn, before, snapshot(conn, edition_id, branch_id), fixes)}
 
 
-def pick_podium(conn, edition_id: str, branch_id: int, first: str, second: str, third: str | None = None,
-                seed: int | None = None) -> dict:
-    """Choose the champion, runner-up and (optionally) third place; every other match fills in around them."""
+def _default_force(conn, edition_id, branch_id, slot, fixtures, team, rng) -> bool:
+    f = next(x for x in fixtures.values() if x.match_no == slot.match_no)
+    return _force_winner(conn, edition_id, branch_id, f, team, rng.randrange(1 << 30))
+
+
+def _default_roll(conn, edition_id, branch_id, slot, fixtures, rng) -> None:
     from footsim import roller
+    f = next(x for x in fixtures.values() if x.match_no == slot.match_no)
+    roller.roll_and_save(conn, edition_id, branch_id, f.fixture_id, seed=rng.randrange(1 << 30),
+                         origin="second_order_generated")
+
+
+def pick_podium(conn, edition_id: str, branch_id: int, first: str, second: str, third: str | None = None,
+                seed: int | None = None, force=None, roll=None, require_second: bool = True) -> dict:
+    """Choose the champion, runner-up and (optionally) third place; every other match fills in around them.
+
+    `force(conn, edition, branch, slot, fixtures, team, rng) -> changed` and `roll(...)` can be swapped
+    (the Outcomes engine does, to handle two-legged ties and locked scores)."""
     import random
+    force, roll = force or _default_force, roll or _default_roll
     if branch_id is None:
         raise EditError("Pick a branch first")
     picks = [t for t in (first, second, third) if t]
-    if len(set(picks)) != len(picks) or not first or not second:
+    if len(set(picks)) != len(picks) or not first or (not second and require_second):
         raise EditError("Pick a different team for each place (champion and runner-up are required)")
     tn = team_names(conn)
     rng = random.Random(seed)
@@ -924,16 +939,18 @@ def pick_podium(conn, edition_id: str, branch_id: int, first: str, second: str, 
             n = parent[n]
         return n
     sf = {t: semi_of(t) for t in picks}
-    if sf[first] == sf[second]:
+    if second and sf[first] == sf[second]:
         raise EditError(f"{tn.get(first, first)} and {tn.get(second, second)} are in the same half of the bracket, "
                         "so they can't both reach the final. Pick a runner-up from the other half.")
-    if third and sf[third] not in (sf[first], sf[second]):
+    if third and second and sf[third] not in (sf[first], sf[second]):
         raise EditError(f"{tn.get(third, third)} can't finish third: a third-placed team loses its semi-final to "
                         "the champion or runner-up, so it has to be in one of their halves.")
 
     def must_win(s):
         teams = {s.home, s.away}
         if s.stage == "F":
+            if second is None:
+                return first if first in teams else None
             if teams != {first, second}:
                 return "conflict"
             return first
@@ -945,7 +962,7 @@ def pick_podium(conn, edition_id: str, branch_id: int, first: str, second: str, 
             if first in teams and second in teams:
                 return "conflict"
             for t in (first, second):
-                if t in teams:
+                if t and t in teams:
                     return t
             if third and third in teams:
                 return "conflict"       # third must lose its semi to the champion or runner-up
@@ -955,7 +972,7 @@ def pick_podium(conn, edition_id: str, branch_id: int, first: str, second: str, 
             return "conflict"
         return hits[0] if hits else None
 
-    for _ in range(12):
+    for _ in range(60):
         res = engine.apply_cascade(conn, edition_id, branch_id)
         changed = False
         fx = timeline.active_fixtures(conn, edition_id, branch_id)
@@ -967,14 +984,12 @@ def pick_podium(conn, edition_id: str, branch_id: int, first: str, second: str, 
                 a, b = s.home, s.away
                 raise EditError(f"{tn.get(a, a)} and {tn.get(b, b)} meet in the {s.stage} (match {s.match_no}), "
                                 "so that podium can't happen. Pick teams from different parts of the bracket.")
-            f = next(x for x in fx.values() if x.match_no == s.match_no)
             if w is not None:
-                if _force_winner(conn, edition_id, branch_id, f, w, rng.randrange(1 << 30)):
+                if force(conn, edition_id, branch_id, s, fx, w, rng):
                     changed = True
                     break
             elif s.status == "pending":
-                roller.roll_and_save(conn, edition_id, branch_id, f.fixture_id, seed=rng.randrange(1 << 30),
-                                     origin="second_order_generated")
+                roll(conn, edition_id, branch_id, s, fx, rng)
                 changed = True
                 break
         if not changed:
